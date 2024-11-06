@@ -1,0 +1,11 @@
+.venv*
+dist
+*.egg-info
+build
+.vscode
+.idea
+__pycache__
+
+# pytest-cov
+.coverage*
+coverage.xml
