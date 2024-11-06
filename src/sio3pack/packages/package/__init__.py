@@ -1,1 +1,1 @@
-from .model import Package
+from sio3pack.packages.package.model import Package

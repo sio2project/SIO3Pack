@@ -1,1 +1,1 @@
-from .sinolpack import Sinolpack
+from sio3pack.packages.sinolpack import Sinolpack

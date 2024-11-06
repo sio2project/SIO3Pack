@@ -1,4 +1,4 @@
-from .file import File
+from sio3pack.files.file import File
 
 
 class FiletrackerFile(File):
