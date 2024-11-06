@@ -20,4 +20,4 @@ jobs:
       - name: Run isort and black
         run: |
           isort -c .
-          black --check
+          black --check .
