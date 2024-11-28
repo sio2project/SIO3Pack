@@ -4,6 +4,7 @@ from sio3pack.files.file import File
 from sio3pack.graph.graph import Graph
 from sio3pack.test.test import Test
 
+from sio3pack.packages import all_packages
 
 class Package:
     """
@@ -12,6 +13,12 @@ class Package:
 
     def __init__(self):
         pass
+
+    @classmethod
+    def from_file(cls, file: File):
+        for package_type in all_packages:
+            if package_type.identify(file):
+                return package_type(file)
 
     def get_task_id(self) -> str:
         pass
