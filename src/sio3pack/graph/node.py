@@ -1,6 +1,6 @@
-class Graph:
+class Node:
     """
-    A class to represent a job graph.
+    A class to represent a node in a graph.
     """
 
     def __init__(self, name: str):

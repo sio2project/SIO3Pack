@@ -6,4 +6,5 @@ class FiletrackerFile(File):
     Base class for all files in a package that are tracked by filetracker.
     """
 
-    pass
+    def __init__(self, path: str):
+        super().__init__(path)

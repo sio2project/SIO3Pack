@@ -6,4 +6,5 @@ class LocalFile(File):
     Base class for all files in a package that are stored locally.
     """
 
-    pass
+    def __init__(self, path: str):
+        super().__init__(path)
