@@ -2,23 +2,34 @@ from typing import Any
 
 from sio3pack.files.file import File
 from sio3pack.graph.graph import Graph
+from sio3pack.packages.exceptions import UnknownPackageType
 from sio3pack.test.test import Test
 
 from sio3pack.packages import all_packages
+from sio3pack.utils.archive import Archive
+from sio3pack.utils.classinit import RegisteredSubclassesBase
 
-class Package:
+
+class Package(RegisteredSubclassesBase):
     """
     Base class for all packages.
     """
+    abstract = True
 
-    def __init__(self):
-        pass
+    def __init__(self, file: File):
+        super().__init__()
+        self.file = file
+        if Archive.is_archive(file.path):
+            self.is_archive = True
+        else:
+            self.is_archive = False
 
     @classmethod
-    def from_file(cls, file: File):
-        for package_type in all_packages:
-            if package_type.identify(file):
-                return package_type(file)
+    def from_file(cls, file: File, django_settings=None):
+        for subclass in cls.subclasses:
+            if subclass.identify(file):
+                return subclass(file, django_settings)
+        raise UnknownPackageType
 
     def get_task_id(self) -> str:
         pass

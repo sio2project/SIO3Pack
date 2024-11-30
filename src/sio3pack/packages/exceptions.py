@@ -1,0 +1,2 @@
+class UnknownPackageType(Exception):
+    pass
