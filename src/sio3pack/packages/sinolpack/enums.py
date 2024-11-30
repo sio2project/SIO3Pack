@@ -8,10 +8,10 @@ class ModelSolutionKind(Enum):
 
     @classmethod
     def from_regex(cls, group):
-        if group == '':
+        if group == "":
             return cls.NORMAL
-        if group == 's':
+        if group == "s":
             return cls.SLOW
-        if group == 'b':
+        if group == "b":
             return cls.INCORRECT
         raise ValueError(f"Invalid model solution kind: {group}")

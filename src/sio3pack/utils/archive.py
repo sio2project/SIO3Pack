@@ -41,7 +41,7 @@ class UnsafeArchive(ArchiveException):
     """
 
 
-def extract(path, to_path='', ext='', **kwargs):
+def extract(path, to_path="", ext="", **kwargs):
     """
     Unpack the tar or zip file at the specified path to the directory
     specified by to_path.
@@ -54,7 +54,7 @@ class Archive(object):
     The external API class that encapsulates an archive implementation.
     """
 
-    def __init__(self, file, ext=''):
+    def __init__(self, file, ext=""):
         """
         Arguments:
         * 'file' can be a string path to a file or a file-like object.
@@ -66,7 +66,7 @@ class Archive(object):
         self._archive = self._archive_cls(self.filename, ext=ext)(self.filename)
 
     @staticmethod
-    def _archive_cls(file, ext=''):
+    def _archive_cls(file, ext=""):
         """
         Return the proper Archive implementation class, based on the file type.
         """
@@ -78,9 +78,7 @@ class Archive(object):
             try:
                 filename = file.name
             except AttributeError:
-                raise UnrecognizedArchiveFormat(
-                    "File object not a recognized archive format."
-                )
+                raise UnrecognizedArchiveFormat("File object not a recognized archive format.")
         lookup_filename = filename + ext
         base, tail_ext = os.path.splitext(lookup_filename.lower())
         cls = extension_map.get(tail_ext)
@@ -88,9 +86,7 @@ class Archive(object):
             base, ext = os.path.splitext(base)
             cls = extension_map.get(ext)
         if not cls:
-            raise UnrecognizedArchiveFormat(
-                "Path not a recognized archive format: %s" % filename
-            )
+            raise UnrecognizedArchiveFormat("Path not a recognized archive format: %s" % filename)
         return cls
 
     @classmethod
@@ -152,10 +148,10 @@ class BaseArchive(object):
         """
         self._archive.extractall(to_path)
 
-    def extract(self, to_path='', method='safe'):
-        if method == 'safe':
+    def extract(self, to_path="", method="safe"):
+        if method == "safe":
             self.check_files(to_path)
-        elif method == 'insecure':
+        elif method == "insecure":
             pass
         else:
             raise ValueError("Invalid method option")
@@ -175,8 +171,7 @@ class BaseArchive(object):
             extract_path = os.path.normpath(os.path.realpath(extract_path))
             if not extract_path.startswith(target_path):
                 raise UnsafeArchive(
-                    "Archive member destination is outside the target"
-                    " directory.  member: %s" % filename
+                    "Archive member destination is outside the target" " directory.  member: %s" % filename
                 )
 
 
@@ -189,14 +184,10 @@ class TarArchive(BaseArchive):
             self._archive = tarfile.open(fileobj=file)
 
     def filenames(self):
-        return [
-            tarinfo.name for tarinfo in self._archive.getmembers() if tarinfo.isfile()
-        ]
+        return [tarinfo.name for tarinfo in self._archive.getmembers() if tarinfo.isfile()]
 
     def dirnames(self):
-        return [
-            tarinfo.name for tarinfo in self._archive.getmembers() if tarinfo.isdir()
-        ]
+        return [tarinfo.name for tarinfo in self._archive.getmembers() if tarinfo.isdir()]
 
     def extracted_size(self):
         total = 0
@@ -226,25 +217,17 @@ class ZipArchive(BaseArchive):
         return total
 
     def filenames(self):
-        return [
-            zipinfo.filename
-            for zipinfo in self._archive.infolist()
-            if not zipinfo.is_dir()
-        ]
+        return [zipinfo.filename for zipinfo in self._archive.infolist() if not zipinfo.is_dir()]
 
     def dirnames(self):
-        return [
-            zipinfo.filename
-            for zipinfo in self._archive.infolist()
-            if zipinfo.is_dir()
-        ]
+        return [zipinfo.filename for zipinfo in self._archive.infolist() if zipinfo.is_dir()]
 
 
 extension_map = {
-    '.tar': TarArchive,
-    '.tar.bz2': TarArchive,
-    '.tar.gz': TarArchive,
-    '.tgz': TarArchive,
-    '.tz2': TarArchive,
-    '.zip': ZipArchive,
+    ".tar": TarArchive,
+    ".tar.bz2": TarArchive,
+    ".tar.gz": TarArchive,
+    ".tgz": TarArchive,
+    ".tz2": TarArchive,
+    ".zip": ZipArchive,
 }

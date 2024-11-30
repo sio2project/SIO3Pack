@@ -1,5 +1,6 @@
 # From oioioi/base/utils/__init__.py
 
+
 class ClassInitMeta(type):
     """Meta class triggering __classinit__ on class intialization."""
 
@@ -56,28 +57,24 @@ class RegisteredSubclassesBase(ClassInitBase):
 
     @classmethod
     def __classinit__(cls):
-        this_cls = globals().get('RegisteredSubclassesBase', cls)
+        this_cls = globals().get("RegisteredSubclassesBase", cls)
         super(this_cls, cls).__classinit__()
         if this_cls is cls:
             # This is RegisteredSubclassesBase class.
             return
 
-        assert 'subclasses' not in cls.__dict__, (
-            '%s defines attribute subclasses, but has '
-            'RegisteredSubclassesMeta metaclass' % (cls,)
-        )
+        assert (
+            "subclasses" not in cls.__dict__
+        ), "%s defines attribute subclasses, but has " "RegisteredSubclassesMeta metaclass" % (cls,)
         cls.subclasses = []
-        cls.abstract = cls.__dict__.get('abstract', False)
+        cls.abstract = cls.__dict__.get("abstract", False)
 
         def find_superclass(cls):
             superclasses = [c for c in cls.__bases__ if issubclass(c, this_cls)]
             if not superclasses:
                 return None
             if len(superclasses) > 1:
-                raise AssertionError(
-                    '%s derives from more than one '
-                    'RegisteredSubclassesBase' % (cls.__name__,)
-                )
+                raise AssertionError("%s derives from more than one " "RegisteredSubclassesBase" % (cls.__name__,))
             superclass = superclasses[0]
             return superclass
 

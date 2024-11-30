@@ -2,7 +2,7 @@ import os.path
 
 import pytest
 
-from tests.fixtures import package, package_archived, Compression, all_compressions
+from tests.fixtures import Compression, all_compressions, package, package_archived
 
 
 @pytest.mark.parametrize("package", ["simple"], indirect=True)

@@ -4,8 +4,6 @@ from sio3pack.files.file import File
 from sio3pack.graph.graph import Graph
 from sio3pack.packages.exceptions import UnknownPackageType
 from sio3pack.test.test import Test
-
-from sio3pack.packages import all_packages
 from sio3pack.utils.archive import Archive
 from sio3pack.utils.classinit import RegisteredSubclassesBase
 
@@ -14,6 +12,7 @@ class Package(RegisteredSubclassesBase):
     """
     Base class for all packages.
     """
+
     abstract = True
 
     def __init__(self, file: File):

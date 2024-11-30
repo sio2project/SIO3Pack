@@ -24,9 +24,9 @@ def _tar_archive(dir, dest, compression=None):
     Create a tar archive of the specified directory.
     """
     if compression is None:
-        mode = 'w'
+        mode = "w"
     else:
-        mode = f'w:{compression}'
+        mode = f"w:{compression}"
     with tarfile.open(dest, mode) as tar:
         tar.add(dir, arcname=os.path.basename(dir))
 
@@ -35,7 +35,7 @@ def _zip_archive(dir, dest):
     """
     Create a zip archive of the specified directory.
     """
-    with zipfile.ZipFile(dest, 'w') as zip:
+    with zipfile.ZipFile(dest, "w") as zip:
         for root, dirs, files in os.walk(dir):
             for file in files:
                 zip.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), dir))
@@ -69,6 +69,7 @@ def _create_package(package_name, tmpdir, archive=False, extension="zip"):
         package_path = os.path.join(tmpdir.name, f"{task_id}.{extension}")
 
     return package_path, type
+
 
 @pytest.fixture
 def package(request):
