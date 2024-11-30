@@ -6,9 +6,7 @@ import yaml
 
 from sio3pack import LocalFile
 from sio3pack.files import File
-from sio3pack.graph import Graph
-from sio3pack.graph import GraphManager
-from sio3pack.graph import GraphOperation
+from sio3pack.graph import Graph, GraphManager, GraphOperation
 from sio3pack.packages.package import Package
 from sio3pack.packages.sinolpack.enums import ModelSolutionKind
 from sio3pack.util import naturalsort_key

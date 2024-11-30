@@ -66,7 +66,7 @@ class Archive(object):
         self._archive = self._archive_cls(self.filename, ext=ext)(self.filename)
 
     def __str__(self):
-        return f'<Archive({self._archive.__class__.__name__}) {self.filename}>'
+        return f"<Archive({self._archive.__class__.__name__}) {self.filename}>"
 
     @staticmethod
     def _archive_cls(file, ext=""):
