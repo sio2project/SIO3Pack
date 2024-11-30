@@ -65,6 +65,9 @@ class Archive(object):
         self.filename = file
         self._archive = self._archive_cls(self.filename, ext=ext)(self.filename)
 
+    def __str__(self):
+        return f'<Archive({self._archive.__class__.__name__}) {self.filename}>'
+
     @staticmethod
     def _archive_cls(file, ext=""):
         """
@@ -220,7 +223,13 @@ class ZipArchive(BaseArchive):
         return [zipinfo.filename for zipinfo in self._archive.infolist() if not zipinfo.is_dir()]
 
     def dirnames(self):
-        return [zipinfo.filename for zipinfo in self._archive.infolist() if zipinfo.is_dir()]
+        dirs = set()
+        for zipinfo in self._archive.infolist():
+            if zipinfo.is_dir():
+                dirs.add(zipinfo.filename)
+            else:
+                dirs.add(os.path.dirname(zipinfo.filename))
+        return list(dirs)
 
 
 extension_map = {

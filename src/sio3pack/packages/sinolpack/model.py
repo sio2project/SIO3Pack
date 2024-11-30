@@ -4,10 +4,11 @@ import tempfile
 
 import yaml
 
-from sio3pack.files.file import File
-from sio3pack.graph.graph import Graph
-from sio3pack.graph.graph_manager import GraphManager
-from sio3pack.graph.graph_op import GraphOperation
+from sio3pack import LocalFile
+from sio3pack.files import File
+from sio3pack.graph import Graph
+from sio3pack.graph import GraphManager
+from sio3pack.graph import GraphOperation
 from sio3pack.packages.package import Package
 from sio3pack.packages.sinolpack.enums import ModelSolutionKind
 from sio3pack.util import naturalsort_key
@@ -37,7 +38,7 @@ class Sinolpack(Package):
         return None
 
     @classmethod
-    def identify(cls, file: File) -> bool:
+    def identify(cls, file: LocalFile) -> bool:
         """
         Identifies whether file is a Sinolpack.
 
@@ -57,21 +58,25 @@ class Sinolpack(Package):
 
     def __init__(self, file: File, django_settings=None):
         super().__init__(file)
-        if self.is_archive:
-            archive = Archive(file.path)
-            self.short_name = self._find_main_dir(archive)
-            self.tmpdir = tempfile.TemporaryDirectory()
-            archive.extract(to_path=self.tmpdir.name)
-            self.rootdir = os.path.join(self.tmpdir.name, self.short_name)
-        else:
-            self.short_name = os.path.basename(file.path)
-            self.rootdir = file.path
 
-        try:
-            graph_file = self.get_in_root("graph.json")
-            self.graph_manager = GraphManager.from_file(graph_file)
-        except FileNotFoundError:
-            self.has_custom_graph = False
+        if isinstance(file, LocalFile):
+            if self.is_archive:
+                archive = Archive(file.path)
+                self.short_name = self._find_main_dir(archive)
+                self.tmpdir = tempfile.TemporaryDirectory()
+                archive.extract(to_path=self.tmpdir.name)
+                self.rootdir = os.path.join(self.tmpdir.name, self.short_name)
+            else:
+                self.short_name = os.path.basename(file.path)
+                self.rootdir = file.path
+
+            try:
+                graph_file = self.get_in_root("graph.json")
+                self.graph_manager = GraphManager.from_file(graph_file)
+            except FileNotFoundError:
+                self.has_custom_graph = False
+        else:
+            raise NotImplementedError()
 
         self.django_settings = django_settings
 
@@ -98,17 +103,17 @@ class Sinolpack(Package):
         """
         return os.path.join(self.rootdir, "doc")
 
-    def get_in_doc_dir(self, filename: str) -> File:
+    def get_in_doc_dir(self, filename: str) -> LocalFile:
         """
         Returns the path to the input file in the documents' directory.
         """
-        return File(os.path.join(self.get_doc_dir(), filename))
+        return LocalFile(os.path.join(self.get_doc_dir(), filename))
 
-    def get_in_root(self, filename: str) -> File:
+    def get_in_root(self, filename: str) -> LocalFile:
         """
         Returns the path to the input file in the root directory.
         """
-        return File(os.path.join(self.rootdir, filename))
+        return LocalFile(os.path.join(self.rootdir, filename))
 
     def get_prog_dir(self) -> str:
         """
@@ -116,11 +121,11 @@ class Sinolpack(Package):
         """
         return os.path.join(self.rootdir, "prog")
 
-    def get_in_prog_dir(self, filename: str) -> File:
+    def get_in_prog_dir(self, filename: str) -> LocalFile:
         """
         Returns the path to the input file in the program directory.
         """
-        return File(os.path.join(self.get_prog_dir(), filename))
+        return LocalFile(os.path.join(self.get_prog_dir(), filename))
 
     def get_attachments_dir(self) -> str:
         """
@@ -247,7 +252,7 @@ class Sinolpack(Package):
             for file in ("ingen", "inwer", "soc", "chk"):
                 try:
                     self.additional_files.append(
-                        File.get_file_matching_extension(
+                        LocalFile.get_file_matching_extension(
                             self.get_prog_dir(), self.short_name + file, extensions
                         ).filename
                     )

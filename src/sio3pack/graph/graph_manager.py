@@ -1,6 +1,6 @@
 import json
 
-from sio3pack import File
+from sio3pack.files import File
 from sio3pack.graph.graph import Graph
 
 

@@ -2,20 +2,19 @@ import os.path
 
 import pytest
 
-from tests.fixtures import Compression, all_compressions, package, package_archived
+import sio3pack
+from sio3pack.packages import Sinolpack
+from tests.fixtures import Compression, all_compressions, get_package, get_archived_package, PackageInfo
 
 
-@pytest.mark.parametrize("package", ["simple"], indirect=True)
-def test_simple(package):
-    package_path, type = package
-    assert type == "sinolpack"
-    print(os.listdir(package_path))
-    assert os.path.isdir(package_path)
-
-
-@pytest.mark.parametrize("package_archived", [("simple", c) for c in all_compressions], indirect=True)
-def test_archive(package_archived):
-    package_path, type = package_archived
-    assert type == "sinolpack"
-    print(package_path)
-    assert os.path.isfile(package_path)
+@pytest.mark.parametrize("get_archived_package", [("simple", c) for c in Compression], indirect=True)
+def test_from_file(get_archived_package):
+    package_info: PackageInfo = get_archived_package()
+    assert package_info.type == "sinolpack"
+    package = sio3pack.from_file(package_info.path)
+    assert isinstance(package, Sinolpack)
+    assert package.short_name == package_info.task_id
+    if package_info.is_archive():
+        assert package.is_archive
+    else:
+        assert package.rootdir == package_info.path

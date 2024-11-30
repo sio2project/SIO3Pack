@@ -1,5 +1,5 @@
-from sio3pack.files.file import File
-from sio3pack.test.test import Test
+from sio3pack.files import File
+from sio3pack.test import Test
 
 
 class SimpleTest(Test):

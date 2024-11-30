@@ -19,6 +19,17 @@ class Compression(Enum):
 all_compressions = [c.value for c in Compression if c != Compression.NONE]
 
 
+class PackageInfo:
+    def __init__(self, path, type, task_id, compression):
+        self.path = path
+        self.type = type
+        self.task_id = task_id
+        self.compression = compression
+
+    def is_archive(self):
+        return self.compression != Compression.NONE
+
+
 def _tar_archive(dir, dest, compression=None):
     """
     Create a tar archive of the specified directory.
@@ -38,10 +49,12 @@ def _zip_archive(dir, dest):
     with zipfile.ZipFile(dest, "w") as zip:
         for root, dirs, files in os.walk(dir):
             for file in files:
-                zip.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), dir))
+                file_path = os.path.join(root, file)
+                arcname = os.path.join(os.path.basename(dir), os.path.relpath(file_path, dir))
+                zip.write(file_path, arcname)
 
 
-def _create_package(package_name, tmpdir, archive=False, extension="zip"):
+def _create_package(package_name, tmpdir, archive=False, extension=Compression.ZIP):
     packages = os.path.join(os.path.dirname(__file__), "test_packages")
     if not os.path.exists(os.path.join(packages, package_name)):
         raise FileNotFoundError(f"Package {package_name} does not exist")
@@ -58,43 +71,46 @@ def _create_package(package_name, tmpdir, archive=False, extension="zip"):
     os.unlink(os.path.join(package_path, "__init__.py"))
 
     if archive:
-        if extension == "zip":
+        if extension == Compression.ZIP:
             _zip_archive(package_path, os.path.join(tmpdir.name, f"{task_id}.zip"))
-        elif extension == "tar":
-            _tar_archive(package_path, os.path.join(tmpdir.name, f"{task_id}.tar"))
-        elif extension == "tar.gz" or extension == "tgz":
-            _tar_archive(package_path, os.path.join(tmpdir.name, f"{task_id}.{extension}"), "gz")
+        elif extension == Compression.TAR_GZ or extension == Compression.TGZ:
+            _tar_archive(package_path, os.path.join(tmpdir.name, f"{task_id}.{extension.value}"), "gz")
         else:
             raise ValueError(f"Unknown extension {extension}")
-        package_path = os.path.join(tmpdir.name, f"{task_id}.{extension}")
+        package_path = os.path.join(tmpdir.name, f"{task_id}.{extension.value}")
 
-    return package_path, type
+    return PackageInfo(
+        path=package_path,
+        type=type,
+        task_id=task_id,
+        compression=extension,
+    )
 
 
 @pytest.fixture
-def package(request):
+def get_package(request):
     """
     Fixture to create a temporary directory with specified package.
     """
     package_name = request.param
     tmpdir = tempfile.TemporaryDirectory()
-    package_path, type = _create_package(package_name, tmpdir)
+    package_info = _create_package(package_name, tmpdir)
 
-    yield package_path, type
+    yield lambda: package_info
 
     tmpdir.cleanup()
 
 
 @pytest.fixture
-def package_archived(request):
+def get_archived_package(request):
     """
     Fixture to create a temporary directory with specified package, but archived.
     """
     package_name, extension = request.param
     archive = extension != Compression.NONE
     tmpdir = tempfile.TemporaryDirectory()
-    package_path, type = _create_package(package_name, tmpdir, archive, extension)
+    package_info = _create_package(package_name, tmpdir, archive, extension)
 
-    yield package_path, type
+    yield lambda: package_info
 
     tmpdir.cleanup()

@@ -5,7 +5,7 @@ class Graph:
 
     @classmethod
     def from_dict(cls, data: dict):
-        raise NotImplemented
+        raise NotImplementedError()
 
     def __init__(self, name: str):
         self.name = name
@@ -14,4 +14,4 @@ class Graph:
         """
         Get all program files in the graph.
         """
-        raise NotImplemented
+        raise NotImplementedError()
