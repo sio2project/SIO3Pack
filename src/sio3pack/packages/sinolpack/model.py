@@ -54,27 +54,26 @@ class Sinolpack(Package):
         if hasattr(self, "tmpdir"):
             self.tmpdir.cleanup()
 
-    def __init__(self, file: File, django_settings=None):
-        super().__init__(file)
+    def __init__(self):
+        super().__init__()
 
-        if isinstance(file, LocalFile):
-            if self.is_archive:
-                archive = Archive(file.path)
-                self.short_name = self._find_main_dir(archive)
-                self.tmpdir = tempfile.TemporaryDirectory()
-                archive.extract(to_path=self.tmpdir.name)
-                self.rootdir = os.path.join(self.tmpdir.name, self.short_name)
-            else:
-                self.short_name = os.path.basename(file.path)
-                self.rootdir = file.path
-
-            try:
-                graph_file = self.get_in_root("graph.json")
-                self.graph_manager = GraphManager.from_file(graph_file)
-            except FileNotFoundError:
-                self.has_custom_graph = False
+    def _from_file(self, file: LocalFile, django_settings=None):
+        super()._from_file(file)
+        if self.is_archive:
+            archive = Archive(file.path)
+            self.short_name = self._find_main_dir(archive)
+            self.tmpdir = tempfile.TemporaryDirectory()
+            archive.extract(to_path=self.tmpdir.name)
+            self.rootdir = os.path.join(self.tmpdir.name, self.short_name)
         else:
-            raise NotImplementedError()
+            self.short_name = os.path.basename(file.path)
+            self.rootdir = file.path
+
+        try:
+            graph_file = self.get_in_root("graph.json")
+            self.graph_manager = GraphManager.from_file(graph_file)
+        except FileNotFoundError:
+            self.has_custom_graph = False
 
         self.django_settings = django_settings
 

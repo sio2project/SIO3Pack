@@ -2,7 +2,7 @@ from typing import Any
 
 from sio3pack import LocalFile
 from sio3pack.files import File
-from sio3pack.graph import Graph
+from sio3pack.graph import Graph, GraphOperation
 from sio3pack.packages.exceptions import UnknownPackageType
 from sio3pack.test import Test
 from sio3pack.utils.archive import Archive
@@ -16,14 +16,8 @@ class Package(RegisteredSubclassesBase):
 
     abstract = True
 
-    def __init__(self, file: File):
+    def __init__(self):
         super().__init__()
-        self.file = file
-        if isinstance(file, LocalFile):
-            if Archive.is_archive(file.path):
-                self.is_archive = True
-            else:
-                self.is_archive = False
 
     @classmethod
     def from_file(cls, file: LocalFile, django_settings=None):
@@ -31,6 +25,14 @@ class Package(RegisteredSubclassesBase):
             if subclass.identify(file):
                 return subclass(file, django_settings)
         raise UnknownPackageType(file.path)
+
+    def _from_file(self, file: LocalFile):
+        self.file = file
+        if isinstance(file, LocalFile):
+            if Archive.is_archive(file.path):
+                self.is_archive = True
+            else:
+                self.is_archive = False
 
     def get_task_id(self) -> str:
         pass
@@ -56,7 +58,7 @@ class Package(RegisteredSubclassesBase):
     def get_test(self, test_id: str) -> Test:
         pass
 
-    def get_package_graph(self) -> Graph:
+    def get_unpack_graph(self) -> GraphOperation | None:
         pass
 
     def get_run_graph(self, file: File, tests: list[Test] | None = None) -> Graph:
