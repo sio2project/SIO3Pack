@@ -1,9 +1,11 @@
+import importlib
 from typing import Any
 
 from sio3pack import LocalFile
 from sio3pack.files import File
 from sio3pack.graph import Graph, GraphOperation
 from sio3pack.packages.exceptions import UnknownPackageType
+from sio3pack.packages.package.django.handler import NoDjangoHandler
 from sio3pack.test import Test
 from sio3pack.utils.archive import Archive
 from sio3pack.utils.classinit import RegisteredSubclassesBase
@@ -20,10 +22,22 @@ class Package(RegisteredSubclassesBase):
         super().__init__()
 
     @classmethod
+    def identify(cls, file: LocalFile):
+        """
+        Identify if the package is of this type.
+        """
+        raise NotImplementedError()
+
+    @classmethod
     def from_file(cls, file: LocalFile, django_settings=None):
+        """
+        Create a package from a file.
+        """
         for subclass in cls.subclasses:
             if subclass.identify(file):
-                return subclass(file, django_settings)
+                package = subclass()
+                package._from_file(file, django_settings)
+                return package
         raise UnknownPackageType(file.path)
 
     def _from_file(self, file: LocalFile):
@@ -33,6 +47,50 @@ class Package(RegisteredSubclassesBase):
                 self.is_archive = True
             else:
                 self.is_archive = False
+
+    @classmethod
+    def identify_db(cls, problem_id: int):
+        """
+        Identify if the package is of this type. Should check if there
+        is a package of this type in the database with the given problem_id.
+        """
+        raise NotImplementedError()
+
+    @classmethod
+    def from_db(cls, problem_id: int):
+        """
+        Create a package from the database. If sio3pack isn't installed with Django
+        support, it should raise an ImproperlyConfigured exception. If there is no
+        package with the given problem_id, it should raise an UnknownPackageType
+        exception.
+        """
+        for subclass in cls.subclasses:
+            if subclass.identify_db(problem_id):
+                package = subclass()
+                package._from_db(problem_id)
+                return package
+        raise UnknownPackageType(problem_id)
+
+    def _from_db(self, problem_id: int):
+        """
+        Internal method to setup the package from the database. If sio3pack
+        isn't installed with Django support, it should raise an ImproperlyConfigured
+        exception.
+        """
+        self.problem_id = problem_id
+
+    def _setup_django_handler(self, handler: str, problem_id: int):
+        try:
+            import django
+            self.django_enabled = True
+            module_path, class_name = handler.rsplit('.', 1)
+            module = importlib.import_module(module_path)
+            handler = getattr(module, class_name)
+            self.django = handler(package=self, problem_id=problem_id)
+        except ImportError as e:
+            print(e)
+            self.django_enabled = False
+            self.django = NoDjangoHandler()
 
     def get_task_id(self) -> str:
         pass
@@ -65,4 +123,11 @@ class Package(RegisteredSubclassesBase):
         pass
 
     def get_save_outs_graph(self, tests: list[Test] | None = None) -> Graph:
+        pass
+
+    def save_to_db(self, problem_id: int):
+        """
+        Save the package to the database. If sio3pack isn't installed with Django
+        support, it should raise an ImproperlyConfigured exception.
+        """
         pass

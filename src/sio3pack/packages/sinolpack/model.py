@@ -5,8 +5,9 @@ import tempfile
 import yaml
 
 from sio3pack import LocalFile
-from sio3pack.files import File
+from sio3pack.django.sinolpack.handler import SinolpackDjangoHandler
 from sio3pack.graph import Graph, GraphManager, GraphOperation
+from sio3pack.packages.exceptions import ImproperlyConfigured
 from sio3pack.packages.package import Package
 from sio3pack.packages.sinolpack.enums import ModelSolutionKind
 from sio3pack.util import naturalsort_key
@@ -50,6 +51,19 @@ class Sinolpack(Package):
         except UnrecognizedArchiveFormat:
             return os.path.exists(os.path.join(path, "in")) and os.path.exists(os.path.join(path, "out"))
 
+    @classmethod
+    def identify_from_db(cls, problem_id: int) -> bool:
+        """
+        Identifies whether problem is a Sinolpack.
+
+        :param problem_id: ID of the problem.
+        :return: True when problem is a Sinolpack, otherwise False.
+        """
+        from sio3pack.django.sinolpack.models import SinolpackPackage
+        if SinolpackPackage.objects.filter(problem_id=problem_id).exists():
+            return True
+        return False
+
     def __del__(self):
         if hasattr(self, "tmpdir"):
             self.tmpdir.cleanup()
@@ -76,6 +90,12 @@ class Sinolpack(Package):
             self.has_custom_graph = False
 
         self.django_settings = django_settings
+
+    def _from_db(self, problem_id: int):
+        super()._from_db(problem_id)
+        super()._setup_django_handler(SinolpackDjangoHandler, problem_id)
+        if not self.django_enabled:
+            raise ImproperlyConfigured("sio3pack is not installed with Django support.")
 
     def _default_graph_manager(self) -> GraphManager:
         return GraphManager(
@@ -331,3 +351,13 @@ class Sinolpack(Package):
         """
         # TODO: implement. The unpack will probably return tests, so we need to process them.
         pass
+
+    def save_to_db(self, problem_id: int):
+        """
+        Save the package to the database. If sio3pack isn't installed with Django
+        support, it should raise an ImproperlyConfigured exception.
+        """
+        self._setup_django_handler("sio3pack.django.sinolpack.handler.SinolpackDjangoHandler", problem_id)
+        if not self.django_enabled:
+            raise ImproperlyConfigured("sio3pack is not installed with Django support.")
+        self.django.save_to_db()
