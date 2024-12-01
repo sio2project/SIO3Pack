@@ -27,6 +27,7 @@ def from_db(problem_id: int) -> Package:
     """
     try:
         import django
+
         return Package.from_db(problem_id)
     except ImportError:
         raise ImproperlyConfigured("sio3pack is not installed with Django support.")

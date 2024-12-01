@@ -1,6 +1,6 @@
+from sio3pack.django.sinolpack.models import SinolpackPackage
 from sio3pack.packages.exceptions import PackageAlreadyExists
 from sio3pack.packages.package.django.handler import DjangoHandler
-from sio3pack.django.sinolpack.models import SinolpackPackage
 
 
 class SinolpackDjangoHandler(DjangoHandler):

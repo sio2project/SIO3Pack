@@ -1,9 +1,9 @@
 import pytest
 
 import sio3pack
-from sio3pack.packages import Sinolpack
 from sio3pack.django.sinolpack.models import SinolpackPackage
-from tests.fixtures import Compression, get_archived_package, PackageInfo
+from sio3pack.packages import Sinolpack
+from tests.fixtures import Compression, PackageInfo, get_archived_package
 
 
 @pytest.mark.django_db

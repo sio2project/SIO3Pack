@@ -60,6 +60,7 @@ class Sinolpack(Package):
         :return: True when problem is a Sinolpack, otherwise False.
         """
         from sio3pack.django.sinolpack.models import SinolpackPackage
+
         if SinolpackPackage.objects.filter(problem_id=problem_id).exists():
             return True
         return False

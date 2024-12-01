@@ -1,8 +1,8 @@
 import pytest
 
-
 try:
     import django
+
     __django_installed = True
 except ImportError:
     __django_installed = False

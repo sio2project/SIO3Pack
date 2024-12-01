@@ -7,16 +7,15 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='SinolpackPackage',
+            name="SinolpackPackage",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('problem_id', models.IntegerField()),
-                ('short_name', models.CharField(max_length=100)),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("problem_id", models.IntegerField()),
+                ("short_name", models.CharField(max_length=100)),
             ],
         ),
     ]
