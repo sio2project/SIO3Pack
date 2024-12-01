@@ -87,8 +87,7 @@ class Package(RegisteredSubclassesBase):
             module = importlib.import_module(module_path)
             handler = getattr(module, class_name)
             self.django = handler(package=self, problem_id=problem_id)
-        except ImportError as e:
-            print(e)
+        except ImportError:
             self.django_enabled = False
             self.django = NoDjangoHandler()
 
