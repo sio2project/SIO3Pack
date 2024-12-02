@@ -1,1 +1,1 @@
-from sio3pack.test import Test
+from sio3pack.test.test import Test

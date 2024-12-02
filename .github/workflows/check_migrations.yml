@@ -1,0 +1,23 @@
+name: migrations
+run-name: Check if all migrations are created
+on:
+  push:
+    branches: 'main'
+  pull_request:
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    name: migrations-ubuntu
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.12
+      - name: Install dependencies
+        run: |
+          pip3 install .[django]
+      - name: Check migrations
+        run: |
+          python3 tests/test_django/manage.py makemigrations --dry-run --check

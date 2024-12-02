@@ -1,0 +1,47 @@
+name: pytest-macos
+run-name: Run pytest on macOS
+on:
+  push:
+    branches: 'main'
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: macos-latest
+    strategy:
+        matrix:
+            python-version: ["3.10", "3.13"]
+    name: pytest-macos-python-${{ matrix.python-version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+      - name: Install Homebrew dependencies
+        run: |
+          rm -f /usr/local/bin/2to3* /usr/local/bin/python3* /usr/local/bin/idle3* \
+          /usr/local/bin/pydoc3* # Homebrew will fail if these exist
+          brew install virtualenv
+      - name: Install Python dependencies
+        run: |
+          python3 -m venv .venv
+          source .venv/bin/activate
+          pip install -e .[tests]
+      - name: Run pytest without Django
+        env:
+          PYTEST_ADDOPTS: "--color=yes"
+        run: |
+          source .venv/bin/activate
+          pytest -v -n auto
+      - name: Run pytest with Django
+        env:
+          PYTEST_ADDOPTS: "--color=yes"
+        run: |
+          source .venv/bin/activate
+          pip install -e .[tests,django_tests,django]
+          ./tests/test_django/manage.py migrate
+          pytest -v -n auto
