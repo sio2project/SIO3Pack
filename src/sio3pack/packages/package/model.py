@@ -79,12 +79,12 @@ class Package(RegisteredSubclassesBase):
         """
         self.problem_id = problem_id
 
-    def _setup_django_handler(self, handler: str, problem_id: int):
+    def _setup_django_handler(self, problem_id: int):
         try:
             import django
 
             self.django_enabled = True
-            module_path, class_name = handler.rsplit(".", 1)
+            module_path, class_name = self.django_handler.rsplit(".", 1)
             module = importlib.import_module(module_path)
             handler = getattr(module, class_name)
             self.django = handler(package=self, problem_id=problem_id)
@@ -119,10 +119,10 @@ class Package(RegisteredSubclassesBase):
     def get_unpack_graph(self) -> GraphOperation | None:
         pass
 
-    def get_run_graph(self, file: File, tests: list[Test] | None = None) -> Graph:
+    def get_run_graph(self, file: File, tests: list[Test] | None = None) -> GraphOperation | None:
         pass
 
-    def get_save_outs_graph(self, tests: list[Test] | None = None) -> Graph:
+    def get_save_outs_graph(self, tests: list[Test] | None = None) -> GraphOperation | None:
         pass
 
     def save_to_db(self, problem_id: int):
