@@ -5,7 +5,6 @@ import tempfile
 import yaml
 
 from sio3pack import LocalFile
-from sio3pack.django.sinolpack.handler import SinolpackDjangoHandler
 from sio3pack.graph import Graph, GraphManager, GraphOperation
 from sio3pack.packages.exceptions import ImproperlyConfigured
 from sio3pack.packages.package import Package
@@ -164,7 +163,9 @@ class Sinolpack(Package):
 
         if not self.has_custom_graph:
             # Create the graph with processed files.
-            self.graph_manager = self._default_graph_manager()
+            # TODO: Uncomment this line when Graph will work.
+            # self.graph_manager = self._default_graph_manager()
+            pass
 
     def _process_config_yml(self):
         """

@@ -1,3 +1,4 @@
+import pathlib
 import pytest
 
 try:
@@ -15,6 +16,6 @@ def pytest_collection_modifyitems(config, items):
                 item.add_marker(pytest.mark.skip(reason="Django is installed, skipping no_django tests."))
 
 
-def pytest_ignore_collect(path, config):
+def pytest_ignore_collect(collection_path, config):
     if not __django_installed:
-        return "test_django" in str(path)
+        return "test_django" in str(collection_path)
