@@ -6,7 +6,7 @@ on:
   pull_request:
 jobs:
   pytest:
-    runs-on: archlinux:latest
+    runs-on: archlinux-latest
     strategy:
         matrix:
             python-version: ["3.9", "3.13"]
