@@ -5,6 +5,7 @@ build
 .vscode
 .idea
 __pycache__
+tests/test_django/db.sqlite3
 
 # pytest-cov
 .coverage*

@@ -5,8 +5,8 @@ import tempfile
 import yaml
 
 from sio3pack import LocalFile
-from sio3pack.files import File
 from sio3pack.graph import Graph, GraphManager, GraphOperation
+from sio3pack.packages.exceptions import ImproperlyConfigured
 from sio3pack.packages.package import Package
 from sio3pack.packages.sinolpack.enums import ModelSolutionKind
 from sio3pack.util import naturalsort_key
@@ -17,6 +17,8 @@ class Sinolpack(Package):
     """
     Represents a OIOIOI's standard problem package.
     """
+
+    django_handler = "sio3pack.django.sinolpack.handler.SinolpackDjangoHandler"
 
     @classmethod
     def _find_main_dir(cls, archive: Archive) -> str | None:
@@ -50,6 +52,18 @@ class Sinolpack(Package):
         except UnrecognizedArchiveFormat:
             return os.path.exists(os.path.join(path, "in")) and os.path.exists(os.path.join(path, "out"))
 
+    @classmethod
+    def identify_from_db(cls, problem_id: int) -> bool:
+        """
+        Identifies whether problem is a Sinolpack.
+
+        :param problem_id: ID of the problem.
+        :return: True when problem is a Sinolpack, otherwise False.
+        """
+        from sio3pack.django.sinolpack.models import SinolpackPackage
+
+        return SinolpackPackage.objects.filter(problem_id=problem_id).exists()
+
     def __del__(self):
         if hasattr(self, "tmpdir"):
             self.tmpdir.cleanup()
@@ -66,6 +80,7 @@ class Sinolpack(Package):
             archive.extract(to_path=self.tmpdir.name)
             self.rootdir = os.path.join(self.tmpdir.name, self.short_name)
         else:
+            # FIXME: Won't work in sinol-make.
             self.short_name = os.path.basename(file.path)
             self.rootdir = file.path
 
@@ -76,6 +91,14 @@ class Sinolpack(Package):
             self.has_custom_graph = False
 
         self.django_settings = django_settings
+
+        self._process_package()
+
+    def _from_db(self, problem_id: int):
+        super()._from_db(problem_id)
+        super()._setup_django_handler(problem_id)
+        if not self.django_enabled:
+            raise ImproperlyConfigured("sio3pack is not installed with Django support.")
 
     def _default_graph_manager(self) -> GraphManager:
         return GraphManager(
@@ -140,7 +163,9 @@ class Sinolpack(Package):
 
         if not self.has_custom_graph:
             # Create the graph with processed files.
-            self.graph_manager = self._default_graph_manager()
+            # TODO: Uncomment this line when Graph will work.
+            # self.graph_manager = self._default_graph_manager()
+            pass
 
     def _process_config_yml(self):
         """
@@ -180,8 +205,8 @@ class Sinolpack(Package):
         two-letter language code defined in ``settings.py``), if any such key is given.
         """
         self.lang_titles = {}
-        for lang_code, lang in self._get_from_django_settings("LANGUAGES", [("en", "English")]):
-            key = "title_%s" % lang_code
+        for lang_code, _ in self._get_from_django_settings("LANGUAGES", [("en", "English")]):
+            key = f"title_{lang_code}"
             if key in self.config:
                 self.lang_titles[lang_code] = self.config[key]
 
@@ -190,7 +215,8 @@ class Sinolpack(Package):
         Returns a list of extensions that are submittable.
         """
         return self.config.get(
-            "submittable_langs", self._get_from_django_settings("SUBMITTABLE_LANGUAGES", ["c", "cpp", "cxx", "py"])
+            "submittable_langs",
+            self._get_from_django_settings("SUBMITTABLE_LANGUAGES", ["c", "cpp", "cc", "cxx", "py"]),
         )
 
     def get_model_solution_regex(self):
@@ -204,11 +230,14 @@ class Sinolpack(Package):
         """
         Returns a list of model solutions, where each element is a tuple of model solution kind and filename.
         """
+        if not os.path.exists(self.get_prog_dir()):
+            return []
+
         regex = self.get_model_solution_regex()
         model_solutions = []
         for file in os.listdir(self.get_prog_dir()):
             match = re.match(regex, file)
-            if re.match(regex, file) and os.path.isfile(os.path.join(self.get_prog_dir(), file)):
+            if match and os.path.isfile(os.path.join(self.get_prog_dir(), file)):
                 model_solutions.append((ModelSolutionKind.from_regex(match.group(1)), file))
 
         return model_solutions
@@ -270,13 +299,13 @@ class Sinolpack(Package):
             return
 
         lang_prefs = [""] + [
-            "-" + l[0] for l in self._get_from_django_settings("LANGUAGES", [("en", "English"), ("pl", "Polish")])
+            f"-{lang}" for lang, _ in self._get_from_django_settings("LANGUAGES", [("en", "English"), ("pl", "Polish")])
         ]
 
         self.lang_statements = {}
         for lang in lang_prefs:
             try:
-                htmlzipfile = self.get_in_doc_dir(self.short_name + "zad" + lang + ".html.zip")
+                htmlzipfile = self.get_in_doc_dir(f"{self.short_name}zad{lang}.html.zip")
                 # TODO: what to do with html?
                 # if self._html_disallowed():
                 #     raise ProblemPackageError(
@@ -296,12 +325,12 @@ class Sinolpack(Package):
                 pass
 
             try:
-                pdffile = self.get_in_doc_dir(self.short_name + "zad" + lang + ".pdf")
+                pdffile = self.get_in_doc_dir(f"{self.short_name}zad{lang}.pdf")
                 if lang == "":
                     self.statement = pdffile
                 else:
                     self.lang_statements[lang[1:]] = pdffile
-            except:
+            except FileNotFoundError:
                 pass
 
     def _process_attachments(self):
@@ -331,3 +360,13 @@ class Sinolpack(Package):
         """
         # TODO: implement. The unpack will probably return tests, so we need to process them.
         pass
+
+    def save_to_db(self, problem_id: int):
+        """
+        Save the package to the database. If sio3pack isn't installed with Django
+        support, it should raise an ImproperlyConfigured exception.
+        """
+        self._setup_django_handler(problem_id)
+        if not self.django_enabled:
+            raise ImproperlyConfigured("sio3pack is not installed with Django support.")
+        self.django.save_to_db()
