@@ -215,7 +215,8 @@ class Sinolpack(Package):
         Returns a list of extensions that are submittable.
         """
         return self.config.get(
-            "submittable_langs", self._get_from_django_settings("SUBMITTABLE_LANGUAGES", ["c", "cpp", "cc", "cxx", "py"])
+            "submittable_langs",
+            self._get_from_django_settings("SUBMITTABLE_LANGUAGES", ["c", "cpp", "cc", "cxx", "py"]),
         )
 
     def get_model_solution_regex(self):

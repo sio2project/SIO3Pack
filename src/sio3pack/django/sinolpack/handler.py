@@ -4,7 +4,6 @@ from sio3pack.packages.package.django.handler import DjangoHandler
 
 
 class SinolpackDjangoHandler(DjangoHandler):
-
     def save_to_db(self):
         """
         Save the package to the database.
