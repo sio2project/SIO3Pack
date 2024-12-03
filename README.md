@@ -13,26 +13,9 @@ pip install -e .[tests]
 pip uninstall django pytest-django
 ```
 
-Then run the tests with `pytest` in the root directory of 
-the repository.
+Then follow the instructions in 
+[General testing information](#general-testing-information).
 
-```bash
-pytest -v
-```
-
-To run tests in parallel, use the following command.
-
-```bash
-pytest -v -n auto
-```
-
-To run tests with coverage, use the following command.
-
-```bash
-pytest -v --cov=sio3pack --cov-report=html
-```
-
-Coverage report will be generated in the `htmlcov/index.html`.
 
 ### Test with django support
 
@@ -42,7 +25,13 @@ Install the package in editable mode and with django dependencies:
 pip install -e .[django,tests,django_tests]
 ```
 
-Then run the tests with `pytest` in the root directory of 
+Then follow the instructions in 
+[General testing information](#general-testing-information).
+
+
+### General testing information
+
+Run the tests with `pytest` in the root directory of 
 the repository.
 
 ```bash
