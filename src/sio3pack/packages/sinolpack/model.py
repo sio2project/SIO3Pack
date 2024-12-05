@@ -226,7 +226,7 @@ class Sinolpack(Package):
         extensions = self.get_submittable_extensions()
         return rf"^{self.short_name}[0-9]*([bs]?)[0-9]*(_.*)?\.(" + "|".join(extensions) + ")"
 
-    def _get_model_solutions(self) -> list[tuple[ModelSolutionKind, str]]:
+    def _get_model_solutions(self) -> list[tuple[ModelSolutionKind, LocalFile]]:
         """
         Returns a list of model solutions, where each element is a tuple of model solution kind and filename.
         """
@@ -238,22 +238,29 @@ class Sinolpack(Package):
         for file in os.listdir(self.get_prog_dir()):
             match = re.match(regex, file)
             if match and os.path.isfile(os.path.join(self.get_prog_dir(), file)):
+                file = LocalFile(os.path.join(self.get_prog_dir(), file))
                 model_solutions.append((ModelSolutionKind.from_regex(match.group(1)), file))
 
         return model_solutions
 
     def sort_model_solutions(
-        self, model_solutions: list[tuple[ModelSolutionKind, str]]
-    ) -> list[tuple[ModelSolutionKind, str]]:
+        self, model_solutions: list[tuple[ModelSolutionKind, LocalFile]]
+    ) -> list[tuple[ModelSolutionKind, LocalFile]]:
         """
         Sorts model solutions by kind.
         """
 
         def sort_key(model_solution):
-            kind, name = model_solution
-            return kind.value, naturalsort_key(name[: name.index(".")])
+            kind, file = model_solution
+            return kind.value, naturalsort_key(file.filename[: file.filename.index(".")])
 
         return list(sorted(model_solutions, key=sort_key))
+
+    def get_model_solutions(self) -> list[tuple[ModelSolutionKind, LocalFile]]:
+        """
+        Returns a list of model solutions, where each element is a tuple of model solution kind and filename.
+        """
+        return self.model_solutions
 
     def _process_prog_files(self):
         """
