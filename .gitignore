@@ -10,3 +10,6 @@ tests/test_django/db.sqlite3
 # pytest-cov
 .coverage*
 coverage.xml
+
+# Files from Django db
+/sio3pack
