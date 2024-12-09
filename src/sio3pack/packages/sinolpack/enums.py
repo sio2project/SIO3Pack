@@ -19,3 +19,7 @@ class ModelSolutionKind(Enum):
     @classmethod
     def all(cls):
         return [cls.NORMAL, cls.SLOW, cls.INCORRECT]
+
+    @classmethod
+    def django_choices(cls):
+        return [(kind.value, kind.name) for kind in cls.all()]

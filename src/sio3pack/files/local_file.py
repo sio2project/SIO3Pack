@@ -18,7 +18,7 @@ class LocalFile(File):
         :return: The file object.
         """
         for ext in extensions:
-            path = os.path.join(dir, filename + ext)
+            path = os.path.join(dir, filename + '.' + ext)
             if os.path.exists(path):
                 return cls(path)
         raise FileNotFoundError
