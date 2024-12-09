@@ -19,5 +19,5 @@ jobs:
           pip install isort black
       - name: Run isort and black
         run: |
-          isort -c .
-          black --check .
+          isort -c src tests
+          black --check src tests

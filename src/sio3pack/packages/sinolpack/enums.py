@@ -2,9 +2,9 @@ from enum import Enum
 
 
 class ModelSolutionKind(Enum):
-    NORMAL = ''
-    SLOW = 's'
-    INCORRECT = 'b'
+    NORMAL = ""
+    SLOW = "s"
+    INCORRECT = "b"
 
     @classmethod
     def from_regex(cls, group):

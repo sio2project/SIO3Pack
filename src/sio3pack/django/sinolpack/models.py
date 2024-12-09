@@ -1,9 +1,10 @@
 import os
+
 import yaml
 from django.conf import settings
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 from django.utils.text import get_valid_filename
+from django.utils.translation import gettext_lazy as _
 
 from sio3pack.packages.sinolpack.enums import ModelSolutionKind
 
@@ -18,9 +19,10 @@ def make_problem_filename(instance, filename):
         try:
             instance = instance.package
         except AttributeError:
-            raise ValueError(f'make_problem_filename used on an object {type(instance)} which does not have '
-                             f'a package attribute')
-    return f'sio3pack/sinolpack/{instance.problem_id}/{get_valid_filename(filename)}'
+            raise ValueError(
+                f"make_problem_filename used on an object {type(instance)} which does not have " f"a package attribute"
+            )
+    return f"sio3pack/sinolpack/{instance.problem_id}/{get_valid_filename(filename)}"
 
 
 class SinolpackPackage(models.Model):
@@ -88,7 +90,7 @@ class SinolpackModelSolution(models.Model):
 
     @property
     def short_name(self):
-        return self.name.rsplit('.', 1)[0]
+        return self.name.rsplit(".", 1)[0]
 
     @property
     def kind(self):

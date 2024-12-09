@@ -1,8 +1,10 @@
 import pytest
 
 import sio3pack
-from sio3pack.django.sinolpack.models import SinolpackPackage, SinolpackConfig, SinolpackModelSolution, \
-    SinolpackAdditionalFile
+from sio3pack.django.sinolpack.models import (SinolpackAdditionalFile,
+                                              SinolpackConfig,
+                                              SinolpackModelSolution,
+                                              SinolpackPackage,)
 from sio3pack.packages import Sinolpack
 from tests.fixtures import Compression, PackageInfo, get_archived_package
 from tests.utils import assert_contents_equal
@@ -59,7 +61,7 @@ def test_model_solutions(get_archived_package):
         ms = db_model_solutions.get(order_key=order)
         assert ms.name == solution.filename
         assert ms.kind == kind
-        assert_contents_equal(ms.source_file.read().decode('utf-8'), solution.read())
+        assert_contents_equal(ms.source_file.read().decode("utf-8"), solution.read())
 
 
 @pytest.mark.django_db
@@ -74,5 +76,5 @@ def test_additional_files(get_archived_package):
 
     for file in additional_files:
         af = db_additional_files.get(name=file.filename)
-        assert_contents_equal(af.file.read().decode('utf-8'), file.read())
+        assert_contents_equal(af.file.read().decode("utf-8"), file.read())
         assert af.name == file.filename

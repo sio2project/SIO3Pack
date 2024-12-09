@@ -5,8 +5,13 @@ from django.core.files import File
 from django.db import transaction
 
 from sio3pack import LocalFile
-from sio3pack.django.sinolpack.models import SinolpackPackage, SinolpackConfig, SinolpackNameTranslation, \
-    SinolpackModelSolution, SinolpackAdditionalFile, SinolpackProblemStatement, SinolpackAttachment
+from sio3pack.django.sinolpack.models import (SinolpackAdditionalFile,
+                                              SinolpackAttachment,
+                                              SinolpackConfig,
+                                              SinolpackModelSolution,
+                                              SinolpackNameTranslation,
+                                              SinolpackPackage,
+                                              SinolpackProblemStatement,)
 from sio3pack.packages.exceptions import PackageAlreadyExists
 from sio3pack.packages.package.django.handler import DjangoHandler
 

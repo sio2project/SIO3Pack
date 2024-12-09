@@ -313,9 +313,7 @@ class Sinolpack(Package):
             for file in ("ingen", "inwer", "soc", "chk"):
                 try:
                     self.additional_files.append(
-                        LocalFile.get_file_matching_extension(
-                            self.get_prog_dir(), self.short_name + file, extensions
-                        )
+                        LocalFile.get_file_matching_extension(self.get_prog_dir(), self.short_name + file, extensions)
                     )
                     self.special_files[file] = True
                 except FileNotFoundError:
