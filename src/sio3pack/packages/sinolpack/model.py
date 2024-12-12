@@ -246,7 +246,7 @@ class Sinolpack(Package):
         Returns the regex used to determine model solutions.
         """
         extensions = self.get_submittable_extensions()
-        return rf"^{self.short_name}[0-9]*([bs]?)[0-9]*(_.*)?\.({" | ".join(extensions)})"
+        return rf"^{self.short_name}[0-9]*([bs]?)[0-9]*(_.*)?\.({'|'.join(extensions)})"
 
     def _get_model_solutions(self) -> list[tuple[ModelSolutionKind, LocalFile]]:
         """
