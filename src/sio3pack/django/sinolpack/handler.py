@@ -5,10 +5,12 @@ from django.core.files import File
 from django.db import transaction
 
 from sio3pack.django.common.handler import DjangoHandler
-from sio3pack.django.sinolpack.models import (SinolpackAdditionalFile,
-                                              SinolpackAttachment,
-                                              SinolpackConfig,
-                                              SinolpackModelSolution,)
+from sio3pack.django.sinolpack.models import (
+    SinolpackAdditionalFile,
+    SinolpackAttachment,
+    SinolpackConfig,
+    SinolpackModelSolution,
+)
 
 
 class SinolpackDjangoHandler(DjangoHandler):
