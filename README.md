@@ -47,7 +47,7 @@ Then follow the instructions in
 
 ### Test with django support
 
-Install the package in editable mode and with django dependencies:
+Install the package in editable mode along with Django dependencies:
 
 ```bash
 pip install -e .[django,tests,django_tests]
