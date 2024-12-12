@@ -5,7 +5,7 @@ from sio3pack import LocalFile
 from sio3pack.files import File
 from sio3pack.graph import Graph, GraphOperation
 from sio3pack.packages.exceptions import UnknownPackageType
-from sio3pack.packages.package.django.handler import NoDjangoHandler
+from sio3pack.packages.package.handler import NoDjangoHandler
 from sio3pack.test import Test
 from sio3pack.utils.archive import Archive
 from sio3pack.utils.classinit import RegisteredSubclassesBase

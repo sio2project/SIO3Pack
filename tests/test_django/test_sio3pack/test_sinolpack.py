@@ -1,22 +1,20 @@
 import pytest
 
 import sio3pack
-from sio3pack.django.sinolpack.models import (SinolpackAdditionalFile,
-                                              SinolpackConfig,
-                                              SinolpackModelSolution,
-                                              SinolpackPackage,)
+from sio3pack.django.common.models import SIO3Package
+from sio3pack.django.sinolpack.models import SinolpackAdditionalFile, SinolpackConfig, SinolpackModelSolution
 from sio3pack.packages import Sinolpack
 from tests.fixtures import Compression, PackageInfo, get_archived_package
 from tests.utils import assert_contents_equal
 
 
-def _save_and_test_simple(package_info: PackageInfo) -> tuple[Sinolpack, SinolpackPackage]:
+def _save_and_test_simple(package_info: PackageInfo) -> tuple[Sinolpack, SIO3Package]:
     assert package_info.type == "sinolpack"
     package = sio3pack.from_file(package_info.path)
     assert isinstance(package, Sinolpack)
     package.save_to_db(1)
-    assert SinolpackPackage.objects.filter(problem_id=1).exists()
-    db_package = SinolpackPackage.objects.get(problem_id=1)
+    assert SIO3Package.objects.filter(problem_id=1).exists()
+    db_package = SIO3Package.objects.get(problem_id=1)
     assert db_package.short_name == package.short_name
     return package, db_package
 
