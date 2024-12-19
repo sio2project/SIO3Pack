@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # Here add all sio3pack apps
+    "sio3pack.django.common",
     "sio3pack.django.sinolpack",
 ]
 

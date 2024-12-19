@@ -1,10 +1,12 @@
 import os
 import re
 import tempfile
+from typing import Any
 
 import yaml
 
 from sio3pack import LocalFile
+from sio3pack.files import File
 from sio3pack.graph import Graph, GraphManager, GraphOperation
 from sio3pack.packages.exceptions import ImproperlyConfigured
 from sio3pack.packages.package import Package
@@ -167,6 +169,12 @@ class Sinolpack(Package):
             # self.graph_manager = self._default_graph_manager()
             pass
 
+    def get_config(self) -> dict[str, Any]:
+        """
+        Returns the configuration of the problem.
+        """
+        return self.config
+
     def _process_config_yml(self):
         """
         Process the config.yml file. If it exists, it will be loaded into the config attribute.
@@ -199,6 +207,20 @@ class Sinolpack(Package):
         except FileNotFoundError:
             pass
 
+    def get_titles(self) -> dict[str, str]:
+        """
+        Returns a dictionary of problem titles, where keys are language codes and values are titles.
+        """
+        return self.lang_titles
+
+    def get_title(self, lang: str | None = None) -> str:
+        """
+        Returns the problem title for a given language code.
+        """
+        if lang is None:
+            return self.full_name
+        return self.lang_titles.get(lang, self.full_name)
+
     def _detect_full_name_translations(self):
         """Creates problem's full name translations from the ``config.yml``
         (keys matching the pattern ``title_[a-z]{2}``, where ``[a-z]{2}`` represents
@@ -224,9 +246,9 @@ class Sinolpack(Package):
         Returns the regex used to determine model solutions.
         """
         extensions = self.get_submittable_extensions()
-        return rf"^{self.short_name}[0-9]*([bs]?)[0-9]*(_.*)?\.(" + "|".join(extensions) + ")"
+        return rf"^{self.short_name}[0-9]*([bs]?)[0-9]*(_.*)?\.({'|'.join(extensions)})"
 
-    def _get_model_solutions(self) -> list[tuple[ModelSolutionKind, str]]:
+    def _get_model_solutions(self) -> list[tuple[ModelSolutionKind, LocalFile]]:
         """
         Returns a list of model solutions, where each element is a tuple of model solution kind and filename.
         """
@@ -238,22 +260,35 @@ class Sinolpack(Package):
         for file in os.listdir(self.get_prog_dir()):
             match = re.match(regex, file)
             if match and os.path.isfile(os.path.join(self.get_prog_dir(), file)):
+                file = LocalFile(os.path.join(self.get_prog_dir(), file))
                 model_solutions.append((ModelSolutionKind.from_regex(match.group(1)), file))
 
         return model_solutions
 
     def sort_model_solutions(
-        self, model_solutions: list[tuple[ModelSolutionKind, str]]
-    ) -> list[tuple[ModelSolutionKind, str]]:
+        self, model_solutions: list[tuple[ModelSolutionKind, LocalFile]]
+    ) -> list[tuple[ModelSolutionKind, LocalFile]]:
         """
         Sorts model solutions by kind.
         """
 
         def sort_key(model_solution):
-            kind, name = model_solution
-            return kind.value, naturalsort_key(name[: name.index(".")])
+            kind, file = model_solution
+            return kind.value, naturalsort_key(file.filename[: file.filename.index(".")])
 
         return list(sorted(model_solutions, key=sort_key))
+
+    def get_model_solutions(self) -> list[tuple[ModelSolutionKind, LocalFile]]:
+        """
+        Returns a list of model solutions, where each element is a tuple of model solution kind and filename.
+        """
+        return self.model_solutions
+
+    def get_additional_files(self) -> list[LocalFile]:
+        """
+        Returns a list of additional files.
+        """
+        return self.additional_files
 
     def _process_prog_files(self):
         """
@@ -278,13 +313,25 @@ class Sinolpack(Package):
             for file in ("ingen", "inwer", "soc", "chk"):
                 try:
                     self.additional_files.append(
-                        LocalFile.get_file_matching_extension(
-                            self.get_prog_dir(), self.short_name + file, extensions
-                        ).filename
+                        LocalFile.get_file_matching_extension(self.get_prog_dir(), self.short_name + file, extensions)
                     )
                     self.special_files[file] = True
                 except FileNotFoundError:
                     self.special_files[file] = False
+
+    def get_statements(self) -> dict[str, File]:
+        """
+        Returns a dictionary of problem statements, where keys are language codes and values are files.
+        """
+        return self.lang_statements
+
+    def get_statement(self, lang: str | None = None) -> File:
+        """
+        Returns the problem statement for a given language code.
+        """
+        if lang is None:
+            return self.statement
+        return self.lang_statements.get(lang, None)
 
     def _process_statements(self):
         """
@@ -294,6 +341,8 @@ class Sinolpack(Package):
         If `USE_SINOLPACK_MAKEFILES` is set to True in the OIOIOI settings,
         the pdf file will be compiled from a LaTeX source.
         """
+        self.statement = None
+        self.lang_statements = {}
         docdir = self.get_doc_dir()
         if not os.path.exists(docdir):
             return
@@ -302,7 +351,6 @@ class Sinolpack(Package):
             f"-{lang}" for lang, _ in self._get_from_django_settings("LANGUAGES", [("en", "English"), ("pl", "Polish")])
         ]
 
-        self.lang_statements = {}
         for lang in lang_prefs:
             try:
                 htmlzipfile = self.get_in_doc_dir(f"{self.short_name}zad{lang}.html.zip")
@@ -333,13 +381,20 @@ class Sinolpack(Package):
             except FileNotFoundError:
                 pass
 
+    def get_attachments(self) -> list[LocalFile]:
+        """
+        Returns a list of attachments.
+        """
+        return self.attachments
+
     def _process_attachments(self):
         """ """
         attachments_dir = self.get_attachments_dir()
         if not os.path.isdir(attachments_dir):
+            self.attachments = []
             return
         self.attachments = [
-            attachment
+            LocalFile(os.path.join(attachments_dir, attachment))
             for attachment in os.listdir(attachments_dir)
             if os.path.isfile(os.path.join(attachments_dir, attachment))
         ]

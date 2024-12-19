@@ -2,9 +2,9 @@ from enum import Enum
 
 
 class ModelSolutionKind(Enum):
-    NORMAL = 0
-    SLOW = 1
-    INCORRECT = 2
+    NORMAL = ""
+    SLOW = "s"
+    INCORRECT = "b"
 
     @classmethod
     def from_regex(cls, group):
@@ -15,3 +15,11 @@ class ModelSolutionKind(Enum):
         if group == "b":
             return cls.INCORRECT
         raise ValueError(f"Invalid model solution kind: {group}")
+
+    @classmethod
+    def all(cls):
+        return [cls.NORMAL, cls.SLOW, cls.INCORRECT]
+
+    @classmethod
+    def django_choices(cls):
+        return [(kind.value, kind.name) for kind in cls.all()]

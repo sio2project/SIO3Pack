@@ -14,3 +14,6 @@ coverage.xml
 
 # macOS
 .DS_Store
+
+# Files from Django db
+/sio3pack
