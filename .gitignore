@@ -7,8 +7,10 @@ build
 __pycache__
 tests/test_django/db.sqlite3
 htmlcov
-.coverage
 
 # pytest-cov
 .coverage*
 coverage.xml
+
+# macOS
+.DS_Store
