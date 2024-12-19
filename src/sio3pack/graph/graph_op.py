@@ -15,9 +15,9 @@ class GraphOperation:
                             results, if return_results is True.
         """
         self.graph = graph
-        self.return_results = return_results
+        self.should_return = return_results
         self.return_func = return_func
 
     def return_results(self, data: dict):
-        if self.return_func:
+        if self.return_func and self.should_return:
             return self.return_func(data)

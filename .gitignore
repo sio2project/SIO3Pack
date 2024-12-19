@@ -6,10 +6,14 @@ build
 .idea
 __pycache__
 tests/test_django/db.sqlite3
+htmlcov
 
 # pytest-cov
 .coverage*
 coverage.xml
+
+# macOS
+.DS_Store
 
 # Files from Django db
 /sio3pack
