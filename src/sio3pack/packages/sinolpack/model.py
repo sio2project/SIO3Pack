@@ -91,6 +91,7 @@ class Sinolpack(Package):
             self.graph_manager = GraphManager.from_file(graph_file)
         except FileNotFoundError:
             self.has_custom_graph = False
+            self.graph_manager = self._default_graph_manager()
 
         self.django_settings = django_settings
 

@@ -6,6 +6,9 @@ class ModelSolutionKind(Enum):
     SLOW = "s"
     INCORRECT = "b"
 
+    def __repr__(self):
+        return self.name
+
     @classmethod
     def from_regex(cls, group):
         if group == "":
