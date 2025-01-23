@@ -1,5 +1,3 @@
-from sio3pack.graph import GraphOperation
-
 # SIO3Pack
 
 ## Example usage
@@ -33,7 +31,7 @@ graph_op.return_results(results)
 
 ### Test without django support
 
-Install the package in editable mode and make sure that `django` and 
+Install the package in editable mode and make sure that `django` and
 `pytest-django` are not installed.
 
 ```bash
@@ -41,9 +39,8 @@ pip install -e ".[tests]"
 pip uninstall django pytest-django
 ```
 
-Then follow the instructions in 
+Then follow the instructions in
 [General testing information](#general-testing-information).
-
 
 ### Test with django support
 
@@ -53,13 +50,12 @@ Install the package in editable mode along with Django dependencies:
 pip install -e ".[django,tests,django_tests]"
 ```
 
-Then follow the instructions in 
+Then follow the instructions in
 [General testing information](#general-testing-information).
-
 
 ### General testing information
 
-Run the tests with `pytest` in the root directory of 
+Run the tests with `pytest` in the root directory of
 the repository.
 
 ```bash
