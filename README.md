@@ -2,7 +2,19 @@ from sio3pack.graph import GraphOperation
 
 # SIO3Pack
 
-## Example usage
+## Prerequisites
+```
+- Python 3.9 or higher
+- pip
+- Linux or macOS operating system
+- Django 4.2.x (for Django support)
+```
+
+## Instalation
+```
+pip install sio3pack
+```
+## Example usage (in python)
 
 ### In OIOIOI
 
