@@ -52,7 +52,7 @@ def test_model_solutions(get_archived_package):
     package_info: PackageInfo = get_archived_package()
     package, db_package = _save_and_test_simple(package_info)
 
-    model_solutions = package.get_model_solutions()
+    model_solutions = package.model_solutions
     db_model_solutions = SinolpackModelSolution.objects.filter(package=db_package)
     assert len(model_solutions) == db_model_solutions.count()
     for order, (kind, solution) in enumerate(model_solutions):
@@ -67,7 +67,7 @@ def test_model_solutions(get_archived_package):
 def test_additional_files(get_archived_package):
     package_info: PackageInfo = get_archived_package()
     package, db_package = _save_and_test_simple(package_info)
-    additional_files = package.get_additional_files()
+    additional_files = package.additional_files
     db_additional_files = SinolpackAdditionalFile.objects.filter(package=db_package)
     assert db_additional_files.count() == 1
     assert len(additional_files) == db_additional_files.count()

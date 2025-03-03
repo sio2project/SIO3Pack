@@ -77,9 +77,6 @@ class DjangoHandler:
     def full_name(self) -> str:
         return self.db_package.full_name
 
-    def get_translated_title(self, lang: str) -> str:
-        return self.db_package.translated_titles.get(language=lang).name
-
     @property
     def lang_titles(self) -> dict[str, str]:
         return {t.language: t.name for t in self.db_package.translated_titles.all()}
@@ -91,6 +88,3 @@ class DjangoHandler:
     @property
     def lang_statements(self) -> dict[str, RemoteFile]:
         return {s.language: RemoteFile(s.content.path) for s in self.db_package.statements.all()}
-
-    def get_translated_problem_statement(self, lang: str) -> RemoteFile:
-        return RemoteFile(self.db_package.statements.get(language=lang).content.path)
