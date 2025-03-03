@@ -20,6 +20,7 @@ class Package(RegisteredSubclassesBase):
 
     def __init__(self):
         super().__init__()
+        self.django = NoDjangoHandler()
 
     @classmethod
     def identify(cls, file: LocalFile):
@@ -92,10 +93,13 @@ class Package(RegisteredSubclassesBase):
             self.django_enabled = False
             self.django = NoDjangoHandler()
 
-    def get_task_id(self) -> str:
-        pass
+    def __getattr__(self, name: str) -> Any:
+        try:
+            return getattr(self.django, name)
+        except AttributeError:
+            raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
 
-    def get_titles(self) -> dict[str, str]:
+    def get_task_id(self) -> str:
         pass
 
     def get_title(self, lang: str | None = None) -> str:
@@ -104,10 +108,7 @@ class Package(RegisteredSubclassesBase):
     def get_statements(self) -> dict[str, File]:
         pass
 
-    def get_statement(self, lang: str | None = None) -> File:
-        pass
-
-    def get_config(self) -> dict[str, Any]:
+    def get_statement(self, lang: str | None = None) -> File | None:
         pass
 
     def get_tests(self) -> list[Test]:
