@@ -20,7 +20,7 @@ class Package(RegisteredSubclassesBase):
 
     def __init__(self):
         super().__init__()
-        self.django = NoDjangoHandler()
+        self.django = None
 
     @classmethod
     def identify(cls, file: LocalFile):
@@ -99,13 +99,7 @@ class Package(RegisteredSubclassesBase):
         except AttributeError:
             raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
 
-    def get_task_id(self) -> str:
-        pass
-
     def get_title(self, lang: str | None = None) -> str:
-        pass
-
-    def get_statements(self) -> dict[str, File]:
         pass
 
     def get_statement(self, lang: str | None = None) -> File | None:
