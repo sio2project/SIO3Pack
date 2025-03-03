@@ -4,8 +4,8 @@ from django.core.files import File
 from django.db import transaction
 
 from sio3pack.django.common.models import SIO3Package, SIO3PackModelSolution, SIO3PackNameTranslation, SIO3PackStatement
-from sio3pack.files.remote_file import RemoteFile
 from sio3pack.files.local_file import LocalFile
+from sio3pack.files.remote_file import RemoteFile
 from sio3pack.packages.exceptions import ImproperlyConfigured, PackageAlreadyExists
 
 
