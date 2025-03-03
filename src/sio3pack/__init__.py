@@ -1,4 +1,4 @@
-__version__ = "0.0.1"
+__version__ = "1.0.0.dev1"
 
 from sio3pack.files import LocalFile
 from sio3pack.packages.exceptions import ImproperlyConfigured, PackageAlreadyExists
