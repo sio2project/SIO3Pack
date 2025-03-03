@@ -1,12 +1,10 @@
 import os
 import re
 import tempfile
-from typing import Any
 
 import yaml
 
-from sio3pack import LocalFile
-from sio3pack.files import File
+from sio3pack.files import File, LocalFile
 from sio3pack.graph import Graph, GraphManager, GraphOperation
 from sio3pack.packages.exceptions import ImproperlyConfigured
 from sio3pack.packages.package import Package
@@ -18,6 +16,22 @@ from sio3pack.utils.archive import Archive, UnrecognizedArchiveFormat
 class Sinolpack(Package):
     """
     Represents a OIOIOI's standard problem package.
+
+    Attributes:
+        short_name (str): Short name of the problem.
+        full_name (str): Full name of the problem.
+        lang_titles (dict[str, str]): A dictionary of problem titles,
+            where keys are language codes and values are titles.
+        lang_statements (dict[str, File]): A dictionary of problem
+            statements, where keys are language codes and values are
+            files.
+        config (dict[str, Any]): Configuration of the problem.
+        model_solutions (list[tuple[ModelSolutionKind, File]]): A list
+            of model solutions, where each element is a tuple of model
+            solution kind and filename.
+        additional_files (list[File]): A list of additional files of
+            the problem.
+        attachments (list[File]): A list of attachments of the problem.
     """
 
     django_handler = "sio3pack.django.sinolpack.handler.SinolpackDjangoHandler"
@@ -125,13 +139,13 @@ class Sinolpack(Package):
         """
         return os.path.join(self.rootdir, "doc")
 
-    def get_in_doc_dir(self, filename: str) -> LocalFile:
+    def get_in_doc_dir(self, filename: str) -> File:
         """
         Returns the path to the input file in the documents' directory.
         """
         return LocalFile(os.path.join(self.get_doc_dir(), filename))
 
-    def get_in_root(self, filename: str) -> LocalFile:
+    def get_in_root(self, filename: str) -> File:
         """
         Returns the path to the input file in the root directory.
         """
@@ -143,7 +157,7 @@ class Sinolpack(Package):
         """
         return os.path.join(self.rootdir, "prog")
 
-    def get_in_prog_dir(self, filename: str) -> LocalFile:
+    def get_in_prog_dir(self, filename: str) -> File:
         """
         Returns the path to the input file in the program directory.
         """
@@ -168,12 +182,6 @@ class Sinolpack(Package):
             # TODO: Uncomment this line when Graph will work.
             # self.graph_manager = self._default_graph_manager()
             pass
-
-    def get_config(self) -> dict[str, Any]:
-        """
-        Returns the configuration of the problem.
-        """
-        return self.config
 
     def _process_config_yml(self):
         """
@@ -206,12 +214,6 @@ class Sinolpack(Package):
                 self.full_name = r.group(1)
         except FileNotFoundError:
             pass
-
-    def get_titles(self) -> dict[str, str]:
-        """
-        Returns a dictionary of problem titles, where keys are language codes and values are titles.
-        """
-        return self.lang_titles
 
     def get_title(self, lang: str | None = None) -> str:
         """
@@ -248,7 +250,7 @@ class Sinolpack(Package):
         extensions = self.get_submittable_extensions()
         return rf"^{self.short_name}[0-9]*([bs]?)[0-9]*(_.*)?\.({'|'.join(extensions)})"
 
-    def _get_model_solutions(self) -> list[tuple[ModelSolutionKind, LocalFile]]:
+    def _get_model_solutions(self) -> list[tuple[ModelSolutionKind, File]]:
         """
         Returns a list of model solutions, where each element is a tuple of model solution kind and filename.
         """
@@ -266,8 +268,8 @@ class Sinolpack(Package):
         return model_solutions
 
     def sort_model_solutions(
-        self, model_solutions: list[tuple[ModelSolutionKind, LocalFile]]
-    ) -> list[tuple[ModelSolutionKind, LocalFile]]:
+        self, model_solutions: list[tuple[ModelSolutionKind, File]]
+    ) -> list[tuple[ModelSolutionKind, File]]:
         """
         Sorts model solutions by kind.
         """
@@ -277,18 +279,6 @@ class Sinolpack(Package):
             return kind.value, naturalsort_key(file.filename[: file.filename.index(".")])
 
         return list(sorted(model_solutions, key=sort_key))
-
-    def get_model_solutions(self) -> list[tuple[ModelSolutionKind, LocalFile]]:
-        """
-        Returns a list of model solutions, where each element is a tuple of model solution kind and filename.
-        """
-        return self.model_solutions
-
-    def get_additional_files(self) -> list[LocalFile]:
-        """
-        Returns a list of additional files.
-        """
-        return self.additional_files
 
     def _process_prog_files(self):
         """
@@ -319,19 +309,11 @@ class Sinolpack(Package):
                 except FileNotFoundError:
                     self.special_files[file] = False
 
-    def get_statements(self) -> dict[str, File]:
-        """
-        Returns a dictionary of problem statements, where keys are language codes and values are files.
-        """
-        return self.lang_statements
-
-    def get_statement(self, lang: str | None = None) -> File:
+    def get_statement(self, lang: str | None = None) -> File | None:
         """
         Returns the problem statement for a given language code.
         """
-        if lang is None:
-            return self.statement
-        return self.lang_statements.get(lang, None)
+        return self.lang_statements.get(lang or "", None)
 
     def _process_statements(self):
         """
@@ -341,7 +323,6 @@ class Sinolpack(Package):
         If `USE_SINOLPACK_MAKEFILES` is set to True in the OIOIOI settings,
         the pdf file will be compiled from a LaTeX source.
         """
-        self.statement = None
         self.lang_statements = {}
         docdir = self.get_doc_dir()
         if not os.path.exists(docdir):
@@ -367,7 +348,7 @@ class Sinolpack(Package):
                 # self._force_index_encoding(htmlzipfile)
                 # statement = ProblemStatement(problem=self.problem, language=lang[1:])
                 # statement.content.save(
-                #     self.short_name + lang + '.html.zip', File(open(htmlzipfile, 'rb'))
+                #     self.short_name + lang + '.html.zip', LocalFile(open(htmlzipfile, 'rb'))
                 # )
             except FileNotFoundError:
                 pass
@@ -375,17 +356,11 @@ class Sinolpack(Package):
             try:
                 pdffile = self.get_in_doc_dir(f"{self.short_name}zad{lang}.pdf")
                 if lang == "":
-                    self.statement = pdffile
+                    self.lang_statements[""] = pdffile
                 else:
                     self.lang_statements[lang[1:]] = pdffile
             except FileNotFoundError:
                 pass
-
-    def get_attachments(self) -> list[LocalFile]:
-        """
-        Returns a list of attachments.
-        """
-        return self.attachments
 
     def _process_attachments(self):
         """ """

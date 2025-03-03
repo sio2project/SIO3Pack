@@ -18,7 +18,7 @@ class SinolpackConfig(models.Model):
     Model to store ``config.yml`` present in Sinolpack packages.
     """
 
-    package = models.OneToOneField(SIO3Package, on_delete=models.CASCADE)
+    package = models.OneToOneField(SIO3Package, on_delete=models.CASCADE, related_name="config")
     config = models.TextField(verbose_name=_("config"))
 
     @property
@@ -51,7 +51,7 @@ class SinolpackModelSolution(SIO3PackModelSolution):
 
 
 class SinolpackAdditionalFile(models.Model):
-    package = models.ForeignKey(SIO3Package, on_delete=models.CASCADE)
+    package = models.ForeignKey(SIO3Package, on_delete=models.CASCADE, related_name="additional_files")
     name = models.CharField(max_length=30, verbose_name=_("name"))
     file = FileField(upload_to=make_problem_filename, verbose_name=_("file"))
 
@@ -64,7 +64,7 @@ class SinolpackAdditionalFile(models.Model):
 
 
 class SinolpackAttachment(models.Model):
-    package = models.ForeignKey(SIO3Package, on_delete=models.CASCADE)
+    package = models.ForeignKey(SIO3Package, on_delete=models.CASCADE, related_name="attachments")
     description = models.CharField(max_length=255, verbose_name=_("description"))
     content = FileField(upload_to=make_problem_filename, verbose_name=_("file"))
 

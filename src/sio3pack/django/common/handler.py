@@ -4,6 +4,7 @@ from django.core.files import File
 from django.db import transaction
 
 from sio3pack.django.common.models import SIO3Package, SIO3PackModelSolution, SIO3PackNameTranslation, SIO3PackStatement
+from sio3pack.files.remote_file import RemoteFile
 from sio3pack.files.local_file import LocalFile
 from sio3pack.packages.exceptions import ImproperlyConfigured, PackageAlreadyExists
 
@@ -12,7 +13,10 @@ class DjangoHandler:
     def __init__(self, package: Type["Package"], problem_id: int):
         self.package = package
         self.problem_id = problem_id
-        self.db_package = None
+        try:
+            self.db_package = SIO3Package.objects.get(problem_id=self.problem_id)
+        except SIO3Package.DoesNotExist:
+            self.db_package = None
 
     @transaction.atomic
     def save_to_db(self):
@@ -36,7 +40,7 @@ class DjangoHandler:
         """
         Save the translated titles to the database.
         """
-        for lang, title in self.package.get_titles().items():
+        for lang, title in self.package.lang_titles.items():
             SIO3PackNameTranslation.objects.create(
                 package=self.db_package,
                 language=lang,
@@ -44,7 +48,7 @@ class DjangoHandler:
             )
 
     def _save_model_solutions(self):
-        for order, solution in enumerate(self.package.get_model_solutions()):
+        for order, solution in enumerate(self.package.model_solutions):
             instance = SIO3PackModelSolution(
                 package=self.db_package,
                 name=solution.filename,
@@ -62,5 +66,31 @@ class DjangoHandler:
 
         if self.package.get_statement():
             _add_statement("", self.package.get_statement())
-        for lang, statement in self.package.get_statements().items():
+        for lang, statement in self.package.lang_statements.items():
             _add_statement(lang, statement)
+
+    @property
+    def short_name(self) -> str:
+        return self.db_package.short_name
+
+    @property
+    def full_name(self) -> str:
+        return self.db_package.full_name
+
+    def get_translated_title(self, lang: str) -> str:
+        return self.db_package.translated_titles.get(language=lang).name
+
+    @property
+    def lang_titles(self) -> dict[str, str]:
+        return {t.language: t.name for t in self.db_package.translated_titles.all()}
+
+    @property
+    def model_solutions(self) -> list[RemoteFile]:
+        return [RemoteFile(s.source_file.path) for s in self.db_package.model_solutions.all()]
+
+    @property
+    def lang_statements(self) -> dict[str, RemoteFile]:
+        return {s.language: RemoteFile(s.content.path) for s in self.db_package.statements.all()}
+
+    def get_translated_problem_statement(self, lang: str) -> RemoteFile:
+        return RemoteFile(self.db_package.statements.get(language=lang).content.path)

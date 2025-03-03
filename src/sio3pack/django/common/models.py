@@ -40,7 +40,7 @@ class SIO3PackNameTranslation(models.Model):
     Model to store translated task's title.
     """
 
-    package = models.ForeignKey(SIO3Package, on_delete=models.CASCADE)
+    package = models.ForeignKey(SIO3Package, on_delete=models.CASCADE, related_name="name_translations")
     language = models.CharField(max_length=7, choices=settings.LANGUAGES, verbose_name=_("language code"))
     name = models.CharField(max_length=255, verbose_name=_("name translation"))
 
@@ -54,7 +54,7 @@ class SIO3PackNameTranslation(models.Model):
 
 
 class SIO3PackModelSolution(models.Model):
-    package = models.ForeignKey(SIO3Package, on_delete=models.CASCADE)
+    package = models.ForeignKey(SIO3Package, on_delete=models.CASCADE, related_name="model_solutions")
     name = models.CharField(max_length=255, verbose_name=_("name"))
     source_file = FileField(upload_to=make_problem_filename, verbose_name=_("source file"))
     order_key = models.IntegerField(default=0)
@@ -68,7 +68,7 @@ class SIO3PackModelSolution(models.Model):
 
 
 class SIO3PackStatement(models.Model):
-    package = models.ForeignKey(SIO3Package, on_delete=models.CASCADE)
+    package = models.ForeignKey(SIO3Package, on_delete=models.CASCADE, related_name="statements")
     language = models.CharField(
         max_length=7, blank=True, null=True, choices=settings.LANGUAGES, verbose_name=_("language code")
     )
