@@ -76,3 +76,20 @@ def test_additional_files(get_archived_package):
         af = db_additional_files.get(name=file.filename)
         assert_contents_equal(af.file.read().decode("utf-8"), file.read())
         assert af.name == file.filename
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("get_archived_package", [("simple", c) for c in Compression], indirect=True)
+def test_from_db(get_archived_package):
+    package_info: PackageInfo = get_archived_package()
+    package, _ = _save_and_test_simple(package_info)
+    package_from_db: Sinolpack = sio3pack.from_db(1)
+
+    assert package.short_name == package_from_db.short_name
+    assert package.full_name == package_from_db.full_name
+    assert package.lang_titles == package_from_db.lang_titles
+    assert package.config == package_from_db.config
+
+    with pytest.raises(AttributeError):
+        assert not hasattr(package_from_db, "non_existent_attribute")
+        package_from_db.non_existent_attribute
