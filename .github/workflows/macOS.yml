@@ -30,7 +30,7 @@ jobs:
         run: |
           python3 -m venv .venv
           source .venv/bin/activate
-          pip install -e .[tests]
+          pip install .[tests]
       - name: Run pytest without Django
         env:
           PYTEST_ADDOPTS: "--color=yes"
@@ -42,6 +42,6 @@ jobs:
           PYTEST_ADDOPTS: "--color=yes"
         run: |
           source .venv/bin/activate
-          pip install -e .[tests,django_tests,django]
+          pip install .[tests,django_tests,django]
           ./tests/test_django/manage.py migrate
           pytest -v -n auto
