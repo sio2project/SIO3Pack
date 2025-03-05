@@ -69,16 +69,16 @@ class Sinolpack(Package):
             return os.path.exists(os.path.join(path, "in")) and os.path.exists(os.path.join(path, "out"))
 
     @classmethod
-    def identify_from_db(cls, problem_id: int) -> bool:
+    def identify_db(cls, problem_id: int) -> bool:
         """
         Identifies whether problem is a Sinolpack.
 
         :param problem_id: ID of the problem.
         :return: True when problem is a Sinolpack, otherwise False.
         """
-        from sio3pack.django.sinolpack.models import SinolpackPackage
+        from sio3pack.django.common.models import SIO3Package
 
-        return SinolpackPackage.objects.filter(problem_id=problem_id).exists()
+        return SIO3Package.objects.filter(problem_id=problem_id).exists()
 
     def __del__(self):
         if hasattr(self, "tmpdir"):

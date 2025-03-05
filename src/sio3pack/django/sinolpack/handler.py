@@ -19,7 +19,6 @@ class SinolpackDjangoHandler(DjangoHandler):
 
     def __init__(self, package: Type["Package"], problem_id: int):
         super().__init__(package, problem_id)
-        self.db_package = None
 
     @transaction.atomic
     def save_to_db(self):

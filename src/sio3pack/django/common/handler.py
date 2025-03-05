@@ -79,7 +79,7 @@ class DjangoHandler:
 
     @property
     def lang_titles(self) -> dict[str, str]:
-        return {t.language: t.name for t in self.db_package.translated_titles.all()}
+        return {t.language: t.name for t in self.db_package.name_translations.all()}
 
     @property
     def model_solutions(self) -> list[RemoteFile]:
