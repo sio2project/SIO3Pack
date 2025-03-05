@@ -11,3 +11,6 @@ skip = ["migrations", ".venv"]
 [tool.black]
 line_length = 120
 exclude = "migrations/"
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib"
