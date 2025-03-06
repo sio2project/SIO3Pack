@@ -805,7 +805,7 @@
         {
             "type": "script",
             "name": "Check results for abc0a",
-            "reactive": true,
+            "reactive": false,
             "input_registers": [6],
             "output_registers": [11],
             "script": "<PLACEHOLDER>"
@@ -813,7 +813,7 @@
         {
             "type": "script",
             "name": "Check results for abc0b",
-            "reactive": true,
+            "reactive": false,
             "input_registers": [7],
             "output_registers": [12],
             "script": "<PLACEHOLDER>"
@@ -821,7 +821,7 @@
         {
             "type": "script",
             "name": "Check results for abc1a",
-            "reactive": true,
+            "reactive": false,
             "input_registers": [8],
             "output_registers": [13],
             "script": "<PLACEHOLDER>"
@@ -829,7 +829,7 @@
         {
             "type": "script",
             "name": "Check results for abc1b",
-            "reactive": true,
+            "reactive": false,
             "input_registers": [9],
             "output_registers": [14],
             "script": "<PLACEHOLDER>"
@@ -837,7 +837,7 @@
         {
             "type": "script",
             "name": "Check results for abc2a",
-            "reactive": true,
+            "reactive": false,
             "input_registers": [10],
             "output_registers": [15],
             "script": "<PLACEHOLDER>"
@@ -845,7 +845,7 @@
         {
             "type": "script",
             "name": "Grade group 0",
-            "reactive": false,
+            "reactive": true,
             "input_registers": [11, 12],
             "output_registers": [16],
             "script": "<PLACEHOLDER>"
@@ -853,14 +853,14 @@
         {
             "type": "script",
             "name": "Grade group 1",
-            "reactive": false,
+            "reactive": true,
             "input_registers": [13, 14],
             "output_registers": [17]
         },
         {
             "type": "script",
             "name": "Grade group 2",
-            "reactive": false,
+            "reactive": true,
             "input_registers": [15],
             "output_registers": [18],
             "script": "<PLACEHOLDER>"

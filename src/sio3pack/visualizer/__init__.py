@@ -55,8 +55,11 @@ def main():
                     "id": id,
                     "label": task.get("name", f"Script {script_i}"),
                     "info": task
-                }
+                },
+                "classes": "script"
             })
+            if task["reactive"]:
+                elements[-1]["classes"] += " reactive"
             script_i += 1
             for register in task["input_registers"]:
                 if register not in ins:
@@ -69,8 +72,11 @@ def main():
                     "id": id,
                     "label": task.get("name", f"Execution {execution_i}"),
                     "info": task
-                }
+                },
+                "classes": "execution"
             })
+            if task["exclusive"]:
+                elements[-1]["classes"] += " exclusive"
 
             # To delete, final spec is different
             if "input_register" in task:
@@ -159,6 +165,18 @@ def main():
                     }},
                     {"selector": ".register", "style": {
                         "shape": "rectangle",
+                    }},
+                    {"selector": ".script", "style": {
+                       "shape": "roundrectangle",
+                    }},
+                    {"selector": ".execution", "style": {
+                        "shape": "ellipse",
+                    }},
+                    {"selector": ".reactive", "style": {
+                        "background-color": "#ff851b",
+                    }},
+                    {"selector": ".exclusive", "style": {
+                        "background-color": "#ff4136",
                     }},
                 ],
             ),
