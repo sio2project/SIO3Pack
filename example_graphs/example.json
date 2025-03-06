@@ -1,0 +1,90 @@
+{
+   "external_objects" : [
+      "example-object"
+   ],
+   "observable_objects" : [],
+   "observable_registers" : 1,
+   "registers" : 3,
+   "tasks" : [
+      {
+         "input_registers" : [
+            1
+         ],
+         "output_registers" : [
+            0,
+            2
+         ],
+         "reactive" : true,
+         "script" : "<PLACEHOLDER>",
+         "type" : "script"
+      },
+      {
+         "exclusive" : true,
+         "filesystems" : [
+            {
+               "image" : "example-image",
+               "path" : "",
+               "type" : "image"
+            },
+            {
+               "type" : "empty"
+            },
+            {
+               "handle" : "example-object",
+               "type" : "object"
+            }
+         ],
+         "hard_time_limit" : 2137,
+         "mount_namespaces" : [
+            {
+               "mountpoints" : [
+                  {
+                     "source" : 1,
+                     "target" : "/exe",
+                     "writable" : false
+                  }
+               ],
+               "root" : 0
+            }
+         ],
+         "output_register" : 1,
+         "pid_namespaces" : 1,
+         "pipes" : [
+            {
+               "buffer_size" : 1048576,
+               "file_buffer_size" : 1073741824,
+               "limit" : 2147483648
+            }
+         ],
+         "processes" : [
+            {
+               "arguments" : [
+                  "/exe",
+                  "--help"
+               ],
+               "environment" : [
+                  "TERM=xterm-256color"
+               ],
+               "image" : "/exe",
+               "mount_namespace" : 0,
+               "pid_namespace" : 0,
+               "resource_group" : 0,
+               "working_directory" : "/"
+            }
+         ],
+         "resource_groups" : [
+            {
+               "cpu_usage_limit" : 21.37,
+               "instruction_limit" : 2137000000,
+               "memory_limit" : 2147483648,
+               "oom_terminate_all_tasks" : false,
+               "pid_limit" : 8,
+               "swap_limit" : 4,
+               "time_limit" : 2137000000
+            }
+         ],
+         "system_pipes" : 3,
+         "type" : "execution"
+      }
+   ]
+}
