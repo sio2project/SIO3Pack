@@ -66,8 +66,7 @@ def _create_package(package_name, tmpdir, archive=False, extension=Compression.Z
     task_id = module.TASK_ID
     type = module.TYPE
     package_path = os.path.join(tmpdir.name, task_id)
-    shutil.rmtree(os.path.join(packages, package_name, "__pycache__"), ignore_errors=True)
-    shutil.copytree(os.path.join(packages, package_name), package_path)
+    shutil.copytree(os.path.join(packages, package_name), package_path, ignore=shutil.ignore_patterns("__pycache__"))
     os.unlink(os.path.join(package_path, "__init__.py"))
 
     if archive:
