@@ -10,6 +10,22 @@ from sio3pack.test import Test
 from sio3pack.utils.archive import Archive
 from sio3pack.utils.classinit import RegisteredSubclassesBase
 
+from sio3pack.exceptions import SIO3PackException
+
+
+def wrap_exceptions(func):
+    """Decorator to catch exceptions and re-raise them as SIO3PackException."""
+
+    def decorator(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except SIO3PackException:
+            raise # Do not wrap SIO3PackExceptions again
+        except Exception as e:
+            raise SIO3PackException(f"SIO3Pack raised an exception in {func.__name__} function.", e)
+
+    return decorator
+
 
 class Package(RegisteredSubclassesBase):
     """
@@ -20,9 +36,9 @@ class Package(RegisteredSubclassesBase):
 
     def __init__(self):
         super().__init__()
-        self.django = None
 
     @classmethod
+    @wrap_exceptions
     def identify(cls, file: LocalFile):
         """
         Identify if the package is of this type.
@@ -30,6 +46,7 @@ class Package(RegisteredSubclassesBase):
         raise NotImplementedError()
 
     @classmethod
+    @wrap_exceptions
     def from_file(cls, file: LocalFile, django_settings=None):
         """
         Create a package from a file.
@@ -50,6 +67,7 @@ class Package(RegisteredSubclassesBase):
                 self.is_archive = False
 
     @classmethod
+    @wrap_exceptions
     def identify_db(cls, problem_id: int):
         """
         Identify if the package is of this type. Should check if there
@@ -58,6 +76,7 @@ class Package(RegisteredSubclassesBase):
         raise NotImplementedError()
 
     @classmethod
+    @wrap_exceptions
     def from_db(cls, problem_id: int):
         """
         Create a package from the database. If sio3pack isn't installed with Django
@@ -99,27 +118,35 @@ class Package(RegisteredSubclassesBase):
         except AttributeError:
             raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
 
+    @wrap_exceptions
     def get_title(self, lang: str | None = None) -> str:
         pass
 
+    @wrap_exceptions
     def get_statement(self, lang: str | None = None) -> File | None:
         pass
 
+    @wrap_exceptions
     def get_tests(self) -> list[Test]:
         pass
 
+    @wrap_exceptions
     def get_test(self, test_id: str) -> Test:
         pass
 
+    @wrap_exceptions
     def get_unpack_graph(self) -> GraphOperation | None:
         pass
 
+    @wrap_exceptions
     def get_run_graph(self, file: File, tests: list[Test] | None = None) -> GraphOperation | None:
         pass
 
+    @wrap_exceptions
     def get_save_outs_graph(self, tests: list[Test] | None = None) -> GraphOperation | None:
         pass
 
+    @wrap_exceptions
     def save_to_db(self, problem_id: int):
         """
         Save the package to the database. If sio3pack isn't installed with Django
