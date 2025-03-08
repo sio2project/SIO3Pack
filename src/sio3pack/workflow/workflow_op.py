@@ -1,15 +1,15 @@
-from sio3pack.graph.graph import Graph
+from sio3pack.workflow.workflow import Workflow
 
 
-class GraphOperation:
+class WorkflowOperation:
     """
-    A class to represent a graph that should be run on workers.
+    A class to represent a workflow that should be run on workers.
     Allows for returning results.
     """
 
-    def __init__(self, graph: Graph, return_results: bool = False, return_func: callable = None):
+    def __init__(self, graph: Workflow, return_results: bool = False, return_func: callable = None):
         """
-        :param graph: The graph to run on workers.
+        :param graph: The workflow to run on workers.
         :param return_results: Whether to return the results.
         :param return_func: The function to use to return the
                             results, if return_results is True.

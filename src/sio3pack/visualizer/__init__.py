@@ -15,7 +15,7 @@ import json
 
 def main():
     if len(sys.argv) != 2:
-        print("Usage: python -m sio3pack.visualizer <graph file>")
+        print("Usage: python -m sio3pack.visualizer <workflow file>")
         sys.exit(1)
     file_path = sys.argv[1]
     if not file_path.endswith(".json"):
