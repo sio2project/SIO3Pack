@@ -5,12 +5,12 @@ import tempfile
 import yaml
 
 from sio3pack.files import File, LocalFile
-from sio3pack.workflow import Workflow, WorkflowManager, WorkflowOperation
 from sio3pack.packages.exceptions import ImproperlyConfigured
 from sio3pack.packages.package import Package
 from sio3pack.packages.sinolpack.enums import ModelSolutionKind
 from sio3pack.util import naturalsort_key
 from sio3pack.utils.archive import Archive, UnrecognizedArchiveFormat
+from sio3pack.workflow import Workflow, WorkflowManager, WorkflowOperation
 
 
 class Sinolpack(Package):

@@ -33,17 +33,13 @@ class ImageFilesystem(Filesystem):
         :param id: The id of the image filesystem.
         :param workflow: The workflow the image filesystem belongs to.
         """
-        return cls(id, data['image'], data['path'])
+        return cls(id, data["image"], data["path"])
 
     def to_dict(self) -> dict:
         """
         Convert the image filesystem to a dictionary.
         """
-        return {
-            'type': 'image',
-            'image': self.image,
-            'path': self.path
-        }
+        return {"type": "image", "image": self.image, "path": self.path}
 
 
 class EmptyFilesystem(Filesystem):
@@ -55,7 +51,7 @@ class EmptyFilesystem(Filesystem):
         super().__init__(id)
 
     def __str__(self):
-        return '<EmptyFilesystem>'
+        return "<EmptyFilesystem>"
 
     @classmethod
     def from_dict(cls, data: dict, id: int, workflow: "Workflow"):
@@ -71,9 +67,7 @@ class EmptyFilesystem(Filesystem):
         """
         Convert the empty filesystem to a dictionary.
         """
-        return {
-            'type': 'empty'
-        }
+        return {"type": "empty"}
 
 
 class ObjectFilesystem(Filesystem):
@@ -88,7 +82,7 @@ class ObjectFilesystem(Filesystem):
         self.object = object
 
     def __str__(self):
-        return f'<ObjectFilesystem {self.object.handle}>'
+        return f"<ObjectFilesystem {self.object.handle}>"
 
     @classmethod
     def from_dict(cls, data: dict, id: int, workflow: "Workflow"):
@@ -98,15 +92,15 @@ class ObjectFilesystem(Filesystem):
         :param id: The id of the object filesystem.
         :param workflow: The workflow the object filesystem belongs to.
         """
-        return cls(id, workflow.objects_manager.get_or_create_object(data['handle']), workflow)
+        return cls(id, workflow.objects_manager.get_or_create_object(data["handle"]), workflow)
 
     def to_dict(self) -> dict:
         """
         Convert the object filesystem to a dictionary.
         """
         return {
-            'type': 'object',
-            'handle': self.object.handle,
+            "type": "object",
+            "handle": self.object.handle,
         }
 
 
@@ -127,11 +121,11 @@ class FilesystemManager:
         :param workflow: The workflow the filesystems belong to.
         """
         for fs in data:
-            if fs['type'] == 'image':
+            if fs["type"] == "image":
                 self.filesystems.append(ImageFilesystem.from_dict(fs, self.id, workflow))
-            elif fs['type'] == 'empty':
+            elif fs["type"] == "empty":
                 self.filesystems.append(EmptyFilesystem.from_dict(fs, self.id, workflow))
-            elif fs['type'] == 'object':
+            elif fs["type"] == "object":
                 self.filesystems.append(ObjectFilesystem.from_dict(fs, self.id, workflow))
             self.id += 1
 

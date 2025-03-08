@@ -2,15 +2,14 @@ import importlib
 from typing import Any
 
 from sio3pack import LocalFile
+from sio3pack.exceptions import SIO3PackException
 from sio3pack.files import File
-from sio3pack.workflow import Workflow, WorkflowOperation
 from sio3pack.packages.exceptions import UnknownPackageType
 from sio3pack.packages.package.handler import NoDjangoHandler
 from sio3pack.test import Test
 from sio3pack.utils.archive import Archive
 from sio3pack.utils.classinit import RegisteredSubclassesBase
-
-from sio3pack.exceptions import SIO3PackException
+from sio3pack.workflow import Workflow, WorkflowOperation
 
 
 def wrap_exceptions(func):
@@ -20,7 +19,7 @@ def wrap_exceptions(func):
         try:
             return func(*args, **kwargs)
         except SIO3PackException:
-            raise # Do not wrap SIO3PackExceptions again
+            raise  # Do not wrap SIO3PackExceptions again
         except Exception as e:
             raise SIO3PackException(f"SIO3Pack raised an exception in {func.__name__} function.", e)
 

@@ -16,14 +16,10 @@ class Pipe:
         Create a new pipe config from a dictionary.
         :param data: The dictionary to create the pipe config from.
         """
-        return cls(data['buffer_size'], data['file_buffer_size'], data['limit'])
+        return cls(data["buffer_size"], data["file_buffer_size"], data["limit"])
 
     def to_dict(self) -> dict:
         """
         Convert the pipe config to a dictionary.
         """
-        return {
-            'buffer_size': self.buffer_size,
-            'file_buffer_size': self.file_buffer_size,
-            'limit': self.limit
-        }
+        return {"buffer_size": self.buffer_size, "file_buffer_size": self.file_buffer_size, "limit": self.limit}

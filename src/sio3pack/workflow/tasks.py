@@ -2,7 +2,7 @@ from sio3pack.workflow.execution.filesystems import Filesystem, FilesystemManage
 from sio3pack.workflow.execution.mount_namespace import MountNamespace, MountNamespaceManager
 from sio3pack.workflow.execution.pipe import Pipe
 from sio3pack.workflow.execution.process import Process
-from sio3pack.workflow.execution.resource_group import ResourceGroupManager, ResourceGroup
+from sio3pack.workflow.execution.resource_group import ResourceGroup, ResourceGroupManager
 
 
 class Task:
@@ -13,18 +13,29 @@ class Task:
         :param data: The dictionary to create the task from.
         :param workflow: The workflow the task belongs to.
         """
-        if data['type'] == 'execution':
+        if data["type"] == "execution":
             return ExecutionTask.from_dict(data, workflow)
-        elif data['type'] == 'script':
+        elif data["type"] == "script":
             return ScriptTask.from_dict(data, workflow)
         else:
             raise ValueError(f"Unknown task type: {data['type']}")
 
 
 class ExecutionTask(Task):
-    def __init__(self, name: str, workflow: "Workflow", exclusive: bool = False, hard_time_limit: int = None,
-                 extra_limit: int = None, output_register: int = None, input_register: int = None, pid_namespaces: int = 1,
-                 processes: [Process] = None, pipes: [Pipe] = None, system_pipes: int = 3):
+    def __init__(
+        self,
+        name: str,
+        workflow: "Workflow",
+        exclusive: bool = False,
+        hard_time_limit: int = None,
+        extra_limit: int = None,
+        output_register: int = None,
+        input_register: int = None,
+        pid_namespaces: int = 1,
+        processes: [Process] = None,
+        pipes: [Pipe] = None,
+        system_pipes: int = 3,
+    ):
         """
         Create a new execution task.
         :param name: The name of the task.
@@ -64,14 +75,24 @@ class ExecutionTask(Task):
         :param data: The dictionary to create the task from.
         :param workflow: The workflow the task belongs to.
         """
-        task = cls(data['name'], workflow, data['exclusive'], data.get('hard_time_limit'),
-                   output_register=data.get('output_register'), input_register=data.get('input_register'),
-                   pid_namespaces=data['pid_namespaces'], pipes=data['pipes'], system_pipes=data.get('system_pipes', 3))
-        task.filesystem_manager.from_dict(data['filesystems'], workflow)
-        task.mountnamespace_manager.from_dict(data['mount_namespaces'])
-        task.resource_group_manager.from_dict(data['resource_groups'])
-        task.processes = [Process.from_dict(process, task.mountnamespace_manager, task.resource_group_manager)
-                          for process in data['processes']]
+        task = cls(
+            data["name"],
+            workflow,
+            data["exclusive"],
+            data.get("hard_time_limit"),
+            output_register=data.get("output_register"),
+            input_register=data.get("input_register"),
+            pid_namespaces=data["pid_namespaces"],
+            pipes=data["pipes"],
+            system_pipes=data.get("system_pipes", 3),
+        )
+        task.filesystem_manager.from_dict(data["filesystems"], workflow)
+        task.mountnamespace_manager.from_dict(data["mount_namespaces"])
+        task.resource_group_manager.from_dict(data["resource_groups"])
+        task.processes = [
+            Process.from_dict(process, task.mountnamespace_manager, task.resource_group_manager)
+            for process in data["processes"]
+        ]
         return task
 
     def to_dict(self):
@@ -86,21 +107,21 @@ class ExecutionTask(Task):
             hard_time_limit += self.extra_limit
 
         res = {
-            'name': self.name,
-            'type': 'execution',
-            'exclusive': self.exclusive,
-            'hard_time_limit': hard_time_limit,
-            'output_register': self.output_register,
-            'pid_namespaces': self.pid_namespaces,
-            'filesystems': self.filesystem_manager.to_dict(),
-            'mount_namespaces': self.mountnamespace_manager.to_dict(),
-            'pipes': [pipe.to_dict() for pipe in self.pipes],
-            'system_pipes': self.system_pipes,
-            'resource_groups': self.resource_group_manager.to_dict(),
-            'processes': [process.to_dict() for process in self.processes],
+            "name": self.name,
+            "type": "execution",
+            "exclusive": self.exclusive,
+            "hard_time_limit": hard_time_limit,
+            "output_register": self.output_register,
+            "pid_namespaces": self.pid_namespaces,
+            "filesystems": self.filesystem_manager.to_dict(),
+            "mount_namespaces": self.mountnamespace_manager.to_dict(),
+            "pipes": [pipe.to_dict() for pipe in self.pipes],
+            "system_pipes": self.system_pipes,
+            "resource_groups": self.resource_group_manager.to_dict(),
+            "processes": [process.to_dict() for process in self.processes],
         }
         if self.input_register is not None:
-            res['input_register'] = self.input_register
+            res["input_register"] = self.input_register
         return res
 
     def add_filesystem(self, filesystem: Filesystem):
@@ -113,10 +134,16 @@ class ExecutionTask(Task):
         self.resource_group_manager.add(resource_group)
 
 
-
 class ScriptTask(Task):
-    def __init__(self, name: str, workflow: "Workflow", reactive: bool = False, input_registers: [int] = None,
-                 output_registers: [int] = None, script: str = None):
+    def __init__(
+        self,
+        name: str,
+        workflow: "Workflow",
+        reactive: bool = False,
+        input_registers: [int] = None,
+        output_registers: [int] = None,
+        script: str = None,
+    ):
         """
         Create a new script task.
         :param name: The name of the task.
@@ -143,18 +170,19 @@ class ScriptTask(Task):
         :param data: The dictionary to create the task from.
         :param workflow: The workflow the task belongs to.
         """
-        return cls(data['name'], workflow, data['reactive'], data['input_registers'], data['output_registers'],
-                   data['script'])
+        return cls(
+            data["name"], workflow, data["reactive"], data["input_registers"], data["output_registers"], data["script"]
+        )
 
     def to_dict(self) -> dict:
         """
         Convert the task to a dictionary.
         """
         return {
-            'name': self.name,
-            'type': 'script',
-            'reactive': self.reactive,
-            'input_registers': self.input_registers,
-            'output_registers': self.output_registers,
-            'script': self.script
+            "name": self.name,
+            "type": "script",
+            "reactive": self.reactive,
+            "input_registers": self.input_registers,
+            "output_registers": self.output_registers,
+            "script": self.script,
         }

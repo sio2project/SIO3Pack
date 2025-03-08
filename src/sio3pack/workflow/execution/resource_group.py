@@ -1,7 +1,15 @@
 class ResourceGroup:
-    def __init__(self, id: int, cpu_usage_limit: int = 100., instruction_limit: int = 1e9,
-                 memory_limit: int = 2147483648, oom_terminate_all_tasks: bool = False, pid_limit: int = 2,
-                 swap_limit: int = 0, time_limit: int = 1e9):
+    def __init__(
+        self,
+        id: int,
+        cpu_usage_limit: int = 100.0,
+        instruction_limit: int = 1e9,
+        memory_limit: int = 2147483648,
+        oom_terminate_all_tasks: bool = False,
+        pid_limit: int = 2,
+        swap_limit: int = 0,
+        time_limit: int = 1e9,
+    ):
         """
         Create a new resource group.
         :param id: The id of the resource group.
@@ -29,21 +37,29 @@ class ResourceGroup:
         :param data: The dictionary to create the resource group from.
         :param id: The id of the resource group.
         """
-        return cls(id, data['cpu_usage_limit'], data['instruction_limit'], data['memory_limit'],
-                   data['oom_terminate_all_tasks'], data['pid_limit'], data['swap_limit'], data['time_limit'])
+        return cls(
+            id,
+            data["cpu_usage_limit"],
+            data["instruction_limit"],
+            data["memory_limit"],
+            data["oom_terminate_all_tasks"],
+            data["pid_limit"],
+            data["swap_limit"],
+            data["time_limit"],
+        )
 
     def to_dict(self) -> dict:
         """
         Convert the resource group to a dictionary.
         """
         return {
-            'cpu_usage_limit': self.cpu_usage_limit,
-            'instruction_limit': self.instruction_limit,
-            'memory_limit': self.memory_limit,
-            'oom_terminate_all_tasks': self.oom_terminate_all_tasks,
-            'pid_limit': self.pid_limit,
-            'swap_limit': self.swap_limit,
-            'time_limit': self.time_limit
+            "cpu_usage_limit": self.cpu_usage_limit,
+            "instruction_limit": self.instruction_limit,
+            "memory_limit": self.memory_limit,
+            "oom_terminate_all_tasks": self.oom_terminate_all_tasks,
+            "pid_limit": self.pid_limit,
+            "swap_limit": self.swap_limit,
+            "time_limit": self.time_limit,
         }
 
 

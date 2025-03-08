@@ -2,6 +2,7 @@ class Object:
     """
     A class to represent an object in a workflow.
     """
+
     def __init__(self, handle: str):
         """
         Create a new object.
@@ -10,7 +11,7 @@ class Object:
         self.handle = handle
 
     def __str__(self):
-        return f'<Object {self.handle}>'
+        return f"<Object {self.handle}>"
 
 
 class ObjectsManager:

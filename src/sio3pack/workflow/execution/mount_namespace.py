@@ -14,25 +14,17 @@ class Mountpoint:
         :param data: The dictionary to create the mountpoint from.
         :param filesystem_manager: The filesystem manager to use.
         """
-        if isinstance(data['source'], str): # TODO: delete this
-            return cls(data['source'], data['target'], data['writable'])
-        return cls(filesystem_manager.get_by_id(int(data['source'])), data['target'], data['writable'])
+        if isinstance(data["source"], str):  # TODO: delete this
+            return cls(data["source"], data["target"], data["writable"])
+        return cls(filesystem_manager.get_by_id(int(data["source"])), data["target"], data["writable"])
 
     def to_dict(self) -> dict:
         """
         Convert the mountpoint to a dictionary.
         """
-        if isinstance(self.source, str): # TODO: delete this
-            return {
-                'source': self.source,
-                'target': self.target,
-                'writable': self.writable
-            }
-        return {
-            'source': self.source.id,
-            'target': self.target,
-            'writable': self.writable
-        }
+        if isinstance(self.source, str):  # TODO: delete this
+            return {"source": self.source, "target": self.target, "writable": self.writable}
+        return {"source": self.source.id, "target": self.target, "writable": self.writable}
 
 
 class MountNamespace:
@@ -49,17 +41,17 @@ class MountNamespace:
         :param id: The id of the mount namespace.
         :param filesystem_manager: The filesystem manager to use.
         """
-        return cls(id, [Mountpoint.from_dict(mountpoint, filesystem_manager) for mountpoint in data['mountpoints']],
-                   data['root'])
+        return cls(
+            id,
+            [Mountpoint.from_dict(mountpoint, filesystem_manager) for mountpoint in data["mountpoints"]],
+            data["root"],
+        )
 
     def to_dict(self) -> dict:
         """
         Convert the mount namespace to a dictionary.
         """
-        return {
-            'mountpoints': [mountpoint.to_dict() for mountpoint in self.mountpoints],
-            'root': self.root
-        }
+        return {"mountpoints": [mountpoint.to_dict() for mountpoint in self.mountpoints], "root": self.root}
 
 
 class MountNamespaceManager:
