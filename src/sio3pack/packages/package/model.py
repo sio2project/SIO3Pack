@@ -4,12 +4,12 @@ from typing import Any
 from sio3pack import LocalFile
 from sio3pack.exceptions import SIO3PackException
 from sio3pack.files import File
-from sio3pack.graph import GraphOperation
 from sio3pack.packages.exceptions import UnknownPackageType
 from sio3pack.packages.package.handler import NoDjangoHandler
 from sio3pack.test import Test
 from sio3pack.utils.archive import Archive
 from sio3pack.utils.classinit import RegisteredSubclassesBase
+from sio3pack.workflow import Workflow, WorkflowOperation
 
 
 def wrap_exceptions(func):
@@ -152,15 +152,15 @@ class Package(RegisteredSubclassesBase):
         pass
 
     @wrap_exceptions
-    def get_unpack_graph(self) -> GraphOperation | None:
+    def get_unpack_graph(self) -> WorkflowOperation | None:
         pass
 
     @wrap_exceptions
-    def get_run_graph(self, file: File, tests: list[Test] | None = None) -> GraphOperation | None:
+    def get_run_graph(self, file: File, tests: list[Test] | None = None) -> WorkflowOperation | None:
         pass
 
     @wrap_exceptions
-    def get_save_outs_graph(self, tests: list[Test] | None = None) -> GraphOperation | None:
+    def get_save_outs_graph(self, tests: list[Test] | None = None) -> WorkflowOperation | None:
         pass
 
     @wrap_exceptions
