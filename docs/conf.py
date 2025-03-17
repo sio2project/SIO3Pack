@@ -6,10 +6,12 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+import sio3pack
+
 project = 'SIO3Pack'
 copyright = '2025, Tomasz Kwiatkowski, Mateusz Masiarz, Jakub Rożek, Stanisław Struzik'
 author = 'Tomasz Kwiatkowski, Mateusz Masiarz, Jakub Rożek, Stanisław Struzik'
-release = '1.0.0.dev1'
+release = sio3pack.__version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
