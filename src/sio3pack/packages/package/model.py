@@ -33,6 +33,24 @@ class Package(RegisteredSubclassesBase):
 
     abstract = True
 
+    """
+    Attributes:
+        short_name (str): Short name of the problem.
+        full_name (str): Full name of the problem.
+        lang_titles (dict[str, str]): A dictionary of problem titles,
+            where keys are language codes and values are titles.
+        lang_statements (dict[str, File]): A dictionary of problem
+            statements, where keys are language codes and values are
+            files.
+        config (dict[str, Any]): Configuration of the problem.
+        model_solutions (list[dict[str, Any]]): A list
+            of model solutions, where each element is a tuple of model
+            solution kind and filename.
+        additional_files (list[File]): A list of additional files of
+            the problem.
+        attachments (list[File]): A list of attachments of the problem.
+    """
+
     def __init__(self):
         super().__init__()
 
