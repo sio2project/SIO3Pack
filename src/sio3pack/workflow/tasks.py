@@ -32,8 +32,8 @@ class ExecutionTask(Task):
         output_register: int = None,
         input_register: int = None,
         pid_namespaces: int = 1,
-        processes: [Process] = None,
-        pipes: [Pipe] = None,
+        processes: list[Process] = None,
+        pipes: list[Pipe] = None,
         system_pipes: int = 3,
     ):
         """
@@ -140,8 +140,8 @@ class ScriptTask(Task):
         name: str,
         workflow: "Workflow",
         reactive: bool = False,
-        input_registers: [int] = None,
-        output_registers: [int] = None,
+        input_registers: list[int] = None,
+        output_registers: list[int] = None,
         script: str = None,
     ):
         """

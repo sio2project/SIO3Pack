@@ -21,10 +21,10 @@ class Workflow:
     def __init__(
         self,
         name: str,
-        external_objects: [str] = None,
-        observable_objects: [str] = None,
+        external_objects: list[str] = None,
+        observable_objects: list[str] = None,
         observable_registers: int = 0,
-        tasks: [Task] = None,
+        tasks: list[Task] = None,
     ):
         """
         Create a new workflow. Number of required registers is calculated automatically.

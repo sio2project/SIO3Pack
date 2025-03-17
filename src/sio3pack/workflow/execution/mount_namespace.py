@@ -28,7 +28,7 @@ class Mountpoint:
 
 
 class MountNamespace:
-    def __init__(self, id: int, mountpoints: [Mountpoint] = None, root: int = 0):
+    def __init__(self, id: int, mountpoints: list[Mountpoint] = None, root: int = 0):
         self.mountpoints = mountpoints or []
         self.root = root
         self.id = id
@@ -60,12 +60,12 @@ class MountNamespaceManager:
         Create a new mount namespace manager.
         :param task: The task the mount namespace manager belongs to.
         """
-        self.mount_namespaces: [MountNamespace] = []
+        self.mount_namespaces: list[MountNamespace] = []
         self.id = 0
         self.task = task
         self.filesystem_manager = filesystem_manager
 
-    def from_json(self, data: [dict]):
+    def from_json(self, data: list[dict]):
         """
         Create a new mount namespace manager from a list of dictionaries.
         :param data: The list of dictionaries to create the mount namespace manager from.
@@ -89,7 +89,7 @@ class MountNamespaceManager:
         """
         return self.mount_namespaces[id]
 
-    def to_json(self) -> [dict]:
+    def to_json(self) -> list[dict]:
         """
         Convert the mount namespace manager to a dictionary.
         """

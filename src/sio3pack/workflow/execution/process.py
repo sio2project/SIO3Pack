@@ -5,7 +5,7 @@ from sio3pack.workflow.execution.resource_group import ResourceGroup, ResourceGr
 class Process:
     def __init__(
         self,
-        arguments: [str] = None,
+        arguments: list[str] = None,
         environment: dict = None,
         image: str = "",
         mount_namespace: MountNamespace = None,
@@ -30,7 +30,7 @@ class Process:
         self.pid_namespace = pid_namespace
         self.working_directory = working_directory
 
-    def to_json(self):
+    def to_json(self) -> dict:
         return {
             "arguments": self.arguments,
             "environment": [f"{key}={value}" for key, value in self.environment.items()],

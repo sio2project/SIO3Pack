@@ -69,7 +69,7 @@ class ResourceGroupManager:
         Create a new resource group manager.
         :param task: The task the resource group manager belongs to.
         """
-        self.resource_groups: [ResourceGroup] = []
+        self.resource_groups: list[ResourceGroup] = []
         self.id = 0
 
     def add(self, resource_group: ResourceGroup):
@@ -87,13 +87,13 @@ class ResourceGroupManager:
         """
         return self.resource_groups[id]
 
-    def to_json(self) -> [dict]:
+    def to_json(self) -> list[dict]:
         """
         Convert the resource group manager to a dictionary.
         """
         return [resource_group.to_json() for resource_group in self.resource_groups]
 
-    def from_json(self, data: [dict]):
+    def from_json(self, data: list[dict]):
         """
         Create a new resource group manager from a list of dictionaries.
         :param data: The list of dictionaries to create the resource group manager from.
@@ -102,7 +102,7 @@ class ResourceGroupManager:
             self.add(ResourceGroup.from_json(resource_group, self.id))
             self.id += 1
 
-    def all(self):
+    def all(self) -> list[ResourceGroup]:
         """
         Get all resource groups.
         """
