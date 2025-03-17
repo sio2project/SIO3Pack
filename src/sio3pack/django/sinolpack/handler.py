@@ -74,7 +74,7 @@ class SinolpackDjangoHandler(DjangoHandler):
     @property
     def model_solutions(self) -> list[dict[str, Any]]:
         solutions = SinolpackModelSolution.objects.filter(package=self.db_package)
-        return [{'file': RemoteFile(s.source_file.path), 'kind': s.kind} for s in solutions]
+        return [{"file": RemoteFile(s.source_file.path), "kind": s.kind} for s in solutions]
 
     @property
     def additional_files(self) -> list[RemoteFile]:
