@@ -31,7 +31,7 @@ class ResourceGroup:
         self.time_limit = time_limit
 
     @classmethod
-    def from_dict(cls, data: dict, id: int):
+    def from_json(cls, data: dict, id: int):
         """
         Create a new resource group from a dictionary.
         :param data: The dictionary to create the resource group from.
@@ -48,7 +48,7 @@ class ResourceGroup:
             data["time_limit"],
         )
 
-    def to_dict(self) -> dict:
+    def to_json(self) -> dict:
         """
         Convert the resource group to a dictionary.
         """
@@ -87,19 +87,19 @@ class ResourceGroupManager:
         """
         return self.resource_groups[id]
 
-    def to_dict(self) -> [dict]:
+    def to_json(self) -> [dict]:
         """
         Convert the resource group manager to a dictionary.
         """
-        return [resource_group.to_dict() for resource_group in self.resource_groups]
+        return [resource_group.to_json() for resource_group in self.resource_groups]
 
-    def from_dict(self, data: [dict]):
+    def from_json(self, data: [dict]):
         """
         Create a new resource group manager from a list of dictionaries.
         :param data: The list of dictionaries to create the resource group manager from.
         """
         for resource_group in data:
-            self.add(ResourceGroup.from_dict(resource_group, self.id))
+            self.add(ResourceGroup.from_json(resource_group, self.id))
             self.id += 1
 
     def all(self):

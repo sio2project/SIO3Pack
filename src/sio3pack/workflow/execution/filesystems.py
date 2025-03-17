@@ -26,7 +26,7 @@ class ImageFilesystem(Filesystem):
         return f'<ImageFilesystem {self.image} path="{self.path}">'
 
     @classmethod
-    def from_dict(cls, data: dict, id: int, workflow: "Workflow"):
+    def from_json(cls, data: dict, id: int, workflow: "Workflow"):
         """
         Create a new image filesystem from a dictionary.
         :param data: The dictionary to create the image filesystem from.
@@ -35,7 +35,7 @@ class ImageFilesystem(Filesystem):
         """
         return cls(id, data["image"], data["path"])
 
-    def to_dict(self) -> dict:
+    def to_json(self) -> dict:
         """
         Convert the image filesystem to a dictionary.
         """
@@ -54,7 +54,7 @@ class EmptyFilesystem(Filesystem):
         return "<EmptyFilesystem>"
 
     @classmethod
-    def from_dict(cls, data: dict, id: int, workflow: "Workflow"):
+    def from_json(cls, data: dict, id: int, workflow: "Workflow"):
         """
         Create a new empty filesystem from a dictionary.
         :param data: The dictionary to create the empty filesystem from.
@@ -63,7 +63,7 @@ class EmptyFilesystem(Filesystem):
         """
         return cls(id)
 
-    def to_dict(self) -> dict:
+    def to_json(self) -> dict:
         """
         Convert the empty filesystem to a dictionary.
         """
@@ -85,7 +85,7 @@ class ObjectFilesystem(Filesystem):
         return f"<ObjectFilesystem {self.object.handle}>"
 
     @classmethod
-    def from_dict(cls, data: dict, id: int, workflow: "Workflow"):
+    def from_json(cls, data: dict, id: int, workflow: "Workflow"):
         """
         Create a new object filesystem from a dictionary.
         :param data: The dictionary to create the object filesystem from.
@@ -94,7 +94,7 @@ class ObjectFilesystem(Filesystem):
         """
         return cls(id, workflow.objects_manager.get_or_create_object(data["handle"]), workflow)
 
-    def to_dict(self) -> dict:
+    def to_json(self) -> dict:
         """
         Convert the object filesystem to a dictionary.
         """
@@ -114,7 +114,7 @@ class FilesystemManager:
         self.id = 0
         self.task = task
 
-    def from_dict(self, data: [dict], workflow: "Workflow"):
+    def from_json(self, data: [dict], workflow: "Workflow"):
         """
         Create filesystems from a list of dictionaries.
         :param data: The list of dictionaries to create the filesystems from.
@@ -122,18 +122,18 @@ class FilesystemManager:
         """
         for fs in data:
             if fs["type"] == "image":
-                self.filesystems.append(ImageFilesystem.from_dict(fs, self.id, workflow))
+                self.filesystems.append(ImageFilesystem.from_json(fs, self.id, workflow))
             elif fs["type"] == "empty":
-                self.filesystems.append(EmptyFilesystem.from_dict(fs, self.id, workflow))
+                self.filesystems.append(EmptyFilesystem.from_json(fs, self.id, workflow))
             elif fs["type"] == "object":
-                self.filesystems.append(ObjectFilesystem.from_dict(fs, self.id, workflow))
+                self.filesystems.append(ObjectFilesystem.from_json(fs, self.id, workflow))
             self.id += 1
 
-    def to_dict(self) -> [dict]:
+    def to_json(self) -> [dict]:
         """
         Convert the filesystems to a list of dictionaries.
         """
-        return [fs.to_dict() for fs in self.filesystems]
+        return [fs.to_json() for fs in self.filesystems]
 
     def get_by_id(self, id: int) -> Filesystem:
         """

@@ -10,7 +10,7 @@ class WorkflowManager:
         graphs = {}
         content = json.loads(file.read())
         for name, graph in content.items():
-            graphs[name] = Workflow.from_dict(graph)
+            graphs[name] = Workflow.from_json(graph)
         return cls(graphs)
 
     def __init__(self, graphs: dict[str, Workflow]):

@@ -30,7 +30,7 @@ class Process:
         self.pid_namespace = pid_namespace
         self.working_directory = working_directory
 
-    def to_dict(self):
+    def to_json(self):
         return {
             "arguments": self.arguments,
             "environment": [f"{key}={value}" for key, value in self.environment.items()],
@@ -42,7 +42,7 @@ class Process:
         }
 
     @classmethod
-    def from_dict(
+    def from_json(
         cls, data: dict, mountnamespace_manager: MountNamespaceManager, resource_group_manager: ResourceGroupManager
     ):
         env = {}

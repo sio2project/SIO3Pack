@@ -11,14 +11,14 @@ class Pipe:
         self.limit = limit
 
     @classmethod
-    def from_dict(cls, data: dict):
+    def from_json(cls, data: dict):
         """
         Create a new pipe config from a dictionary.
         :param data: The dictionary to create the pipe config from.
         """
         return cls(data["buffer_size"], data["file_buffer_size"], data["limit"])
 
-    def to_dict(self) -> dict:
+    def to_json(self) -> dict:
         """
         Convert the pipe config to a dictionary.
         """

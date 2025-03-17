@@ -119,7 +119,7 @@ class Sinolpack(Package):
     def _default_graph_manager(self) -> WorkflowManager:
         return WorkflowManager(
             {
-                "unpack": Workflow.from_dict(
+                "unpack": Workflow.from_json(
                     {
                         "name": "unpack",
                         # ...

@@ -7,16 +7,16 @@ from sio3pack.workflow.execution.resource_group import ResourceGroup, ResourceGr
 
 class Task:
     @classmethod
-    def from_dict(cls, data: dict, workflow: "Workflow"):
+    def from_json(cls, data: dict, workflow: "Workflow"):
         """
         Create a new task from a dictionary.
         :param data: The dictionary to create the task from.
         :param workflow: The workflow the task belongs to.
         """
         if data["type"] == "execution":
-            return ExecutionTask.from_dict(data, workflow)
+            return ExecutionTask.from_json(data, workflow)
         elif data["type"] == "script":
-            return ScriptTask.from_dict(data, workflow)
+            return ScriptTask.from_json(data, workflow)
         else:
             raise ValueError(f"Unknown task type: {data['type']}")
 
@@ -61,7 +61,7 @@ class ExecutionTask(Task):
         self.pid_namespaces = pid_namespaces
         self.processes = processes or []
         self.system_pipes = system_pipes
-        self.pipes = [Pipe.from_dict(pipe) for pipe in pipes] if pipes else []
+        self.pipes = [Pipe.from_json(pipe) for pipe in pipes] if pipes else []
         self.extra_limit = extra_limit
 
         self.filesystem_manager = FilesystemManager(self)
@@ -69,7 +69,7 @@ class ExecutionTask(Task):
         self.resource_group_manager = ResourceGroupManager(self)
 
     @classmethod
-    def from_dict(cls, data: dict, workflow: "Workflow"):
+    def from_json(cls, data: dict, workflow: "Workflow"):
         """
         Create a new execution task from a dictionary.
         :param data: The dictionary to create the task from.
@@ -86,16 +86,16 @@ class ExecutionTask(Task):
             pipes=data["pipes"],
             system_pipes=data.get("system_pipes", 3),
         )
-        task.filesystem_manager.from_dict(data["filesystems"], workflow)
-        task.mountnamespace_manager.from_dict(data["mount_namespaces"])
-        task.resource_group_manager.from_dict(data["resource_groups"])
+        task.filesystem_manager.from_json(data["filesystems"], workflow)
+        task.mountnamespace_manager.from_json(data["mount_namespaces"])
+        task.resource_group_manager.from_json(data["resource_groups"])
         task.processes = [
-            Process.from_dict(process, task.mountnamespace_manager, task.resource_group_manager)
+            Process.from_json(process, task.mountnamespace_manager, task.resource_group_manager)
             for process in data["processes"]
         ]
         return task
 
-    def to_dict(self):
+    def to_json(self):
         """
         Convert the task to a dictionary.
         """
@@ -113,12 +113,12 @@ class ExecutionTask(Task):
             "hard_time_limit": hard_time_limit,
             "output_register": self.output_register,
             "pid_namespaces": self.pid_namespaces,
-            "filesystems": self.filesystem_manager.to_dict(),
-            "mount_namespaces": self.mountnamespace_manager.to_dict(),
-            "pipes": [pipe.to_dict() for pipe in self.pipes],
+            "filesystems": self.filesystem_manager.to_json(),
+            "mount_namespaces": self.mountnamespace_manager.to_json(),
+            "pipes": [pipe.to_json() for pipe in self.pipes],
             "system_pipes": self.system_pipes,
-            "resource_groups": self.resource_group_manager.to_dict(),
-            "processes": [process.to_dict() for process in self.processes],
+            "resource_groups": self.resource_group_manager.to_json(),
+            "processes": [process.to_json() for process in self.processes],
         }
         if self.input_register is not None:
             res["input_register"] = self.input_register
@@ -164,7 +164,7 @@ class ScriptTask(Task):
         return f"<ScriptTask {self.name} reactive={self.reactive}>"
 
     @classmethod
-    def from_dict(cls, data: dict, workflow: "Workflow"):
+    def from_json(cls, data: dict, workflow: "Workflow"):
         """
         Create a new script task from a dictionary.
         :param data: The dictionary to create the task from.
@@ -174,7 +174,7 @@ class ScriptTask(Task):
             data["name"], workflow, data["reactive"], data["input_registers"], data["output_registers"], data["script"]
         )
 
-    def to_dict(self) -> dict:
+    def to_json(self) -> dict:
         """
         Convert the task to a dictionary.
         """

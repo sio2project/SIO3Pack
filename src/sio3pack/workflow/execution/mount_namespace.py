@@ -8,7 +8,7 @@ class Mountpoint:
         self.writable = writable
 
     @classmethod
-    def from_dict(cls, data: dict, filesystem_manager: FilesystemManager):
+    def from_json(cls, data: dict, filesystem_manager: FilesystemManager):
         """
         Create a new mountpoint from a dictionary.
         :param data: The dictionary to create the mountpoint from.
@@ -18,7 +18,7 @@ class Mountpoint:
             return cls(data["source"], data["target"], data["writable"])
         return cls(filesystem_manager.get_by_id(int(data["source"])), data["target"], data["writable"])
 
-    def to_dict(self) -> dict:
+    def to_json(self) -> dict:
         """
         Convert the mountpoint to a dictionary.
         """
@@ -34,7 +34,7 @@ class MountNamespace:
         self.id = id
 
     @classmethod
-    def from_dict(cls, data: dict, id: int, filesystem_manager: FilesystemManager):
+    def from_json(cls, data: dict, id: int, filesystem_manager: FilesystemManager):
         """
         Create a new mount namespace from a dictionary.
         :param data: The dictionary to create the mount namespace from.
@@ -43,15 +43,15 @@ class MountNamespace:
         """
         return cls(
             id,
-            [Mountpoint.from_dict(mountpoint, filesystem_manager) for mountpoint in data["mountpoints"]],
+            [Mountpoint.from_json(mountpoint, filesystem_manager) for mountpoint in data["mountpoints"]],
             data["root"],
         )
 
-    def to_dict(self) -> dict:
+    def to_json(self) -> dict:
         """
         Convert the mount namespace to a dictionary.
         """
-        return {"mountpoints": [mountpoint.to_dict() for mountpoint in self.mountpoints], "root": self.root}
+        return {"mountpoints": [mountpoint.to_json() for mountpoint in self.mountpoints], "root": self.root}
 
 
 class MountNamespaceManager:
@@ -65,14 +65,14 @@ class MountNamespaceManager:
         self.task = task
         self.filesystem_manager = filesystem_manager
 
-    def from_dict(self, data: [dict]):
+    def from_json(self, data: [dict]):
         """
         Create a new mount namespace manager from a list of dictionaries.
         :param data: The list of dictionaries to create the mount namespace manager from.
         :param filesystem_manager: The filesystem manager to use.
         """
         for mount_namespace in data:
-            self.add(MountNamespace.from_dict(mount_namespace, self.id, self.filesystem_manager))
+            self.add(MountNamespace.from_json(mount_namespace, self.id, self.filesystem_manager))
             self.id += 1
 
     def add(self, mount_namespace: MountNamespace):
@@ -89,8 +89,8 @@ class MountNamespaceManager:
         """
         return self.mount_namespaces[id]
 
-    def to_dict(self) -> [dict]:
+    def to_json(self) -> [dict]:
         """
         Convert the mount namespace manager to a dictionary.
         """
-        return [mount_namespace.to_dict() for mount_namespace in self.mount_namespaces]
+        return [mount_namespace.to_json() for mount_namespace in self.mount_namespaces]

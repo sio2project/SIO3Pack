@@ -13,5 +13,5 @@ def test_workflow_parsing():
             continue
         print(f"Parsing {file}")
         data = json.load(open(os.path.join(workflows_dir, file)))
-        workflow = Workflow.from_dict(data)
-        assert workflow.to_dict() == data, f"Failed for {file}. Diff: {DeepDiff(data, workflow.to_dict())}"
+        workflow = Workflow.from_json(data)
+        assert workflow.to_json() == data, f"Failed for {file}. Diff: {DeepDiff(data, workflow.to_json())}"

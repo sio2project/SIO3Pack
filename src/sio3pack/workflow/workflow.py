@@ -8,14 +8,14 @@ class Workflow:
     """
 
     @classmethod
-    def from_dict(cls, data: dict):
+    def from_json(cls, data: dict):
         """
         Create a new workflow from a dictionary.
         :param data: The dictionary to create the workflow from.
         """
         workflow = cls(data["name"], data["external_objects"], data["observable_objects"], data["observable_registers"])
         for task in data["tasks"]:
-            workflow.add_task(Task.from_dict(task, workflow))
+            workflow.add_task(Task.from_json(task, workflow))
         return workflow
 
     def __init__(
@@ -50,7 +50,7 @@ class Workflow:
     def __str__(self):
         return f"<Workflow {self.name} tasks={[task for task in self.tasks]}>"
 
-    def to_dict(self) -> dict:
+    def to_json(self) -> dict:
         """
         Convert the workflow to a dictionary.
         """
@@ -59,7 +59,7 @@ class Workflow:
             "external_objects": [obj.handle for obj in self.external_objects],
             "observable_objects": [obj.handle for obj in self.observable_objects],
             "observable_registers": self.observable_registers,
-            "tasks": [task.to_dict() for task in self.tasks],
+            "tasks": [task.to_json() for task in self.tasks],
         }
         num_registers = 0
         for task in res["tasks"]:
