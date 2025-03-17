@@ -1,6 +1,3 @@
-from django.core.files.locks import kernel32
-from django.shortcuts import render
-
 try:
     import dash
     import dash_cytoscape as cyto
