@@ -2,15 +2,14 @@ import importlib
 from typing import Any
 
 from sio3pack import LocalFile
+from sio3pack.exceptions import SIO3PackException
 from sio3pack.files import File
-from sio3pack.graph import Graph, GraphOperation
+from sio3pack.graph import GraphOperation
 from sio3pack.packages.exceptions import UnknownPackageType
 from sio3pack.packages.package.handler import NoDjangoHandler
 from sio3pack.test import Test
 from sio3pack.utils.archive import Archive
 from sio3pack.utils.classinit import RegisteredSubclassesBase
-
-from sio3pack.exceptions import SIO3PackException
 
 
 def wrap_exceptions(func):
@@ -20,7 +19,7 @@ def wrap_exceptions(func):
         try:
             return func(*args, **kwargs)
         except SIO3PackException:
-            raise # Do not wrap SIO3PackExceptions again
+            raise  # Do not wrap SIO3PackExceptions again
         except Exception as e:
             raise SIO3PackException(f"SIO3Pack raised an exception in {func.__name__} function.", e)
 
@@ -33,6 +32,24 @@ class Package(RegisteredSubclassesBase):
     """
 
     abstract = True
+
+    """
+    Attributes:
+        short_name (str): Short name of the problem.
+        full_name (str): Full name of the problem.
+        lang_titles (dict[str, str]): A dictionary of problem titles,
+            where keys are language codes and values are titles.
+        lang_statements (dict[str, File]): A dictionary of problem
+            statements, where keys are language codes and values are
+            files.
+        config (dict[str, Any]): Configuration of the problem.
+        model_solutions (list[dict[str, Any]]): A list
+            of model solutions, where each element is a tuple of model
+            solution kind and filename.
+        additional_files (list[File]): A list of additional files of
+            the problem.
+        attachments (list[File]): A list of attachments of the problem.
+    """
 
     def __init__(self):
         super().__init__()
