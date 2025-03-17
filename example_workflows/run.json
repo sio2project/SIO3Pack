@@ -15,7 +15,7 @@
         "sol.e"
     ],
     "observable_objects": [],
-    "observable_registers": 0,
+    "observable_registers": 1,
     "registers": 19,
     "tasks": [
         {
