@@ -2,8 +2,7 @@ import importlib
 from typing import Any
 
 from sio3pack.exceptions import SIO3PackException
-from sio3pack.files import File
-from sio3pack.files import LocalFile
+from sio3pack.files import File, LocalFile
 from sio3pack.packages.exceptions import UnknownPackageType
 from sio3pack.packages.package.handler import NoDjangoHandler
 from sio3pack.test import Test
