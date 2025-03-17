@@ -34,7 +34,7 @@ class Package(RegisteredSubclassesBase):
 
     abstract = True
 
-"""
+    """
     Attributes:
         short_name (str): Short name of the problem.
         full_name (str): Full name of the problem.
@@ -50,11 +50,7 @@ class Package(RegisteredSubclassesBase):
         additional_files (list[File]): A list of additional files of
             the problem.
         attachments (list[File]): A list of attachments of the problem.
-        """
-
-
-
-
+    """
 
     def __init__(self):
         super().__init__()
