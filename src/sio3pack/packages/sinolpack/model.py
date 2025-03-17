@@ -5,12 +5,12 @@ import tempfile
 import yaml
 
 from sio3pack.files import File, LocalFile
-from sio3pack.graph import Graph, GraphManager, GraphOperation
 from sio3pack.packages.exceptions import ImproperlyConfigured
 from sio3pack.packages.package import Package
 from sio3pack.packages.sinolpack.enums import ModelSolutionKind
 from sio3pack.util import naturalsort_key
 from sio3pack.utils.archive import Archive, UnrecognizedArchiveFormat
+from sio3pack.workflow import Workflow, WorkflowManager, WorkflowOperation
 
 
 class Sinolpack(Package):
@@ -101,8 +101,8 @@ class Sinolpack(Package):
             self.rootdir = file.path
 
         try:
-            graph_file = self.get_in_root("graph.json")
-            self.graph_manager = GraphManager.from_file(graph_file)
+            graph_file = self.get_in_root("workflow.json")
+            self.graph_manager = WorkflowManager.from_file(graph_file)
         except FileNotFoundError:
             self.has_custom_graph = False
 
@@ -116,10 +116,10 @@ class Sinolpack(Package):
         if not self.django_enabled:
             raise ImproperlyConfigured("sio3pack is not installed with Django support.")
 
-    def _default_graph_manager(self) -> GraphManager:
-        return GraphManager(
+    def _default_graph_manager(self) -> WorkflowManager:
+        return WorkflowManager(
             {
-                "unpack": Graph.from_dict(
+                "unpack": Workflow.from_json(
                     {
                         "name": "unpack",
                         # ...
@@ -178,7 +178,7 @@ class Sinolpack(Package):
         self._process_attachments()
 
         if not self.has_custom_graph:
-            # Create the graph with processed files.
+            # Create the workflow with processed files.
             # TODO: Uncomment this line when Graph will work.
             # self.graph_manager = self._default_graph_manager()
             pass
@@ -283,8 +283,8 @@ class Sinolpack(Package):
     def _process_prog_files(self):
         """
         Process all files in the problem's program directory that are used.
-        Saves all models solution files. If the problem has a custom graph file,
-        takes the files that are used in the graph. Otherwise, ingen, inwer and
+        Saves all models solution files. If the problem has a custom workflow file,
+        takes the files that are used in the workflow. Otherwise, ingen, inwer and
         files in `extra_compilation_files` and `extra_execution_files` from config
         are saved.
         """
@@ -374,9 +374,9 @@ class Sinolpack(Package):
             if os.path.isfile(os.path.join(attachments_dir, attachment))
         ]
 
-    def get_unpack_graph(self) -> GraphOperation | None:
+    def get_unpack_graph(self) -> WorkflowOperation | None:
         try:
-            return GraphOperation(
+            return WorkflowOperation(
                 self.graph_manager.get("unpack"),
                 True,
                 self._unpack_return_data,

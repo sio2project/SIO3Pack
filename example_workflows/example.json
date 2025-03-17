@@ -1,4 +1,5 @@
 {
+   "name": "Example workflow",
    "external_objects" : [
       "example-object"
    ],
@@ -7,6 +8,7 @@
    "registers" : 3,
    "tasks" : [
       {
+         "name": "Example script",
          "input_registers" : [
             1
          ],
@@ -19,6 +21,7 @@
          "type" : "script"
       },
       {
+         "name": "Example execution",
          "exclusive" : true,
          "filesystems" : [
             {
