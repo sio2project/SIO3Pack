@@ -3,7 +3,7 @@ from typing import Any
 
 from sio3pack import LocalFile
 from sio3pack.files import File
-from sio3pack.graph import Graph, GraphOperation
+from sio3pack.graph import GraphOperation
 from sio3pack.packages.exceptions import UnknownPackageType
 from sio3pack.packages.package.handler import NoDjangoHandler
 from sio3pack.test import Test
@@ -33,6 +33,19 @@ class Package(RegisteredSubclassesBase):
     """
 
     abstract = True
+
+    short_name: str = ""
+    full_name: str = ""
+    lang_titles: dict[str, str] = {}
+    lang_statements: dict[str, File] = {}
+    model_solutions: list[dict[str, Any]] = []
+    config: dict[str, Any] = {}
+    additional_files: list[File] = []
+    attachments: list[File] = []
+
+
+
+
 
     def __init__(self):
         super().__init__()

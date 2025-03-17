@@ -1,4 +1,4 @@
-from typing import Type
+from typing import Type, Any
 
 from django.core.files import File
 from django.db import transaction
@@ -82,8 +82,8 @@ class DjangoHandler:
         return {t.language: t.name for t in self.db_package.name_translations.all()}
 
     @property
-    def model_solutions(self) -> list[RemoteFile]:
-        return [RemoteFile(s.source_file.path) for s in self.db_package.model_solutions.all()]
+    def model_solutions(self) -> list[dict[str, Any]]:
+        return [{'file': RemoteFile(s.source_file.path)} for s in self.db_package.model_solutions.all()]
 
     @property
     def lang_statements(self) -> dict[str, RemoteFile]:
