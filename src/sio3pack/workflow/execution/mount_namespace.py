@@ -28,6 +28,14 @@ class Mountpoint:
 
 
 class MountNamespace:
+    """
+    A class to represent a mount namespace.
+    It can mount an in the target filesystem.
+
+    :param int id: The id of the mount namespace.
+    :param list[Mountpoint] mountpoints: The mountpoints in the mount namespace.
+    """
+
     def __init__(self, id: int, mountpoints: list[Mountpoint] = None, root: int = 0):
         self.mountpoints = mountpoints or []
         self.root = root

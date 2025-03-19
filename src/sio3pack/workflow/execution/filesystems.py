@@ -2,6 +2,12 @@ from sio3pack.workflow.object import Object
 
 
 class Filesystem:
+    """
+    A base class to represent a filesystem.
+
+    :param int id: The id of the filesystem in the task.
+    """
+
     def __init__(self, id: int):
         """
         Represent a filesystem.
@@ -13,23 +19,35 @@ class Filesystem:
     def from_json(cls, data: dict, id: int, workflow: "Workflow"):
         """
         Create a new filesystem from a dictionary.
-        :param data: The dictionary to create the filesystem from.
-        :param id: The id of the filesystem.
-        :param workflow: The workflow the filesystem belongs to.
+
+        :param dict data: The dictionary to create the filesystem from.
+        :param int id: The id of the filesystem.
+        :param Workflow workflow: The workflow the filesystem belongs to.
         """
         return NotImplementedError()
 
     def to_json(self) -> dict:
         """
         Convert the filesystem to a dictionary.
+
+        :return: The dictionary representation of the filesystem.
         """
         return NotImplementedError()
 
 
 class ImageFilesystem(Filesystem):
+    """
+    A class to represent an image filesystem.
+    An image can be for example a g++ compilator, a python interpreter, etc.
+
+    :param int id: The id of the image filesystem.
+    :param str image: The image to use.
+    :param str path: The path to the image. If None, the path is "".
+    """
     def __init__(self, id: int, image: str, path: str = None):
         """
         Represent an image filesystem.
+
         :param id: The id of the image filesystem.
         :param image: The image to use.
         :param path: The path to the image. If None, the path is ""
@@ -42,18 +60,21 @@ class ImageFilesystem(Filesystem):
         return f'<ImageFilesystem {self.image} path="{self.path}">'
 
     @classmethod
-    def from_json(cls, data: dict, id: int, workflow: "Workflow"):
+    def from_json(cls, data: dict, id: int, workflow: "Workflow") -> "ImageFilesystem":
         """
         Create a new image filesystem from a dictionary.
-        :param data: The dictionary to create the image filesystem from.
-        :param id: The id of the image filesystem.
-        :param workflow: The workflow the image filesystem belongs to.
+
+        :param dict data: The dictionary to create the image filesystem from.
+        :param id id: The id of the image filesystem.
+        :param Workflow workflow: The workflow the image filesystem belongs to.
         """
         return cls(id, data["image"], data["path"])
 
     def to_json(self) -> dict:
         """
         Convert the image filesystem to a dictionary.
+
+        :return: The dictionary representation of the image filesystem.
         """
         return {"type": "image", "image": self.image, "path": self.path}
 

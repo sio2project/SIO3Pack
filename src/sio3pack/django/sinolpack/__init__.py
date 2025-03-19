@@ -1,0 +1,1 @@
+from sio3pack.django.sinolpack.handler import SinolpackDjangoHandler

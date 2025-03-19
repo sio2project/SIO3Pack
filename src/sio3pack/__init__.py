@@ -1,8 +1,9 @@
 __version__ = "1.0.0.dev1"
 
-from sio3pack.files import LocalFile
+from sio3pack.files import LocalFile, RemoteFile
 from sio3pack.packages.exceptions import ImproperlyConfigured, PackageAlreadyExists
 from sio3pack.packages.package import Package
+from sio3pack.packages.sinolpack import Sinolpack
 
 
 def from_file(file: str | LocalFile, django_settings=None) -> Package:

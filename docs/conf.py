@@ -25,6 +25,13 @@ extensions = [
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
+autoapi_options = [
+    "members",
+    "undoc-members",
+    "show-inheritance",
+    "special-members",
+    "imported-members",
+]
 autoapi_dirs = ['../src/sio3pack/']
 
 def should_skip_submodule(app, what, name, obj, skip, options):
