@@ -1,6 +1,6 @@
 import os
 
-from sio3pack.files import File
+from sio3pack.files.file import File
 
 
 class LocalFile(File):
