@@ -33,25 +33,32 @@ autoapi_options = [
     "imported-members",
 ]
 autoapi_dirs = ['../src/sio3pack/']
-# This will include all objects from all list items.
+# Additional objects to include.
 autoapi_include = [
     "sio3pack.django.common.handler.DjangoHandler",
     "sio3pack.django.sinolpack.handler.SinolpackDjangoHandler",
 ]
+autodoc_typehints = 'description'
 
 def should_skip_submodule(app, what, name, obj, skip, options):
     if what == "module":
         skip = True
+    if what == "attribute":
+        skip = True
 
     for object in autoapi_include:
-        # Include everything from object
+        # Include everything from object.
         if name.startswith(object):
             skip = False
-        # Include every parent modules
+        # Include every parent modules.
         if object.startswith(name):
             skip = False
 
     submodule = name.split(".")[-1]
+    # Don't show private objects.
+    if submodule.startswith("_"):
+        skip = True
+    # Skip django migrations.
     if submodule in ["migrations"]:
         skip = True
     return skip

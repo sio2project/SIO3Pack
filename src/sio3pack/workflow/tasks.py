@@ -30,7 +30,7 @@ class ExecutionTask(Task):
     """
     A task that executes a program.
 
-    :param str name: The name of the task.
+    :param name: The name of the task.
     :param Workflow workflow: The workflow the task belongs to.
     :param bool exclusive: Whether the task is exclusive.
     :param int hard_time_limit: The hard time limit.
