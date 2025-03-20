@@ -11,7 +11,7 @@ from sio3pack.django.sinolpack.models import (
     SinolpackConfig,
     SinolpackModelSolution,
 )
-from sio3pack.files.remote_file import RemoteFile
+from sio3pack.files import RemoteFile
 from sio3pack.packages.sinolpack.enums import ModelSolutionKind
 
 

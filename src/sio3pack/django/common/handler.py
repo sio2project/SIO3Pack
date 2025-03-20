@@ -5,8 +5,7 @@ from django.db import transaction
 
 import sio3pack
 from sio3pack.django.common.models import SIO3Package, SIO3PackModelSolution, SIO3PackNameTranslation, SIO3PackStatement
-from sio3pack.files.local_file import LocalFile
-from sio3pack.files.remote_file import RemoteFile
+from sio3pack.files import LocalFile, RemoteFile
 from sio3pack.packages.exceptions import ImproperlyConfigured, PackageAlreadyExists
 
 
@@ -114,7 +113,7 @@ class DjangoHandler:
         return [{"file": RemoteFile(s.source_file.path)} for s in self.db_package.model_solutions.all()]
 
     @property
-    def lang_statements(self) -> dict[str, sio3pack.RemoteFile]:
+    def lang_statements(self) -> dict[str, RemoteFile]:
         """
         A dictionary of problem statements, where keys are language codes and values are files.
         """

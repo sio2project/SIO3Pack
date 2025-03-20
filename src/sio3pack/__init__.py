@@ -1,7 +1,7 @@
 __version__ = "1.0.0.dev1"
 
 from sio3pack.files import LocalFile
-from sio3pack.packages.exceptions import ImproperlyConfigured
+from sio3pack.packages.exceptions import *
 from sio3pack.packages.package import Package
 
 __all__ = ["from_file", "from_db"]
