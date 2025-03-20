@@ -44,6 +44,7 @@ class ImageFilesystem(Filesystem):
     :param str image: The image to use.
     :param str path: The path to the image. If None, the path is "".
     """
+
     def __init__(self, id: int, image: str, path: str = None):
         """
         Represent an image filesystem.
