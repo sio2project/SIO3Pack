@@ -6,12 +6,17 @@ from sio3pack.workflow.execution.resource_group import ResourceGroup, ResourceGr
 
 
 class Task:
+    """
+    Base class for a task.
+    """
+
     @classmethod
     def from_json(cls, data: dict, workflow: "Workflow"):
         """
         Create a new task from a dictionary.
-        :param data: The dictionary to create the task from.
-        :param workflow: The workflow the task belongs to.
+
+        :param dict data: The dictionary to create the task from.
+        :param Workflow workflow: The workflow the task belongs to.
         """
         if data["type"] == "execution":
             return ExecutionTask.from_json(data, workflow)
@@ -22,6 +27,22 @@ class Task:
 
 
 class ExecutionTask(Task):
+    """
+    A task that executes a program.
+
+    :param name: The name of the task.
+    :param Workflow workflow: The workflow the task belongs to.
+    :param bool exclusive: Whether the task is exclusive.
+    :param int hard_time_limit: The hard time limit.
+    :param int extra_limit: If set, the hard_time_limit for the task will be the maximum time limit of all resource groups plus this value.
+    :param int output_register: The output register of the task.
+    :param int input_register: The input register of the task. TODO delete
+    :param int pid_namespaces: The number of PID namespaces.
+    :param list[Process] processes: The processes of the task.
+    :param list[Pipe] pipes: The pipes of the task.
+    :param int system_pipes: The number of system pipes.
+    """
+
     def __init__(
         self,
         name: str,
@@ -38,6 +59,7 @@ class ExecutionTask(Task):
     ):
         """
         Create a new execution task.
+
         :param name: The name of the task.
         :param workflow: The workflow the task belongs to.
         :param exclusive: Whether the task is exclusive.
@@ -72,8 +94,9 @@ class ExecutionTask(Task):
     def from_json(cls, data: dict, workflow: "Workflow"):
         """
         Create a new execution task from a dictionary.
-        :param data: The dictionary to create the task from.
-        :param workflow: The workflow the task belongs to.
+
+        :param dict data: The dictionary to create the task from.
+        :param Workflow workflow: The workflow the task belongs to.
         """
         task = cls(
             data["name"],
@@ -95,9 +118,11 @@ class ExecutionTask(Task):
         ]
         return task
 
-    def to_json(self):
+    def to_json(self) -> dict:
         """
         Convert the task to a dictionary.
+
+        :return dict: The dictionary representation of the task.
         """
         hard_time_limit = self.hard_time_limit
         if self.extra_limit is not None:
@@ -125,16 +150,43 @@ class ExecutionTask(Task):
         return res
 
     def add_filesystem(self, filesystem: Filesystem):
+        """
+        Add a filesystem to the task.
+
+        :param Filesystem filesystem: The filesystem to add.
+        """
+
         self.filesystem_manager.add(filesystem)
 
     def add_mount_namespace(self, mount_namespace: MountNamespace):
+        """
+        Add a mount namespace to the task.
+
+        :param MountNamespace mount_namespace: The mount namespace to add.
+        """
         self.mountnamespace_manager.add(mount_namespace)
 
     def add_resource_group(self, resource_group: ResourceGroup):
+        """
+        Add a resource group to the task.
+
+        :param ResourceGroup resource_group: The resource group to add.
+        """
         self.resource_group_manager.add(resource_group)
 
 
 class ScriptTask(Task):
+    """
+    A task that runs a script.
+
+    :param str name: The name of the task.
+    :param Workflow workflow: The workflow the task belongs to.
+    :param bool reactive: Whether the task is reactive.
+    :param list[int] input_registers: The input registers of the task.
+    :param list[int] output_registers: The output registers of the task.
+    :param str script: The script to run.
+    """
+
     def __init__(
         self,
         name: str,
@@ -167,6 +219,7 @@ class ScriptTask(Task):
     def from_json(cls, data: dict, workflow: "Workflow"):
         """
         Create a new script task from a dictionary.
+
         :param data: The dictionary to create the task from.
         :param workflow: The workflow the task belongs to.
         """
@@ -177,6 +230,8 @@ class ScriptTask(Task):
     def to_json(self) -> dict:
         """
         Convert the task to a dictionary.
+
+        :return: The dictionary representation of the task.
         """
         return {
             "name": self.name,

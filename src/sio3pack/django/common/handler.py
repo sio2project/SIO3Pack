@@ -3,14 +3,27 @@ from typing import Any, Type
 from django.core.files import File
 from django.db import transaction
 
+import sio3pack
 from sio3pack.django.common.models import SIO3Package, SIO3PackModelSolution, SIO3PackNameTranslation, SIO3PackStatement
-from sio3pack.files.local_file import LocalFile
-from sio3pack.files.remote_file import RemoteFile
+from sio3pack.files import LocalFile, RemoteFile
 from sio3pack.packages.exceptions import ImproperlyConfigured, PackageAlreadyExists
 
 
 class DjangoHandler:
-    def __init__(self, package: Type["Package"], problem_id: int):
+    """
+    Base class for handling Django models.
+    Allows to save the package to the database and retrieve its data.
+
+    :param sio3pack.Package package: The package to handle.
+    :param int problem_id: The problem ID.
+    """
+
+    def __init__(self, package: "sio3pack.Package", problem_id: int):
+        """
+        Initialize the handler with the package and problem ID.
+        :param sio3pack.Package package: The package to handle.
+        :param int problem_id: The problem ID.
+        """
         self.package = package
         self.problem_id = problem_id
         try:
@@ -71,20 +84,37 @@ class DjangoHandler:
 
     @property
     def short_name(self) -> str:
+        """
+        Short name of the problem.
+        """
         return self.db_package.short_name
 
     @property
     def full_name(self) -> str:
+        """
+        Full name of the problem.
+        """
         return self.db_package.full_name
 
     @property
     def lang_titles(self) -> dict[str, str]:
+        """
+        A dictionary of problem titles,
+        where keys are language codes and values are titles.
+        """
         return {t.language: t.name for t in self.db_package.name_translations.all()}
 
     @property
     def model_solutions(self) -> list[dict[str, Any]]:
+        """
+        A list of model solutions, where each element is a dictionary containing
+        a :class:`sio3pack.RemoteFile` object.
+        """
         return [{"file": RemoteFile(s.source_file.path)} for s in self.db_package.model_solutions.all()]
 
     @property
     def lang_statements(self) -> dict[str, RemoteFile]:
+        """
+        A dictionary of problem statements, where keys are language codes and values are files.
+        """
         return {s.language: RemoteFile(s.content.path) for s in self.db_package.statements.all()}
