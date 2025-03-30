@@ -48,6 +48,7 @@ class Package(RegisteredSubclassesBase):
 
     def __init__(self):
         super().__init__()
+        self.django = None
 
     @classmethod
     @wrap_exceptions
