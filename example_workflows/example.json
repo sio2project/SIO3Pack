@@ -1,93 +1,122 @@
 {
-   "name": "Example workflow",
-   "external_objects" : [
-      "example-object"
-   ],
-   "observable_objects" : [],
-   "observable_registers" : 1,
-   "registers" : 3,
-   "tasks" : [
-      {
-         "name": "Example script",
-         "input_registers" : [
-            1
-         ],
-         "output_registers" : [
-            0,
-            2
-         ],
-         "reactive" : true,
-         "script" : "<PLACEHOLDER>",
-         "type" : "script"
-      },
-      {
-         "name": "Example execution",
-         "exclusive" : true,
-         "filesystems" : [
-            {
-               "image" : "example-image",
-               "path" : "",
-               "type" : "image"
-            },
-            {
-               "type" : "empty"
-            },
-            {
-               "handle" : "example-object",
-               "type" : "object"
-            }
-         ],
-         "hard_time_limit" : 2137,
-         "mount_namespaces" : [
-            {
-               "mountpoints" : [
-                  {
-                     "source" : 1,
-                     "target" : "/exe",
-                     "writable" : false
-                  }
-               ],
-               "root" : 0
-            }
-         ],
-         "output_register" : 1,
-         "pid_namespaces" : 1,
-         "pipes" : [
-            {
-               "buffer_size" : 1048576,
-               "file_buffer_size" : 1073741824,
-               "limit" : 2147483648
-            }
-         ],
-         "processes" : [
-            {
-               "arguments" : [
-                  "/exe",
-                  "--help"
-               ],
-               "environment" : [
-                  "TERM=xterm-256color"
-               ],
-               "image" : "/exe",
-               "mount_namespace" : 0,
-               "pid_namespace" : 0,
-               "resource_group" : 0,
-               "working_directory" : "/"
-            }
-         ],
-         "resource_groups" : [
-            {
-               "cpu_usage_limit" : 21.37,
-               "instruction_limit" : 2137000000,
-               "memory_limit" : 2147483648,
-               "oom_terminate_all_tasks" : false,
-               "pid_limit" : 8,
-               "swap_limit" : 4,
-               "time_limit" : 2137000000
-            }
-         ],
-         "system_pipes" : 3,
-         "type" : "execution"
-      }
-   ]
+    "name": "Example workflow",
+    "external_objects": [
+        "example-object"
+    ],
+    "observable_objects": [],
+    "observable_registers": 1,
+    "registers": 3,
+    "tasks": [
+        {
+            "type": "script",
+            "name": "example_script",
+            "input_registers": [
+                1
+            ],
+            "output_registers": [
+                0,
+                2
+            ],
+            "reactive": true,
+            "script": "<PLACEHOLDER>"
+        },
+        {
+            "type": "execution",
+            "name": "example_execution",
+            "channels": [
+                {
+                    "buffer_size": 1048576,
+                    "file_buffer_size": 1073741824,
+                    "limit": 2147483648,
+                    "source_pipe": 0,
+                    "target_pipe": 1
+                }
+            ],
+            "exclusive": true,
+            "filesystems": [
+                {
+                    "type": "image",
+                    "image": "example-image",
+                    "path": ""
+                },
+                {
+                    "type": "empty"
+                },
+                {
+                    "type": "object",
+                    "handle": "example-object"
+                }
+            ],
+            "hard_time_limit": 2137,
+            "mount_namespaces": [
+                {
+                    "root": 0,
+                    "mountpoints": [
+                        {
+                            "source": 1,
+                            "target": "/exe",
+                            "writable": false
+                        }
+                    ]
+                }
+            ],
+            "output_register": 1,
+            "pid_namespaces": 1,
+            "pipes": 3,
+            "processes": [
+                {
+                    "arguments": [
+                        "/exe",
+                        "--help"
+                    ],
+                    "descriptors": {
+                        "0": {
+                            "type": "object_read",
+                            "handle": "stdin"
+                        },
+                        "1": {
+                            "type": "object_write",
+                            "handle": "stdout"
+                        },
+                        "2": {
+                            "type": "null"
+                        },
+                        "3": {
+                            "type": "pipe_write",
+                            "pipe": 0
+                        },
+                        "4": {
+                            "type": "pipe_read",
+                            "pipe": 1
+                        },
+                        "65534": {
+                            "type": "file",
+                            "filesystem": 0,
+                            "path": "/etc/hosts",
+                            "mode": "read"
+                        }
+                    },
+                    "environment": [
+                        "TERM=xterm-256color"
+                    ],
+                    "image": "/exe",
+                    "mount_namespace": 0,
+                    "pid_namespace": 0,
+                    "resource_group": 0,
+                    "working_directory": "/"
+                }
+            ],
+            "resource_groups": [
+                {
+                    "cpu_usage_limit": 21.37,
+                    "instruction_limit": 2137000000,
+                    "memory_limit": 2147483648,
+                    "oom_terminate_all_tasks": false,
+                    "pid_limit": 8,
+                    "swap_limit": 4,
+                    "time_limit": 2137000000
+                }
+            ]
+        }
+    ]
 }

@@ -1,0 +1,388 @@
+{
+	"name": "Example workflow for grading a solution on two tests with checker",
+	"external_objects": [
+		"chk",
+		"prog",
+		"abc0.in",
+		"abc0a.in",
+		"abc0.out",
+		"abc0a.out"
+	],
+	"observable_objects": [],
+	"observable_registers": 1,
+	"registers": 8,
+	"tasks": [
+		{
+			"type": "execution",
+			"name": "Run program on test 0",
+			"channels": [],
+			"exclusive": true,
+			"filesystems": [
+				{
+					"type": "object",
+					"handle": "prog"
+				},
+				{
+					"type": "empty"
+				}
+			],
+			"hard_time_limit": 2137,
+			"mount_namespaces": [
+				{
+					"root": 0,
+					"mountpoints": [
+						{
+							"source": 0,
+							"target": "/exe",
+                            "writable": false
+						}
+					]
+				}
+			],
+			"output_register": 1,
+			"pid_namespaces": 1,
+			"pipes": 0,
+			"processes": [
+				{
+					"arguments": [
+						"/exe"
+					],
+					"descriptors": {
+						"0": {
+							"type": "object_read",
+							"handle": "abc0.in"
+						},
+						"1": {
+							"type": "object_write",
+							"handle": "user_out0.out"
+						}
+					},
+					"environment": [
+						"TERM=xterm-256color"
+					],
+                    "image": "/exe",
+                    "resource_group": 0,
+					"mount_namespace": 0,
+					"pid_namespace": 0,
+					"working_directory": "/"
+				}
+			],
+			"resource_groups": [
+				{
+					"cpu_usage_limit": 21.37,
+					"instruction_limit": 2137000000,
+					"memory_limit": 2147483648,
+					"oom_terminate_all_tasks": false,
+					"pid_limit": 8,
+					"swap_limit": 4,
+					"time_limit": 2137000000
+				}
+			]
+		},
+		{
+			"name": "Run checker on test 0",
+			"type": "execution",
+			"channels": [],
+			"exclusive": false,
+			"filesystems": [
+				{
+					"type": "object",
+					"handle": "chk"
+				},
+				{
+					"type": "object",
+					"handle": "abc0.in"
+				},
+				{
+					"type": "object",
+					"handle": "abc0.out"
+				},
+				{
+					"type": "object",
+					"handle": "user_out0.out"
+				},
+				{
+					"type": "empty"
+				}
+			],
+			"hard_time_limit": 2137,
+			"mount_namespaces": [
+				{
+					"root": 0,
+					"mountpoints": [
+						{
+							"source": 0,
+							"target": "/exe",
+                            "writable": false
+						},
+						{
+							"source": 1,
+							"target": "/input",
+                            "writable": false
+						},
+						{
+							"source": 2,
+							"target": "/output",
+                            "writable": false
+						},
+						{
+							"source": 3,
+							"target": "/user_out",
+                            "writable": false
+						}
+					]
+				}
+			],
+			"output_register": 2,
+			"pid_namespaces": 1,
+			"pipes": 0,
+			"processes": [
+				{
+					"arguments": [
+						"/exe",
+						"/input",
+						"/output",
+						"/user_out"
+					],
+					"descriptors": {
+						"1": {
+							"type": "object_write",
+							"handle": "chk_out0.out"
+						}
+					},
+					"environment": [
+						"TERM=xterm-256color"
+					],
+                    "image": "/exe",
+                    "resource_group": 0,
+					"mount_namespace": 0,
+					"pid_namespace": 0,
+					"working_directory": "/"
+				}
+			],
+			"resource_groups": [
+				{
+					"cpu_usage_limit": 21.37,
+					"instruction_limit": 2137000000,
+					"memory_limit": 2147483648,
+					"oom_terminate_all_tasks": false,
+					"pid_limit": 8,
+					"swap_limit": 4,
+					"time_limit": 2137000000
+				}
+			]
+		},
+		{
+			"name": "Grade test 0",
+			"type": "script",
+			"input_registers": [
+				1,
+				2
+			],
+			"output_registers": [
+				3
+			],
+			"reactive": true,
+			"objects": ["chk_out0.out"],
+			"script": "# grade test. check worker output for program and checker stdout. reactive because if program failed, we can skip checker"
+		},
+		{
+			"type": "execution",
+			"name": "Run program on test 0a",
+			"channels": [],
+			"exclusive": true,
+			"filesystems": [
+				{
+					"type": "object",
+					"handle": "prog"
+				},
+				{
+					"type": "empty"
+				}
+			],
+			"hard_time_limit": 2137,
+			"mount_namespaces": [
+				{
+					"root": 0,
+					"mountpoints": [
+						{
+							"source": 0,
+							"target": "/exe",
+                            "writable": false
+						}
+					]
+				}
+			],
+			"output_register": 4,
+			"pid_namespaces": 1,
+			"pipes": 0,
+			"processes": [
+				{
+					"arguments": [
+						"/exe"
+					],
+					"descriptors": {
+						"0": {
+							"type": "object_read",
+							"handle": "abc0a.in"
+						},
+						"1": {
+							"type": "object_write",
+							"handle": "user_out0a.out"
+						}
+					},
+					"environment": [
+						"TERM=xterm-256color"
+					],
+                    "image": "/exe",
+                    "resource_group": 0,
+					"mount_namespace": 0,
+					"pid_namespace": 0,
+					"working_directory": "/"
+				}
+			],
+			"resource_groups": [
+				{
+					"cpu_usage_limit": 21.37,
+					"instruction_limit": 2137000000,
+					"memory_limit": 2147483648,
+					"oom_terminate_all_tasks": false,
+					"pid_limit": 8,
+					"swap_limit": 4,
+					"time_limit": 2137000000
+				}
+			]
+		},
+		{
+			"name": "Run checker on test 0a",
+			"type": "execution",
+			"channels": [],
+			"exclusive": false,
+			"filesystems": [
+				{
+					"type": "object",
+					"handle": "chk"
+				},
+				{
+					"type": "object",
+					"handle": "abc0a.in"
+				},
+				{
+					"type": "object",
+					"handle": "abc0a.out"
+				},
+				{
+					"type": "object",
+					"handle": "user_out0a.out"
+				},
+				{
+					"type": "empty"
+				}
+			],
+			"hard_time_limit": 2137,
+			"mount_namespaces": [
+				{
+					"root": 0,
+					"mountpoints": [
+						{
+							"source": 0,
+							"target": "/exe",
+                            "writable": false
+						},
+						{
+							"source": 1,
+							"target": "/input",
+                            "writable": false
+						},
+						{
+							"source": 2,
+							"target": "/output",
+                            "writable": false
+						},
+						{
+							"source": 3,
+							"target": "/user_out",
+                            "writable": false
+						}
+					]
+				}
+			],
+			"output_register": 5,
+			"pid_namespaces": 1,
+			"pipes": 0,
+			"processes": [
+				{
+					"arguments": [
+						"/exe",
+						"/input",
+						"/output",
+						"/user_out"
+					],
+					"descriptors": {
+						"1": {
+							"type": "object_write",
+							"handle": "chk_out0a.out"
+						}
+					},
+					"environment": [
+						"TERM=xterm-256color"
+					],
+                    "image": "/exe",
+                    "resource_group": 0,
+					"mount_namespace": 0,
+					"pid_namespace": 0,
+					"working_directory": "/"
+				}
+			],
+			"resource_groups": [
+				{
+					"cpu_usage_limit": 21.37,
+					"instruction_limit": 2137000000,
+					"memory_limit": 2147483648,
+					"oom_terminate_all_tasks": false,
+					"pid_limit": 8,
+					"swap_limit": 4,
+					"time_limit": 2137000000
+				}
+			]
+		},
+		{
+			"name": "Grade test 0a",
+			"type": "script",
+			"input_registers": [
+				4,
+				5
+			],
+			"output_registers": [
+				6
+			],
+			"reactive": true,
+			"objects": ["chk_out0a.out"],
+			"script": "# grade test. check worker output for program and checker stdout. reactive because if program failed, we can skip checker"
+		},
+		{
+			"name": "Grade group 0",
+			"type": "script",
+			"input_registers": [
+				3, 6
+			],
+			"output_registers": [
+				7
+			],
+			"reactive": true,
+			"script": "# grade group. reactive because if one test failed, we can skip grading group"
+		},
+		{
+			"name": "Grade solution",
+			"type": "script",
+			"input_registers": [
+				7
+			],
+			"output_registers": [
+				0
+			],
+			"reactive": false,
+			"script": "# grade solution"
+		}
+	]
+}

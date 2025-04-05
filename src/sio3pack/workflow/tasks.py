@@ -1,6 +1,7 @@
+from sio3pack.workflow import Object
+from sio3pack.workflow.execution.channels import Channel
 from sio3pack.workflow.execution.filesystems import Filesystem, FilesystemManager
 from sio3pack.workflow.execution.mount_namespace import MountNamespace, MountNamespaceManager
-from sio3pack.workflow.execution.pipe import Pipe
 from sio3pack.workflow.execution.process import Process
 from sio3pack.workflow.execution.resource_group import ResourceGroup, ResourceGroupManager
 
@@ -36,11 +37,10 @@ class ExecutionTask(Task):
     :param int hard_time_limit: The hard time limit.
     :param int extra_limit: If set, the hard_time_limit for the task will be the maximum time limit of all resource groups plus this value.
     :param int output_register: The output register of the task.
-    :param int input_register: The input register of the task. TODO delete
     :param int pid_namespaces: The number of PID namespaces.
     :param list[Process] processes: The processes of the task.
-    :param list[Pipe] pipes: The pipes of the task.
-    :param int system_pipes: The number of system pipes.
+    :param int pipes: The number of pipes available to the task.
+    :param list[Channel] channels: Configuration of the channels for the task.
     """
 
     def __init__(
@@ -51,11 +51,10 @@ class ExecutionTask(Task):
         hard_time_limit: int = None,
         extra_limit: int = None,
         output_register: int = None,
-        input_register: int = None,
         pid_namespaces: int = 1,
         processes: list[Process] = None,
-        pipes: list[Pipe] = None,
-        system_pipes: int = 3,
+        pipes: int = 0,
+        channels: list[Channel] = None,
     ):
         """
         Create a new execution task.
@@ -67,11 +66,10 @@ class ExecutionTask(Task):
         :param extra_limit: If set, the hard_time_limit for the task will be the maximum time limit of all resource groups
         plus this value.
         :param output_register: The output register of the task.
-        :param input_register: The input register of the task. TODO delete
         :param pid_namespaces: The number of PID namespaces.
         :param processes: The processes of the task.
-        :param pipes: The pipes of the task.
-        :param system_pipes: The number of system pipes.
+        :param pipes: The number of pipes.
+        :param channels: Configuration of the channels for the task.
         """
         self.name = name
         self.workflow = workflow
@@ -79,12 +77,11 @@ class ExecutionTask(Task):
         if hard_time_limit is not None:
             self.hard_time_limit = hard_time_limit
         self.output_register = output_register
-        self.input_register = input_register
         self.pid_namespaces = pid_namespaces
         self.processes = processes or []
-        self.system_pipes = system_pipes
-        self.pipes = [Pipe.from_json(pipe) for pipe in pipes] if pipes else []
+        self.pipes = pipes
         self.extra_limit = extra_limit
+        self.channels = channels or []
 
         self.filesystem_manager = FilesystemManager(self)
         self.mountnamespace_manager = MountNamespaceManager(self, self.filesystem_manager)
@@ -98,24 +95,23 @@ class ExecutionTask(Task):
         :param dict data: The dictionary to create the task from.
         :param Workflow workflow: The workflow the task belongs to.
         """
+        channels = []
+        for channel in data.get("channels", []):
+            channels.append(Channel.from_json(channel))
         task = cls(
             data["name"],
             workflow,
             data["exclusive"],
             data.get("hard_time_limit"),
             output_register=data.get("output_register"),
-            input_register=data.get("input_register"),
             pid_namespaces=data["pid_namespaces"],
-            pipes=data["pipes"],
-            system_pipes=data.get("system_pipes", 3),
+            pipes=int(data["pipes"]),
+            channels=channels,
         )
         task.filesystem_manager.from_json(data["filesystems"], workflow)
         task.mountnamespace_manager.from_json(data["mount_namespaces"])
         task.resource_group_manager.from_json(data["resource_groups"])
-        task.processes = [
-            Process.from_json(process, task.mountnamespace_manager, task.resource_group_manager)
-            for process in data["processes"]
-        ]
+        task.processes = [Process.from_json(process, workflow, task) for process in data["processes"]]
         return task
 
     def to_json(self) -> dict:
@@ -134,19 +130,17 @@ class ExecutionTask(Task):
         res = {
             "name": self.name,
             "type": "execution",
+            "channels": [channel.to_json() for channel in self.channels],
             "exclusive": self.exclusive,
             "hard_time_limit": hard_time_limit,
             "output_register": self.output_register,
             "pid_namespaces": self.pid_namespaces,
             "filesystems": self.filesystem_manager.to_json(),
             "mount_namespaces": self.mountnamespace_manager.to_json(),
-            "pipes": [pipe.to_json() for pipe in self.pipes],
-            "system_pipes": self.system_pipes,
+            "pipes": self.pipes,
             "resource_groups": self.resource_group_manager.to_json(),
             "processes": [process.to_json() for process in self.processes],
         }
-        if self.input_register is not None:
-            res["input_register"] = self.input_register
         return res
 
     def add_filesystem(self, filesystem: Filesystem):
@@ -184,6 +178,7 @@ class ScriptTask(Task):
     :param bool reactive: Whether the task is reactive.
     :param list[int] input_registers: The input registers of the task.
     :param list[int] output_registers: The output registers of the task.
+    :param list[Object] objects: The objects the task uses.
     :param str script: The script to run.
     """
 
@@ -194,6 +189,7 @@ class ScriptTask(Task):
         reactive: bool = False,
         input_registers: list[int] = None,
         output_registers: list[int] = None,
+        objects: list[Object] = None,
         script: str = None,
     ):
         """
@@ -203,6 +199,7 @@ class ScriptTask(Task):
         :param reactive: Whether the task is reactive.
         :param input_registers: The input registers of the task.
         :param output_registers: The output registers of the task.
+        :param objects: The objects the task uses.
         :param script: The script to run.
         """
         self.name = name
@@ -210,6 +207,7 @@ class ScriptTask(Task):
         self.reactive = reactive
         self.input_registers = input_registers or []
         self.output_registers = output_registers or []
+        self.objects = objects or []
         self.script = script
 
     def __str__(self):
@@ -224,7 +222,13 @@ class ScriptTask(Task):
         :param workflow: The workflow the task belongs to.
         """
         return cls(
-            data["name"], workflow, data["reactive"], data["input_registers"], data["output_registers"], data["script"]
+            data["name"],
+            workflow,
+            data["reactive"],
+            data["input_registers"],
+            data["output_registers"],
+            [workflow.objects_manager.get_or_create_object(obj) for obj in data.get("objects", [])],
+            data["script"],
         )
 
     def to_json(self) -> dict:
@@ -233,7 +237,7 @@ class ScriptTask(Task):
 
         :return: The dictionary representation of the task.
         """
-        return {
+        res = {
             "name": self.name,
             "type": "script",
             "reactive": self.reactive,
@@ -241,3 +245,6 @@ class ScriptTask(Task):
             "output_registers": self.output_registers,
             "script": self.script,
         }
+        if self.objects:
+            res["objects"] = [obj.handle for obj in self.objects]
+        return res
