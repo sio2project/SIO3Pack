@@ -116,7 +116,7 @@ class ObjectReadStream(ObjectStream):
 
 class ObjectWriteStream(ObjectStream):
     def __init__(self, object: Object):
-        super().__init__(StreamType.OBJECT_WRITE, object)   
+        super().__init__(StreamType.OBJECT_WRITE, object)
 
 
 class PipeStream(Stream):

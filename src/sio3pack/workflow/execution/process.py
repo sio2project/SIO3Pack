@@ -49,9 +49,7 @@ class Process:
         }
 
     @classmethod
-    def from_json(
-        cls, data: dict, workflow: "Workflow", task: "Task"
-    ):
+    def from_json(cls, data: dict, workflow: "Workflow", task: "Task"):
         env = {}
         for var in data["environment"]:
             key, value = var.split("=", 1)

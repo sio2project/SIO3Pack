@@ -8,21 +8,25 @@ def get_elements(graph):
 
     # Create node for input object storage and output object storage
     if len(external_objects) > 0:
-        elements.append({
-            "data": {
-                "id": "input_storage",
-                "label": "Input object storage",
-                "info": "This is the object storage.\nEdges from this node are input object\n(external_objects) for the workflow."
+        elements.append(
+            {
+                "data": {
+                    "id": "input_storage",
+                    "label": "Input object storage",
+                    "info": "This is the object storage.\nEdges from this node are input object\n(external_objects) for the workflow.",
+                }
             }
-        })
+        )
     if len(observable_objects) > 0:
-        elements.append({
-            "data": {
-                "id": "output_storage",
-                "label": "Output object storage",
-                "info": "This is the object storage.\n  Edges to this node are output object\n(observable_objects) for the workflow."
+        elements.append(
+            {
+                "data": {
+                    "id": "output_storage",
+                    "label": "Output object storage",
+                    "info": "This is the object storage.\n  Edges to this node are output object\n(observable_objects) for the workflow.",
+                }
             }
-        })
+        )
 
     # Mark observablr objects as inputs for output object storage
     for object in observable_objects:

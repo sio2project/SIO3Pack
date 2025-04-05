@@ -1,5 +1,7 @@
 class Channel:
-    def __init__(self, buffer_size: int, source_pipe: int, target_pipe: int, file_buffer_size: int = None, limit: int = None):
+    def __init__(
+        self, buffer_size: int, source_pipe: int, target_pipe: int, file_buffer_size: int = None, limit: int = None
+    ):
         """
         Create a new channel.
         :param buffer_size: The size of the buffer.

@@ -55,7 +55,7 @@ class ExecutionTask(Task):
         pid_namespaces: int = 1,
         processes: list[Process] = None,
         pipes: int = 0,
-        channels: list[Channel] = None
+        channels: list[Channel] = None,
     ):
         """
         Create a new execution task.
@@ -111,10 +111,7 @@ class ExecutionTask(Task):
         task.filesystem_manager.from_json(data["filesystems"], workflow)
         task.mountnamespace_manager.from_json(data["mount_namespaces"])
         task.resource_group_manager.from_json(data["resource_groups"])
-        task.processes = [
-            Process.from_json(process, workflow, task)
-            for process in data["processes"]
-        ]
+        task.processes = [Process.from_json(process, workflow, task) for process in data["processes"]]
         return task
 
     def to_json(self) -> dict:
@@ -223,7 +220,13 @@ class ScriptTask(Task):
         :param workflow: The workflow the task belongs to.
         """
         return cls(
-            data["name"], workflow, data["reactive"], data["input_registers"], data["output_registers"], [workflow.objects_manager.get_or_create_object(obj) for obj in data.get("objects", [])], data["script"],
+            data["name"],
+            workflow,
+            data["reactive"],
+            data["input_registers"],
+            data["output_registers"],
+            [workflow.objects_manager.get_or_create_object(obj) for obj in data.get("objects", [])],
+            data["script"],
         )
 
     def to_json(self) -> dict:

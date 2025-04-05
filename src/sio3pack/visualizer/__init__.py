@@ -169,14 +169,14 @@ def main():
                         "style": {
                             "shape": "rectangle",
                             "background-color": "#2ECC40",
-                        }
+                        },
                     },
                     {
                         "selector": "#output_storage",
                         "style": {
                             "shape": "rectangle",
                             "background-color": "#FF851B",
-                        }
+                        },
                     },
                 ],
             )

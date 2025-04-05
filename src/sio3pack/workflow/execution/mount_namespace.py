@@ -17,7 +17,9 @@ class Mountpoint:
         """
         if isinstance(data["source"], str):  # TODO: delete this
             return cls(data["source"], data["target"], data["writable"])
-        return cls(filesystem_manager.get_by_id(int(data["source"])), data["target"], data["writable"], data.get("capacity"))
+        return cls(
+            filesystem_manager.get_by_id(int(data["source"])), data["target"], data["writable"], data.get("capacity")
+        )
 
     def to_json(self) -> dict:
         """
