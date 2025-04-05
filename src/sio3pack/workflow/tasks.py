@@ -1,3 +1,4 @@
+from sio3pack.workflow import Object
 from sio3pack.workflow.execution.channels import Channel
 from sio3pack.workflow.execution.filesystems import Filesystem, FilesystemManager
 from sio3pack.workflow.execution.mount_namespace import MountNamespace, MountNamespaceManager
@@ -190,6 +191,7 @@ class ScriptTask(Task):
         reactive: bool = False,
         input_registers: list[int] = None,
         output_registers: list[int] = None,
+        objects: list[Object] = None,
         script: str = None,
     ):
         """
@@ -206,6 +208,7 @@ class ScriptTask(Task):
         self.reactive = reactive
         self.input_registers = input_registers or []
         self.output_registers = output_registers or []
+        self.objects = objects or []
         self.script = script
 
     def __str__(self):
@@ -220,7 +223,7 @@ class ScriptTask(Task):
         :param workflow: The workflow the task belongs to.
         """
         return cls(
-            data["name"], workflow, data["reactive"], data["input_registers"], data["output_registers"], data["script"]
+            data["name"], workflow, data["reactive"], data["input_registers"], data["output_registers"], [workflow.objects_manager.get_or_create_object(obj) for obj in data.get("objects", [])], data["script"],
         )
 
     def to_json(self) -> dict:
@@ -229,7 +232,7 @@ class ScriptTask(Task):
 
         :return: The dictionary representation of the task.
         """
-        return {
+        res = {
             "name": self.name,
             "type": "script",
             "reactive": self.reactive,
@@ -237,3 +240,6 @@ class ScriptTask(Task):
             "output_registers": self.output_registers,
             "script": self.script,
         }
+        if self.objects:
+            res["objects"] = [obj.handle for obj in self.objects]
+        return res
