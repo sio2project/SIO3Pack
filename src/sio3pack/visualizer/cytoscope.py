@@ -12,16 +12,15 @@ def get_elements(graph):
             "data": {
                 "id": "input_storage",
                 "label": "Input object storage",
-                "info": "This is the object storage. Edges from this node are input object (external_objects) for the workflow."
-            },
-            "classes": "input_storage",
+                "info": "This is the object storage.\nEdges from this node are input object\n(external_objects) for the workflow."
+            }
         })
     if len(observable_objects) > 0:
         elements.append({
             "data": {
                 "id": "output_storage",
                 "label": "Output object storage",
-                "info": "This is the object storage. Edges to this node are output object (observable_objects) for the workflow."
+                "info": "This is the object storage.\n  Edges to this node are output object\n(observable_objects) for the workflow."
             }
         })
 
