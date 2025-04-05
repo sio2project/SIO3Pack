@@ -28,7 +28,7 @@ def get_elements(graph):
             }
         )
 
-    # Mark observablr objects as inputs for output object storage
+    # Mark observable objects as inputs for output object storage
     for object in observable_objects:
         if object not in ins_objects:
             ins_objects[object] = set()

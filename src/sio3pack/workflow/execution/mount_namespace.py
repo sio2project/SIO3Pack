@@ -33,8 +33,6 @@ class Mountpoint:
         :param dict data: The dictionary to create the mountpoint from.
         :param FilesystemManager filesystem_manager: The filesystem manager to use.
         """
-        if isinstance(data["source"], str):  # TODO: delete this
-            return cls(data["source"], data["target"], data["writable"])
         return cls(
             filesystem_manager.get_by_id(int(data["source"])), data["target"], data["writable"], data.get("capacity")
         )

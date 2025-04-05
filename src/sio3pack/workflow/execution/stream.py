@@ -24,7 +24,7 @@ class FileMode(Enum):
     """
 
     READ = "read"
-    READ_WRTIE = "read_write"
+    READ_WRITE = "read_write"
     READ_WRITE_APPEND = "read_write_append"
     READ_WRITE_TRUNCATE = "read_write_truncate"
     WRITE = "write"
