@@ -1,8 +1,7 @@
 from enum import Enum
 
 from sio3pack.workflow import Object
-from sio3pack.workflow.execution import Filesystem
-from sio3pack.workflow.execution.filesystems import FilesystemManager
+from sio3pack.workflow.execution.filesystems import FilesystemManager, Filesystem
 from sio3pack.workflow.object import ObjectsManager
 
 
