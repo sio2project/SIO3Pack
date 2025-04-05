@@ -1,10 +1,13 @@
-from sio3pack.workflow.execution.mount_namespace import MountNamespace, MountNamespaceManager
-from sio3pack.workflow.execution.resource_group import ResourceGroup, ResourceGroupManager
+from sio3pack.workflow.execution.descriptors import DescriptorManager
+from sio3pack.workflow.execution.mount_namespace import MountNamespace
+from sio3pack.workflow.execution.resource_group import ResourceGroup
 
 
 class Process:
     def __init__(
         self,
+        workflow: "Workflow",
+        task: "ExecutionTask",
         arguments: list[str] = None,
         environment: dict = None,
         image: str = "",
@@ -29,6 +32,9 @@ class Process:
         self.resource_group = resource_group
         self.pid_namespace = pid_namespace
         self.working_directory = working_directory
+        self.task = task
+        self.workflow = workflow
+        self.descriptor_manager = DescriptorManager(workflow.objects_manager, task.filesystem_manager)
 
     def to_json(self) -> dict:
         return {
@@ -39,22 +45,27 @@ class Process:
             "resource_group": self.resource_group.id,
             "pid_namespace": self.pid_namespace,
             "working_directory": self.working_directory,
+            "descriptors": self.descriptor_manager.to_json(),
         }
 
     @classmethod
     def from_json(
-        cls, data: dict, mountnamespace_manager: MountNamespaceManager, resource_group_manager: ResourceGroupManager
+        cls, data: dict, workflow: "Workflow", task: "Task"
     ):
         env = {}
         for var in data["environment"]:
             key, value = var.split("=", 1)
             env[key] = value
-        return cls(
+        process = cls(
+            workflow,
+            task,
             data["arguments"],
             env,
             data["image"],
-            mountnamespace_manager.get_by_id(data["mount_namespace"]),
-            resource_group_manager.get_by_id(data["resource_group"]),
+            task.mountnamespace_manager.get_by_id(data["mount_namespace"]),
+            task.resource_group_manager.get_by_id(data["resource_group"]),
             data["pid_namespace"],
             data["working_directory"],
         )
+        process.descriptor_manager.from_json(data["descriptors"], workflow.objects_manager, task.filesystem_manager)
+        return process

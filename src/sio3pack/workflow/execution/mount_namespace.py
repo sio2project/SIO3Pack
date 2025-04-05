@@ -2,10 +2,11 @@ from sio3pack.workflow.execution.filesystems import Filesystem, FilesystemManage
 
 
 class Mountpoint:
-    def __init__(self, source: Filesystem, target: str, writable: bool = False):
+    def __init__(self, source: Filesystem, target: str, writable: bool = False, capacity: int | None = None):
         self.source = source
         self.target = target
         self.writable = writable
+        self.capacity = capacity
 
     @classmethod
     def from_json(cls, data: dict, filesystem_manager: FilesystemManager):
@@ -16,15 +17,16 @@ class Mountpoint:
         """
         if isinstance(data["source"], str):  # TODO: delete this
             return cls(data["source"], data["target"], data["writable"])
-        return cls(filesystem_manager.get_by_id(int(data["source"])), data["target"], data["writable"])
+        return cls(filesystem_manager.get_by_id(int(data["source"])), data["target"], data["writable"], data.get("capacity"))
 
     def to_json(self) -> dict:
         """
         Convert the mountpoint to a dictionary.
         """
-        if isinstance(self.source, str):  # TODO: delete this
-            return {"source": self.source, "target": self.target, "writable": self.writable}
-        return {"source": self.source.id, "target": self.target, "writable": self.writable}
+        res = {"source": self.source.id, "target": self.target, "writable": self.writable}
+        if self.capacity is not None:
+            res["capacity"] = self.capacity
+        return res
 
 
 class MountNamespace:
