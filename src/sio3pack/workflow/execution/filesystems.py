@@ -143,10 +143,18 @@ class ObjectFilesystem(Filesystem):
 
 
 class FilesystemManager:
+    """
+    A class to manage filesystems.
+
+    :param Task task: The task the filesystem manager belongs to.
+    :param list[Filesystem] filesystems: The list of filesystems.
+    """
+
     def __init__(self, task: "Task"):
         """
         Create a new filesystem manager.
-        :param task: The task the filesystem manager belongs to.
+
+        :param Task task: The task the filesystem manager belongs to.
         """
         self.filesystems: list[Filesystem] = []
         self.id = 0
@@ -155,8 +163,9 @@ class FilesystemManager:
     def from_json(self, data: list[dict], workflow: "Workflow"):
         """
         Create filesystems from a list of dictionaries.
-        :param data: The list of dictionaries to create the filesystems from.
-        :param workflow: The workflow the filesystems belong to.
+
+        :param list[dict] data: The list of dictionaries to create the filesystems from.
+        :param Workflow workflow: The workflow the filesystems belong to.
         """
         for fs in data:
             if fs["type"] == "image":

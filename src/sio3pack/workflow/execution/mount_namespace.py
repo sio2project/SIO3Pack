@@ -2,18 +2,36 @@ from sio3pack.workflow.execution.filesystems import Filesystem, FilesystemManage
 
 
 class Mountpoint:
+    """
+    A class to represent a mountpoint.
+
+    :param Filesystem source: The source filesystem.
+    :param str target: The target path in the filesystem.
+    :param bool writable: Whether the mountpoint is writable or not.
+    :param int capacity: The capacity of the mountpoint. If None, the capacity is unlimited.
+    """
+
     def __init__(self, source: Filesystem, target: str, writable: bool = False, capacity: int | None = None):
+        """
+        Represent a mountpoint.
+
+        :param source: The source filesystem.
+        :param target: The target path in the filesystem.
+        :param writable: Whether the mountpoint is writable or not.
+        :param capacity: The capacity of the mountpoint. If None, the capacity is unlimited.
+        """
         self.source = source
         self.target = target
         self.writable = writable
         self.capacity = capacity
 
     @classmethod
-    def from_json(cls, data: dict, filesystem_manager: FilesystemManager):
+    def from_json(cls, data: dict, filesystem_manager: FilesystemManager) -> "Mountpoint":
         """
         Create a new mountpoint from a dictionary.
-        :param data: The dictionary to create the mountpoint from.
-        :param filesystem_manager: The filesystem manager to use.
+
+        :param dict data: The dictionary to create the mountpoint from.
+        :param FilesystemManager filesystem_manager: The filesystem manager to use.
         """
         if isinstance(data["source"], str):  # TODO: delete this
             return cls(data["source"], data["target"], data["writable"])
@@ -81,7 +99,7 @@ class MountNamespaceManager:
         """
         Create a new mount namespace manager from a list of dictionaries.
         :param data: The list of dictionaries to create the mount namespace manager from.
-        :param filesystem_manager: The filesystem manager to use.
+        :param FilesystemManager filesystem_manager: The filesystem manager to use.
         """
         for mount_namespace in data:
             self.add(MountNamespace.from_json(mount_namespace, self.id, self.filesystem_manager))

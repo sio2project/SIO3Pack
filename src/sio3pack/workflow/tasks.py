@@ -37,11 +37,10 @@ class ExecutionTask(Task):
     :param int hard_time_limit: The hard time limit.
     :param int extra_limit: If set, the hard_time_limit for the task will be the maximum time limit of all resource groups plus this value.
     :param int output_register: The output register of the task.
-    :param int input_register: The input register of the task. TODO delete
     :param int pid_namespaces: The number of PID namespaces.
     :param list[Process] processes: The processes of the task.
-    :param list[Pipe] pipes: The pipes of the task.
-    :param int system_pipes: The number of system pipes.
+    :param int pipes: The number of pipes available to the task.
+    :param list[Channel] channels: Configuration of the channels for the task.
     """
 
     def __init__(
@@ -70,6 +69,7 @@ class ExecutionTask(Task):
         :param pid_namespaces: The number of PID namespaces.
         :param processes: The processes of the task.
         :param pipes: The number of pipes.
+        :param channels: Configuration of the channels for the task.
         """
         self.name = name
         self.workflow = workflow
@@ -178,6 +178,7 @@ class ScriptTask(Task):
     :param bool reactive: Whether the task is reactive.
     :param list[int] input_registers: The input registers of the task.
     :param list[int] output_registers: The output registers of the task.
+    :param list[Object] objects: The objects the task uses.
     :param str script: The script to run.
     """
 
@@ -198,6 +199,7 @@ class ScriptTask(Task):
         :param reactive: Whether the task is reactive.
         :param input_registers: The input registers of the task.
         :param output_registers: The output registers of the task.
+        :param objects: The objects the task uses.
         :param script: The script to run.
         """
         self.name = name

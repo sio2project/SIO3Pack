@@ -65,5 +65,5 @@ class Process:
             data["pid_namespace"],
             data["working_directory"],
         )
-        process.descriptor_manager.from_json(data["descriptors"], workflow.objects_manager, task.filesystem_manager)
+        process.descriptor_manager.from_json(data["descriptors"])
         return process
