@@ -1,9 +1,8 @@
 import importlib
 from typing import Any
 
-from sio3pack import LocalFile
 from sio3pack.exceptions import SIO3PackException
-from sio3pack.files import File
+from sio3pack.files import File, LocalFile
 from sio3pack.packages.exceptions import UnknownPackageType
 from sio3pack.packages.package.handler import NoDjangoHandler
 from sio3pack.test import Test
@@ -29,30 +28,27 @@ def wrap_exceptions(func):
 class Package(RegisteredSubclassesBase):
     """
     Base class for all packages.
+
+    :param str short_name: Short name of the problem.
+    :param str full_name: Full name of the problem.
+    :param dict[str, str] lang_titles: A dictionary of problem titles,
+        where keys are language codes and values are titles.
+    :param dict[str, File] lang_statements: A dictionary of problem
+        statements, where keys are language codes and values are files.
+    :param dict[str, Any] config: Configuration of the problem.
+    :param list[tuple[ModelSolutionKind, File]] model_solutions: A list
+        of model solutions, where each element is a tuple containing
+        a model solution kind and a file.
+    :param list[File] additional_files: A list of additional files for
+        the problem.
+    :param list[File] attachments: A list of attachments related to the problem.
     """
 
     abstract = True
 
-    """
-    Attributes:
-        short_name (str): Short name of the problem.
-        full_name (str): Full name of the problem.
-        lang_titles (dict[str, str]): A dictionary of problem titles,
-            where keys are language codes and values are titles.
-        lang_statements (dict[str, File]): A dictionary of problem
-            statements, where keys are language codes and values are
-            files.
-        config (dict[str, Any]): Configuration of the problem.
-        model_solutions (list[dict[str, Any]]): A list
-            of model solutions, where each element is a tuple of model
-            solution kind and filename.
-        additional_files (list[File]): A list of additional files of
-            the problem.
-        attachments (list[File]): A list of attachments of the problem.
-    """
-
     def __init__(self):
         super().__init__()
+        self.django = None
 
     @classmethod
     @wrap_exceptions

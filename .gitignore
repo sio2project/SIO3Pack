@@ -17,3 +17,6 @@ coverage.xml
 
 # Files from Django db
 /sio3pack
+
+# Sphinx documentation
+docs/_build/

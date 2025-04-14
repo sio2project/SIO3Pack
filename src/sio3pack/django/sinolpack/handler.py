@@ -11,13 +11,17 @@ from sio3pack.django.sinolpack.models import (
     SinolpackConfig,
     SinolpackModelSolution,
 )
-from sio3pack.files.remote_file import RemoteFile
+from sio3pack.files import RemoteFile
 from sio3pack.packages.sinolpack.enums import ModelSolutionKind
 
 
 class SinolpackDjangoHandler(DjangoHandler):
+    """
+    Handler for Sinolpack packages in Django.
+    Has additional properties like config, model_solutions, additional_files and attachments.
+    """
 
-    def __init__(self, package: Type["Package"], problem_id: int):
+    def __init__(self, package: "sio3pack.Sinolpack", problem_id: int):
         super().__init__(package, problem_id)
 
     @transaction.atomic
@@ -69,17 +73,30 @@ class SinolpackDjangoHandler(DjangoHandler):
 
     @property
     def config(self) -> dict[str, Any]:
+        """
+        Config file of the package.
+        """
         return self.db_package.config.parsed_config
 
     @property
     def model_solutions(self) -> list[dict[str, Any]]:
+        """
+        A list of model solutions, where each element is a dictionary containing a :class:`sio3pack.RemoteFile` object
+        and the :class:`sio3pack.packages.sinolpack.enums.ModelSolutionKind` kind.
+        """
         solutions = SinolpackModelSolution.objects.filter(package=self.db_package)
         return [{"file": RemoteFile(s.source_file.path), "kind": s.kind} for s in solutions]
 
     @property
     def additional_files(self) -> list[RemoteFile]:
+        """
+        A list of additional files (as :class:`sio3pack.RemoteFile`) for the problem.
+        """
         return [RemoteFile(f.file.path) for f in self.db_package.additional_files.all()]
 
     @property
     def attachments(self) -> list[RemoteFile]:
+        """
+        A list of attachments (as :class:`sio3pack.RemoteFile`) related to the problem.
+        """
         return [RemoteFile(f.content.path) for f in self.db_package.attachments.all()]

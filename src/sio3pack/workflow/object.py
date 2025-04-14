@@ -1,11 +1,15 @@
 class Object:
     """
     A class to represent an object in a workflow.
+    A object is a file, stored either locally or remotely.
+
+    :param str handle: The handle of the object.
     """
 
     def __init__(self, handle: str):
         """
         Create a new object.
+
         :param handle: The handle of the object.
         """
         self.handle = handle

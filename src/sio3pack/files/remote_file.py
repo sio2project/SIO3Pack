@@ -3,7 +3,7 @@ from sio3pack.files.file import File
 
 class RemoteFile(File):
     """
-    Base class for all files in a package that are tracked by filetracker.
+    Base class for a file that is tracked by filetracker.
     """
 
     def __init__(self, path: str):

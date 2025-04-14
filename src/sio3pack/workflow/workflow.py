@@ -4,13 +4,21 @@ from sio3pack.workflow.tasks import Task
 
 class Workflow:
     """
-    A class to represent a job workflow.
+    A class to represent a job workflow. Number of registers is not required,
+    as it is calculated automatically.
+
+    :param str name: The name of the workflow.
+    :param list[Object] external_objects: The external objects used in the workflow.
+    :param list[Object] observable_objects: The observable objects used in the workflow.
+    :param int observable_registers: The number of observable registers used in the workflow.
+    :param list[Task] tasks: The tasks in the workflow.
     """
 
     @classmethod
     def from_json(cls, data: dict):
         """
         Create a new workflow from a dictionary.
+
         :param data: The dictionary to create the workflow from.
         """
         workflow = cls(data["name"], data["external_objects"], data["observable_objects"], data["observable_registers"])
@@ -28,11 +36,12 @@ class Workflow:
     ):
         """
         Create a new workflow. Number of required registers is calculated automatically.
-        :param name: The name of the workflow.
-        :param external_objects: The external objects used in the workflow.
-        :param observable_objects: The observable objects used in the workflow.
-        :param observable_registers: The number of observable registers used in the workflow.
-        :param tasks: The tasks in the workflow.
+
+        :param str name: The name of the workflow.
+        :param list[str] external_objects: The external objects used in the workflow.
+        :param list[str] observable_objects: The observable objects used in the workflow.
+        :param int observable_registers: The number of observable registers used in the workflow.
+        :param list[Task] tasks: The tasks in the workflow.
         """
         self.name = name
         self.observable_registers = observable_registers
@@ -53,6 +62,8 @@ class Workflow:
     def to_json(self) -> dict:
         """
         Convert the workflow to a dictionary.
+
+        :return dict: The dictionary representation of the workflow.
         """
         res = {
             "name": self.name,
@@ -75,12 +86,15 @@ class Workflow:
     def add_task(self, task: Task):
         """
         Add a task to the workflow.
-        :param task: The task to add.
+
+        :param Task task: The task to add.
         """
         self.tasks.append(task)
 
     def get_prog_files(self) -> list[str]:
         """
         Get all program files in the workflow.
+
+        :return: A list of program files.
         """
         raise NotImplementedError()
