@@ -15,12 +15,13 @@ def wrap_exceptions(func):
     """Decorator to catch exceptions and re-raise them as SIO3PackException."""
 
     def decorator(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except SIO3PackException:
-            raise  # Do not wrap SIO3PackExceptions again
-        except Exception as e:
-            raise SIO3PackException(f"SIO3Pack raised an exception in {func.__name__} function.", e)
+        return func(*args, **kwargs)
+        # try:
+        #     return func(*args, **kwargs)
+        # except SIO3PackException:
+        #     raise  # Do not wrap SIO3PackExceptions again
+        # except Exception as e:
+        #     raise SIO3PackException(f"SIO3Pack raised an exception in {func.__name__} function.", e)
 
     return decorator
 
@@ -42,6 +43,7 @@ class Package(RegisteredSubclassesBase):
     :param list[File] additional_files: A list of additional files for
         the problem.
     :param list[File] attachments: A list of attachments related to the problem.
+    :param WorkflowManager workflow_manager: A workflow manager for the problem.
     """
 
     abstract = True
@@ -147,9 +149,21 @@ class Package(RegisteredSubclassesBase):
     def get_test(self, test_id: str) -> Test:
         pass
 
+    def has_test_gen(self) -> bool:
+        """
+        Check if the package has test generation.
+        """
+        return False
+
+    def has_verify(self) -> bool:
+        """
+        Check if the package has verification.
+        """
+        return False
+
     @wrap_exceptions
-    def get_unpack_graph(self) -> WorkflowOperation | None:
-        pass
+    def get_unpack_graph(self, return_func: callable = None) -> WorkflowOperation | None:
+        return self.workflow_manager.get_unpack_operation(self.has_test_gen(), self.has_verify(), return_func)
 
     @wrap_exceptions
     def get_run_graph(self, file: File, tests: list[Test] | None = None) -> WorkflowOperation | None:

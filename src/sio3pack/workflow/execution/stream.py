@@ -72,6 +72,13 @@ class Stream:
     def to_json(self) -> dict:
         raise NotImplementedError("Subclasses must implement to_json method")
 
+    def replace_templates(self, replacements: dict[str, str]):
+        """
+        Replace strings in the stream with the given replacements.
+        This method is a no-op for streams that do not support template replacement.
+        """
+        pass
+
 
 class FileStream(Stream):
     """
@@ -181,6 +188,13 @@ class ObjectStream(Stream):
             "type": self.type.value,
             "handle": self.object.handle,
         }
+
+    def replace_templates(self, replacements: dict[str, str]):
+        """
+        Replace strings in the object stream with the given replacements.
+        """
+        self.object.replace_templates(replacements)
+        super().replace_templates(replacements)
 
 
 class ObjectReadStream(ObjectStream):

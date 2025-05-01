@@ -1,3 +1,5 @@
+from typing import ItemsView
+
 from sio3pack.workflow.execution.stream import Stream
 
 
@@ -45,3 +47,11 @@ class DescriptorManager:
         """
         # Convert the fd numbers to strings, since in JSON keys cant be ints.
         return {str(fd): stream.to_json() for fd, stream in self.descriptors.items()}
+
+    def items(self) -> ItemsView[int, Stream]:
+        """
+        Get the items in the descriptor manager.
+
+        :return: A view of the descriptor manager's items.
+        """
+        return self.descriptors.items()

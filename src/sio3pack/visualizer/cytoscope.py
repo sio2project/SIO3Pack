@@ -1,3 +1,6 @@
+import os
+
+
 def get_elements(graph):
     elements = []
     ins = {}
@@ -164,7 +167,7 @@ def get_elements(graph):
                                     "data": {
                                         "source": f"execution_{execution_i}",
                                         "target": id,
-                                        "label": f"via object {object} from fd {fd}",
+                                        "label": f"via object {os.path.basename(object)} from fd {fd}",
                                     }
                                 }
                             )

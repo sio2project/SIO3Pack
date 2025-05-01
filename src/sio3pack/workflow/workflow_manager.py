@@ -60,9 +60,6 @@ class WorkflowManager:
         # TODO: implement this
         raise NotImplementedError
 
-    def get(self, name: str) -> Workflow:
-        return self.workflows[name]
-
     def _get_generate_tests_workflows(self, data: dict) -> tuple[Workflow, bool]:
         raise NotImplementedError
 

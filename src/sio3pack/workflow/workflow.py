@@ -1,5 +1,5 @@
 from sio3pack.workflow import Object, ExecutionTask, ScriptTask
-from sio3pack.workflow.object import ObjectsManager
+from sio3pack.workflow.object import ObjectsManager, ObjectList
 from sio3pack.workflow.tasks import Task
 
 
@@ -9,8 +9,8 @@ class Workflow:
     as it is calculated automatically.
 
     :param str name: The name of the workflow.
-    :param list[Object] external_objects: The external objects used in the workflow.
-    :param list[Object] observable_objects: The observable objects used in the workflow.
+    :param ObjectList external_objects: The external objects used in the workflow.
+    :param ObjectList observable_objects: The observable objects used in the workflow.
     :param int observable_registers: The number of observable registers used in the workflow.
     :param list[Task] tasks: The tasks in the workflow.
     """
@@ -49,11 +49,11 @@ class Workflow:
         self.tasks = tasks or []
         self.objects_manager = ObjectsManager()
 
-        self.external_objects = []
+        self.external_objects = ObjectList()
         for obj in external_objects or []:
             self.external_objects.append(self.objects_manager.get_or_create_object(obj))
 
-        self.observable_objects = []
+        self.observable_objects = ObjectList()
         for obj in observable_objects or []:
             self.observable_objects.append(self.objects_manager.get_or_create_object(obj))
 
@@ -64,6 +64,15 @@ class Workflow:
         """
         Get number of currently used registers.
         """
+        if self.only_string_registers():
+            num = 0
+            for task in self.tasks:
+                if isinstance(task, ExecutionTask) and task.output_register is not None:
+                    num += 1
+                if isinstance(task, ScriptTask):
+                    num += len(task.input_registers) + len(task.output_registers)
+            return num
+
         num_registers = 0
         for task in self.tasks:
             if isinstance(task, ExecutionTask):
@@ -72,12 +81,69 @@ class Workflow:
                 num_registers = max([num_registers, max(task.input_registers), max(task.output_registers)])
         return num_registers + 1 if len(self.tasks) > 0 else 0
 
-    def to_json(self) -> dict:
+    def only_string_registers(self) -> bool:
+        """
+        Check if all registers in the workflow are strings.
+
+        :return bool: True if all registers are strings, False otherwise.
+        """
+        for task in self.tasks:
+            if isinstance(task, ExecutionTask):
+                if not isinstance(task.output_register, str):
+                    return False
+            elif isinstance(task, ScriptTask):
+                for reg in task.input_registers:
+                    if not isinstance(reg, str):
+                        return False
+                for reg in task.output_registers:
+                    if not isinstance(reg, str):
+                        return False
+        return True
+
+    def to_json(self, to_int_regs: bool = False) -> dict:
         """
         Convert the workflow to a dictionary.
 
+        :param bool to_int_regs: Whether to convert registers to integers.
         :return dict: The dictionary representation of the workflow.
         """
+        if to_int_regs:
+            if not self.only_string_registers():
+                raise TypeError("Not all registers are strings")
+
+            observable_regs = set()
+            regs = set()
+            for task in self.tasks:
+                if isinstance(task, ExecutionTask):
+                    if task.output_register.startswith('obsreg'):
+                        observable_regs.add(task.output_register)
+                    else:
+                        regs.add(task.output_register)
+                elif isinstance(task, ScriptTask):
+                    for reg in task.input_registers:
+                        if reg.startswith('obsreg'):
+                            observable_regs.add(reg)
+                        else:
+                            regs.add(reg)
+                    for reg in task.output_registers:
+                        if reg.startswith('obsreg'):
+                            observable_regs.add(reg)
+                        else:
+                            regs.add(reg)
+
+            num_observable_regs = len(observable_regs)
+            observable_regs = {name: i for i, name in enumerate(sorted(observable_regs))}
+            regs = {name: i + len(observable_regs) for i, name in enumerate(sorted(regs))}
+            reg_map = {**observable_regs, **regs}
+            return {
+                "name": self.name,
+                "external_objects": [obj.handle for obj in self.external_objects],
+                "observable_objects": [obj.handle for obj in self.observable_objects],
+                "observable_registers": num_observable_regs,
+                "tasks": [task.to_json(reg_map) for task in self.tasks],
+                "registers": self.get_num_registers(),
+            }
+
         return {
             "name": self.name,
             "external_objects": [obj.handle for obj in self.external_objects],
@@ -119,11 +185,22 @@ class Workflow:
         """
         self.observable_objects.append(obj)
 
+    def replace_templates(self, replacements: dict[str, str]):
+        """
+        Replace strings in the workflow with the given replacements.
+
+        :param dict[str, str] replacements: The replacements to make.
+        """
+        for task in self.tasks:
+            task.replace_templates(replacements)
+        for obj in self.external_objects:
+            obj.replace_templates(replacements)
+        for obj in self.observable_objects:
+            obj.replace_templates(replacements)
+
     def union(self, other: "Workflow"):
         """
-        Add another workflow to this workflow. Merges external /
-        observable objects and recalculates registers so there
-        are no confilicts.
+        Add another workflow to this workflow. Merge all objects and tasks.
 
         :param Workflow other: Other workflow to merge into this.
         """
@@ -131,21 +208,12 @@ class Workflow:
         #   objects with the same name?
 
         # Merge objects.
-        self.observable_objects = list(set(self.observable_objects + other.observable_objects))
-        self.external_objects = list(set(self.external_objects + other.external_objects))
+        self.observable_objects.union(other.observable_objects)
+        self.external_objects.union(other.external_objects)
 
-        # First, move registers in `self` workflow if `other workflow
-        # has any observable registers, since they have to be in the beginning.
-        to_move = other.observable_registers
-        for task in self.tasks:
-            if isinstance(task, ExecutionTask):
-                if task.output_register >= self.observable_registers:
-                    # This is non-observable register
-                    task.output_register += to_move
-            elif isinstance(task, ScriptTask):
-                for i in range(len(task.output_registers)):
-                    reg = task.output_registers[i]
-                    if reg >= self.observable_registers:
-                        # This is non-observable register
-                        task.output_registers[i] += to_move
-        self.observable_registers += to_move
+        # Merge tasks.
+        self.tasks += other.tasks
+
+        # If registers are not strings, we need to increase `self.observable_registers`
+        if not self.only_string_registers():
+            self.observable_registers += other.observable_registers
