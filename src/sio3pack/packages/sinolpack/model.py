@@ -431,6 +431,12 @@ class Sinolpack(Package):
         """
         return self.tests
 
+    def get_input_tests(self) -> list[Test]:
+        """
+        Returns the list of tests with input files.
+        """
+        return [test for test in self.tests if test.in_file is not None]
+
     def get_test(self, test_id: str) -> Test:
         """
         Returns the test with the given ID.
@@ -454,6 +460,20 @@ class Sinolpack(Package):
 
     def get_outgen_path(self) -> str | None:
         return self.main_model_solution.path
+
+    def _get_special_file_path(self, file_type: str) -> str | None:
+        """
+        Returns the path to the special file in the program directory.
+        """
+        # TODO: This should be faster
+        if self.special_files[file_type]:
+            for af in self.additional_files:
+                if os.path.splitext(os.path.basename(af.path))[0] == self.short_name + file_type:
+                    return af.path
+        return None
+
+    def get_inwer_path(self) -> str | None:
+        return self._get_special_file_path("inwer")
 
     def get_unpack_graph(self, return_func: callable = None) -> WorkflowOperation | None:
         has_ingen = self.special_files["ingen"]

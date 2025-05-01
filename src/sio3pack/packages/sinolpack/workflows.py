@@ -182,6 +182,10 @@ class SinolpackWorkflowManager(WorkflowManager):
             return self._get_outgen_test_workflow()
         elif name == "verify_outgen":
             return self._get_verify_outgen_workflow()
+        elif name == "inwer":
+            return self._get_inwer_test_workflow()
+        elif name == "verify_inwer":
+            return self._get_verify_inwer_workflow()
         else:
             raise NotImplementedError(f"Default workflow for {name} not implemented.")
 
@@ -226,13 +230,129 @@ class SinolpackWorkflowManager(WorkflowManager):
 
             # Now, get a workflow that checks if all outgens successfully finished.
             verify_wf = self.get("verify_outgen")
-
             verify_wf.replace_templates({
                 "<LUA_MAP_TEST_ID_REG>": lua.to_lua_map(outgen_output_registers),
                 "<INPUT_REGS>": script_input_regs,
             })
             workflow.union(verify_wf)
             return workflow, True
+
+    def _get_inwer_test_workflow(self) -> Workflow:
+        """
+        Creates a workflow that runs inwer for a test. It is assumed,
+        that the register `r:inwer_res_<TEST_ID>` has the execution info of inwer.
+        Used templates:
+        - <IN_TEST_PATH>
+        - <TEST_ID>
+        """
+        workflow = Workflow(
+            "Inwer for test",
+        )
+        inwer_path = self.package.get_inwer_path()
+        if not inwer_path:
+            raise WorkflowCreationError("Creating inwer workflow when no inwer present")
+
+        # Create objects for inwer and input test
+        inwer_obj = workflow.objects_manager.get_or_create_object(inwer_path)
+        in_test_obj = workflow.objects_manager.get_or_create_object("<IN_TEST_PATH>")
+        workflow.add_external_object(inwer_obj)
+        workflow.add_external_object(in_test_obj)
+
+        # Run the inwer, on stdin it will get the input test object and test ID
+        # as an argument.
+        exec_inwer = ExecutionTask(
+            "Run inwer on test <TEST_ID>",
+            workflow,
+            exclusive=False,
+            hard_time_limit=constants.INWER_HARD_TIME_LIMIT,
+            output_register='r:inwer_res_<TEST_ID>',
+        )
+        default_rg = ResourceGroup()
+        exec_inwer.resource_group_manager.add(default_rg)
+        inwer_fs = ObjectFilesystem(
+            object=inwer_obj,
+        )
+        exec_inwer.add_filesystem(inwer_fs)
+        inwer_mp = Mountpoint(
+            source=inwer_fs,
+            target="/inwer",
+        )
+
+        inwer_ms = MountNamespace(
+            mountpoints=[inwer_mp],
+        )
+        exec_inwer.add_mount_namespace(inwer_ms)
+        inwer_proc = Process(
+            workflow,
+            exec_inwer,
+            arguments=["/inwer", "<TEST_ID>"],
+            mount_namespace=inwer_ms,
+            resource_group=default_rg,
+            working_directory="/",
+        )
+
+        # Link stdin to the test object
+        in_stream = ObjectReadStream(in_test_obj)
+        inwer_proc.descriptor_manager.add(0, in_stream)
+
+        # Add the process to the task
+        exec_inwer.add_process(inwer_proc)
+        workflow.add_task(exec_inwer)
+        return workflow
+
+    def _get_verify_inwer_workflow(self) -> Workflow:
+        """
+        Creates a workflow that verifies if inwer was successful.
+        The default implementation has only one script task, which checks
+        if all inwers finished successfully.
+        Used templates:
+        - <LUA_MAP_TEST_ID_REG> -- a template for LUA scripts, that has
+          a mapping of test IDs to registers.
+        - <INPUT_REGS> -- a list of input registers, that are used to check
+          if the outgen was successful.
+        """
+        workflow = Workflow(
+            "Verify inwer",
+        )
+        script = ScriptTask(
+            "Verify inwer",
+            workflow,
+            reactive=False,
+            input_registers=["<INPUT_REGS>"],
+            output_registers=["obsreg:result"],
+            script=lua.get_script("verify_inwer")
+        )
+        workflow.add_task(script)
+        return workflow
+
+    def _get_verify_workflows(self, data: dict) -> tuple[Workflow, bool]:
+        """
+        Creates a workflow that runs inwer.
+        """
+        data = data or {}
+        input_tests: list["Test"] = self.package.get_input_tests()
+        workflow = Workflow("Inwer", observable_registers=1)
+        inwer_output_registers = {}
+        script_input_regs = []
+        for test in input_tests:
+            test_id = test.test_id
+            inwer_test_wf = self.get("inwer")
+            inwer_test_wf.replace_templates({
+                "<IN_TEST_PATH>": test.in_file.path,
+                "<TEST_ID>": test_id,
+            })
+            script_input_regs.append(f'r:inwer_res_{test_id}')
+            inwer_output_registers[test_id] = f'<r:inwer_res_{test_id}>'
+            workflow.union(inwer_test_wf)
+
+        # Now, get a workflow that checks if all inwer successfully finished.
+        verify_wf = self.get("verify_inwer")
+        verify_wf.replace_templates({
+            "<LUA_MAP_TEST_ID_REG>": lua.to_lua_map(inwer_output_registers),
+            "<INPUT_REGS>": script_input_regs,
+        })
+        workflow.union(verify_wf)
+        return workflow, True
 
     def get_unpack_operation(self, has_ingen: bool, has_outgen: bool, has_inwer: bool, return_func: callable = None) -> WorkflowOperation:
         """
