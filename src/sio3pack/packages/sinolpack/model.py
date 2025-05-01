@@ -475,6 +475,9 @@ class Sinolpack(Package):
     def get_inwer_path(self) -> str | None:
         return self._get_special_file_path("inwer")
 
+    def get_checker_path(self) -> str | None:
+        return self._get_special_file_path("chk")
+
     def get_unpack_graph(self, return_func: callable = None) -> WorkflowOperation | None:
         has_ingen = self.special_files["ingen"]
         has_outgen = self.main_model_solution is not None

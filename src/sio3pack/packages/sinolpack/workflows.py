@@ -1,10 +1,14 @@
 import os
 
 from enum import Enum
+from typing import Tuple
 
+from sio3pack.workflow.execution.filesystems import ImageFilesystem
 from sio3pack import lua
 from sio3pack.exceptions import WorkflowCreationError
+from sio3pack.files import File
 from sio3pack.packages.sinolpack import constants
+from sio3pack.test import Test
 from sio3pack.workflow import WorkflowManager, Workflow, WorkflowOperation, ExecutionTask, ScriptTask
 from sio3pack.workflow.execution import Filesystem, MountNamespace, Process, ResourceGroup, ObjectStream, \
     ObjectReadStream, ObjectWriteStream
@@ -186,6 +190,12 @@ class SinolpackWorkflowManager(WorkflowManager):
             return self._get_inwer_test_workflow()
         elif name == "verify_inwer":
             return self._get_verify_inwer_workflow()
+        elif name == "run_test":
+            return self._get_run_test_workflow()
+        elif name == "grade_group":
+            return self._get_grade_group_workflow()
+        elif name == "grade_run":
+            return self._get_grade_run_workflow()
         else:
             raise NotImplementedError(f"Default workflow for {name} not implemented.")
 
@@ -329,7 +339,6 @@ class SinolpackWorkflowManager(WorkflowManager):
         """
         Creates a workflow that runs inwer.
         """
-        data = data or {}
         input_tests: list["Test"] = self.package.get_input_tests()
         workflow = Workflow("Inwer", observable_registers=1)
         inwer_output_registers = {}
@@ -371,3 +380,278 @@ class SinolpackWorkflowManager(WorkflowManager):
             # This will be handled by the base class, since there is no unpacking to do.
             pass
         return super().get_unpack_operation(has_test_gen=(has_ingen or has_outgen), has_verify=has_inwer, return_func=return_func)
+
+    def _get_run_test_workflow(self) -> Workflow:
+        """
+        Creates a worfklow that runs the solution for a test and verifies the output with the checker.
+        Used templates:
+        - <TEST_ID>
+        - <IN_TEST_PATH>
+        - <OUT_TEST_PATH>
+        - <SOL_PATH>
+        """
+        wf = Workflow(
+            name="Run test",
+        )
+        in_test_obj = wf.objects_manager.get_or_create_object("<IN_TEST_PATH>")
+        out_test_obj = wf.objects_manager.get_or_create_object("<OUT_TEST_PATH>")
+        sol_obj = wf.objects_manager.get_or_create_object("<SOL_PATH>")
+        wf.add_external_object(in_test_obj)
+        wf.add_external_object(out_test_obj)
+        wf.add_external_object(sol_obj)
+
+        # This object will store the output of the solution.
+        user_out_obj = wf.objects_manager.get_or_create_object("user_out_<TEST_ID>")
+
+        # Run the solution, on stdin it will get the input test object and stdout is
+        # piped to a new object which is user out.
+        exec_run = ExecutionTask(
+            "Run solution for test <TEST_ID>",
+            wf,
+            exclusive=False,
+            output_register="r:run_test_res_<TEST_ID>",
+        )
+        rg = ResourceGroup()
+        exec_run.resource_group_manager.add(rg)
+        run_fs = ObjectFilesystem(
+            object=sol_obj,
+        )
+        exec_run.add_filesystem(run_fs)
+        run_mp = Mountpoint(
+            source=run_fs,
+            target="/exe",
+        )
+
+        run_ms = MountNamespace(
+            mountpoints=[run_mp],
+        )
+        exec_run.add_mount_namespace(run_ms)
+        run_proc = Process(
+            wf,
+            exec_run,
+            arguments=["/exe"],
+            mount_namespace=run_ms,
+            resource_group=rg,
+            working_directory="/",
+        )
+
+        # Link stdin to input test object and stdout to user out object
+        in_stream = ObjectReadStream(in_test_obj)
+        out_stream = ObjectWriteStream(user_out_obj)
+        run_proc.descriptor_manager.add(0, in_stream)
+        run_proc.descriptor_manager.add(1, out_stream)
+
+        # Add the process to the task
+        exec_run.add_process(run_proc)
+        wf.add_task(exec_run)
+
+        # Now, run the checker. It will be run with input test, output test and user out as execution arguments.
+        # If there is no custom checker, use the default oicompare image.
+        exec_chk = ExecutionTask(
+            "Run checker for test <TEST_ID>",
+            wf,
+            exclusive=False,
+            hard_time_limit=constants.CHECKER_HARD_TIME_LIMIT,
+            output_register="r:checker_res_<TEST_ID>",
+        )
+        rg = ResourceGroup()
+        exec_chk.resource_group_manager.add(rg)
+
+        checker_path = self.package.get_checker_path()
+        if checker_path is None:
+            chk_fs = ImageFilesystem("oicompare")
+        else:
+            checker_obj = wf.objects_manager.get_or_create_object(checker_path)
+            chk_fs = ObjectFilesystem(
+                object=checker_obj,
+            )
+        exec_chk.add_filesystem(chk_fs)
+        chk_mp = Mountpoint(
+            source=chk_fs,
+            target="/chk",
+        )
+        in_fs = ObjectFilesystem(in_test_obj)
+        exec_chk.add_filesystem(in_fs)
+        in_mp = Mountpoint(
+            source=in_fs,
+            target="/in",
+        )
+        out_fs = ObjectFilesystem(out_test_obj)
+        exec_chk.add_filesystem(out_fs)
+        out_mp = Mountpoint(
+            source=out_fs,
+            target="/out",
+        )
+        user_out_fs = ObjectFilesystem(user_out_obj)
+        exec_chk.add_filesystem(user_out_fs)
+        user_out_mp = Mountpoint(
+            source=user_out_fs,
+            target="/user_out",
+        )
+
+        chk_ms = MountNamespace(
+            mountpoints=[chk_mp, in_mp, out_mp, user_out_mp],
+        )
+        exec_chk.add_mount_namespace(chk_ms)
+        chk_proc = Process(
+            wf,
+            exec_chk,
+            arguments=["/chk", "/in", "/out", "/user_out"],
+            mount_namespace=chk_ms,
+            resource_group=rg,
+            working_directory="/",
+        )
+
+        # Link stdout of the checker to a object stream.
+        chk_out_obj = wf.objects_manager.get_or_create_object("chk_out_<TEST_ID>")
+        chk_out_stream = ObjectWriteStream(chk_out_obj)
+        chk_proc.descriptor_manager.add(1, chk_out_stream)
+
+        # Add the process to the task
+        exec_chk.add_process(chk_proc)
+        wf.add_task(exec_chk)
+
+        # At the end, grade the test by checking checker output, return code and
+        # user's program status. The script is reactive, because for example when
+        # the solution gets Runtime Error, we don't have to check checker output.
+        grade = ScriptTask(
+            "Grade test <TEST_ID>",
+            wf,
+            reactive=True,
+            input_registers=["r:run_test_res_<TEST_ID>", "r:checker_res_<TEST_ID>"],
+            output_registers=["r:grade_res_<TEST_ID>"],
+            objects=[user_out_obj],
+            script=lua.get_script("grade_test"),
+        )
+        wf.add_task(grade)
+        return wf
+
+    def _get_grade_group_workflow(self) -> Workflow:
+        """
+        Creates a workflow that grades the group of tests. The script is
+        reactive, because it's possible that we can exit the grading
+        process early.
+        Used templates:
+        - <LUA_MAP_TEST_ID_REG> -- a template for LUA scripts, that has
+          a mapping of test IDs to registers.
+        - <INPUT_REGS> -- a list of input registers, that have grading
+          results of the tests.
+        - <GROUP_ID> -- a group ID of the tests.
+        """
+        workflow = Workflow(
+            name="Grade group",
+        )
+        script = ScriptTask(
+            "Grade group <GROUP_ID>",
+            workflow,
+            reactive=True,
+            input_registers=["<INPUT_REGS>"],
+            output_registers=["r:group_grade_res_<GROUP_ID>"],
+            script=lua.get_script("grade_group")
+        )
+        workflow.add_task(script)
+        return workflow
+
+    def _get_grade_run_workflow(self) -> Workflow:
+        """
+        Creates a workflow that grades the run of the solution. The script is
+        reactive, because it's possible that we can exit the grading
+        process early.
+        Used templates:
+        - <LUA_MAP_TEST_ID_REG> -- a template for LUA scripts, that has
+          a mapping of group IDs to registers.
+        - <INPUT_REGS> -- a list of input registers, that have grading
+          results of the groups.
+        """
+        workflow = Workflow(
+            name="Grade run",
+        )
+        script = ScriptTask(
+            "Grade run",
+            workflow,
+            reactive=True,
+            input_registers=["<INPUT_REGS>"],
+            output_registers=["obsreg:result"],
+            script=lua.get_script("grade_run")
+        )
+        workflow.add_task(script)
+        return workflow
+
+    def _get_run_workflow(self, data: dict, program: File, tests: list[Test] | None = None) -> Tuple[Workflow, bool]:
+        if tests is None:
+            tests = self.package.get_tests()
+
+        workflow = Workflow(
+            name="Run solution",
+        )
+        groups = {}
+        for test in tests:
+            print(test.test_id)
+            if test.group not in groups:
+                groups[test.group] = []
+            groups[test.group].append(test)
+            workflow.add_external_object(workflow.objects_manager.get_or_create_object(test.in_file.path))
+            workflow.add_external_object(workflow.objects_manager.get_or_create_object(test.out_file.path))
+
+        program_obj = workflow.objects_manager.get_or_create_object(program.path)
+        workflow.add_external_object(program_obj)
+        has_checker = self.package.get_checker_path() is not None
+        if has_checker:
+            checker_obj = workflow.objects_manager.get_or_create_object(self.package.get_checker_path())
+            workflow.add_external_object(checker_obj)
+
+        workflow = Workflow(
+            name="Run solution",
+            observable_registers=1,
+        )
+        output_registers = []
+        output_registers_map = {}
+        for group, tests in groups.items():
+            group_out_registers = []
+            group_out_registers_map = {}
+
+            # Run the solution for each test in the group and grade it.
+            for test in tests:
+                test_id = test.test_id
+                run_test_wf = self.get("run_test")
+                group_out_registers.append(f"r:grade_res_{test_id}")
+                group_out_registers_map[test_id] = f"<r:grade_res_{test_id}>"
+                run_test_wf.replace_templates({
+                    "<IN_TEST_PATH>": test.in_file.path,
+                    "<OUT_TEST_PATH>": test.out_file.path,
+                    "<SOL_PATH>": program.path,
+                    "<TEST_ID>": test_id,
+                })
+                workflow.union(run_test_wf)
+
+            # Now, run the grading script for the group.
+            grade_group_wf = self.get("grade_group")
+            grade_group_wf.replace_templates({
+                "<LUA_MAP_TEST_ID_REG>": lua.to_lua_map(group_out_registers_map),
+                "<INPUT_REGS>": group_out_registers,
+                "<GROUP_ID>": group,
+            })
+            workflow.union(grade_group_wf)
+            output_registers.append(f"r:group_grade_res_{group}")
+            output_registers_map[group] = f"<r:group_grade_res_{group}>"
+
+        # Finally, add the script that grades the whole solution.
+        grade_run_wf = self.get("grade_run")
+        grade_run_wf.replace_templates({
+            "<LUA_MAP_TEST_ID_REG>": lua.to_lua_map(output_registers_map),
+            "<INPUT_REGS>": output_registers,
+        })
+        workflow.union(grade_run_wf)
+        return workflow, True
+
+    def get_run_operation(self, program: File, tests: list[Test] | None = None, return_func: callable = None) -> WorkflowOperation:
+        """
+        Get the run operation for the given data.
+        """
+        return WorkflowOperation(
+            self._get_run_workflow,
+            return_results=(return_func is not None),
+            return_results_func=return_func,
+            program=program,
+            tests=tests,
+        )

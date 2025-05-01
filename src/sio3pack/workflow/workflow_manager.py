@@ -2,6 +2,7 @@ import json
 from enum import Enum
 
 from sio3pack.files import File
+from sio3pack.test import Test
 from sio3pack.workflow.workflow_op import WorkflowOperation
 from sio3pack.workflow.workflow import Workflow
 
@@ -96,3 +97,6 @@ class WorkflowManager:
             # TODO: this. maybe return empty WorkflowOperation
             raise NotImplementedError
         return WorkflowOperation(self._get_unpack_workflows, return_results=(return_func is not None), return_results_func=return_func)
+
+    def get_run_operation(self, program: File, tests: list[Test] | None = None, return_func: callable = None) -> WorkflowOperation:
+        raise NotImplementedError

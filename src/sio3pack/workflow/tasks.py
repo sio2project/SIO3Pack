@@ -140,7 +140,7 @@ class ExecutionTask(Task):
         :param reg_map: A mapping of register names to register numbers.
         :return dict: The dictionary representation of the task.
         """
-        hard_time_limit = self.hard_time_limit
+        hard_time_limit = getattr(self, "hard_time_limit", 0)
         if self.extra_limit is not None:
             hard_time_limit = 0
             for rg in self.resource_group_manager.all():

@@ -57,7 +57,6 @@ class ImageFilesystem(Filesystem):
         """
         Represent an image filesystem.
 
-        :param id: The id of the image filesystem.
         :param image: The image to use.
         :param path: The path to the image. If None, the path is ""
         """
@@ -120,7 +119,6 @@ class ObjectFilesystem(Filesystem):
     def __init__(self, object: Object, id: int = None):
         """
         Represent an object filesystem.
-        :param id: The id of the object filesystem.
         :param object: The object to use.
         :param workflow: The workflow the object belongs to.
         """
