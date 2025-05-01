@@ -172,6 +172,11 @@ class Package(RegisteredSubclassesBase):
         """
         return self.workflow_manager.get_run_operation(program, tests, return_func)
 
+    def get_user_out_graph(self, program: File, test: Test, return_func: callable = None) -> WorkflowOperation | None:
+        """
+        Get the workflow for getting the user's output for a given test.
+        """
+        return self.workflow_manager.get_user_out_operation(program, test, return_func)
 
     @wrap_exceptions
     def get_save_outs_graph(self, tests: list[Test] | None = None) -> WorkflowOperation | None:
