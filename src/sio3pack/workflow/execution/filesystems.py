@@ -8,10 +8,18 @@ class Filesystem:
     :param int id: The id of the filesystem in the task.
     """
 
-    def __init__(self, id: int):
+    def __init__(self, id: int = None):
         """
         Represent a filesystem.
         :param id: The id of the filesystem.
+        """
+        self.id = id
+
+    def _set_id(self, id: int):
+        """
+        Set the id of the filesystem. Should only be used by the FilesystemManager.
+
+        :param int id: The id of the filesystem.
         """
         self.id = id
 
@@ -45,7 +53,7 @@ class ImageFilesystem(Filesystem):
     :param str path: The path to the image. If None, the path is "".
     """
 
-    def __init__(self, id: int, image: str, path: str = None):
+    def __init__(self, image: str, path: str = None, id: int = None):
         """
         Represent an image filesystem.
 
@@ -69,7 +77,7 @@ class ImageFilesystem(Filesystem):
         :param id id: The id of the image filesystem.
         :param Workflow workflow: The workflow the image filesystem belongs to.
         """
-        return cls(id, data["image"], data["path"])
+        return cls(data["image"], data["path"], id)
 
     def to_json(self) -> dict:
         """
@@ -81,7 +89,7 @@ class ImageFilesystem(Filesystem):
 
 
 class EmptyFilesystem(Filesystem):
-    def __init__(self, id: int):
+    def __init__(self, id: int = None):
         """
         Represent an empty filesystem. Can be used as tmpfs.
         :param id: The id of the empty filesystem.
@@ -109,7 +117,7 @@ class EmptyFilesystem(Filesystem):
 
 
 class ObjectFilesystem(Filesystem):
-    def __init__(self, id: int, object: Object, workflow: "Workflow"):
+    def __init__(self, object: Object, id: int = None):
         """
         Represent an object filesystem.
         :param id: The id of the object filesystem.
@@ -130,7 +138,7 @@ class ObjectFilesystem(Filesystem):
         :param id: The id of the object filesystem.
         :param workflow: The workflow the object filesystem belongs to.
         """
-        return cls(id, workflow.objects_manager.get_or_create_object(data["handle"]), workflow)
+        return cls(workflow.objects_manager.get_or_create_object(data["handle"]), id)
 
     def to_json(self) -> dict:
         """
@@ -194,5 +202,6 @@ class FilesystemManager:
         Add a filesystem to the manager.
         :param filesystem: The filesystem to add.
         """
+        filesystem._set_id(self.id)
         self.filesystems.append(filesystem)
         self.id += 1

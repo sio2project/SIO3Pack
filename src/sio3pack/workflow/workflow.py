@@ -1,3 +1,4 @@
+from sio3pack.workflow import Object, ExecutionTask, ScriptTask
 from sio3pack.workflow.object import ObjectsManager
 from sio3pack.workflow.tasks import Task
 
@@ -59,29 +60,32 @@ class Workflow:
     def __str__(self):
         return f"<Workflow {self.name} tasks={[task for task in self.tasks]}>"
 
+    def get_num_registers(self) -> int:
+        """
+        Get number of currently used registers.
+        """
+        num_registers = 0
+        for task in self.tasks:
+            if isinstance(task, ExecutionTask):
+                num_registers = max(num_registers, task.output_register)
+            if isinstance(task, ScriptTask):
+                num_registers = max([num_registers, max(task.input_registers), max(task.output_registers)])
+        return num_registers + 1 if len(self.tasks) > 0 else 0
+
     def to_json(self) -> dict:
         """
         Convert the workflow to a dictionary.
 
         :return dict: The dictionary representation of the workflow.
         """
-        res = {
+        return {
             "name": self.name,
             "external_objects": [obj.handle for obj in self.external_objects],
             "observable_objects": [obj.handle for obj in self.observable_objects],
+            "registers": self.get_num_registers(),
             "observable_registers": self.observable_registers,
             "tasks": [task.to_json() for task in self.tasks],
         }
-        num_registers = 0
-        for task in res["tasks"]:
-            if "input_registers" in task:
-                num_registers = max(num_registers, max(task["input_registers"]))
-            if "output_registers" in task:
-                num_registers = max(num_registers, max(task["output_registers"]))
-            if "output_register" in task:
-                num_registers = max(num_registers, task["output_register"])
-        res["registers"] = num_registers + 1
-        return res
 
     def add_task(self, task: Task):
         """
@@ -98,3 +102,50 @@ class Workflow:
         :return: A list of program files.
         """
         raise NotImplementedError()
+
+    def add_external_object(self, obj: Object):
+        """
+        Add an external object to the workflow.
+
+        :param Object obj: The object to add.
+        """
+        self.external_objects.append(obj)
+
+    def add_observable_object(self, obj: Object):
+        """
+        Add an observable object to the workflow.
+
+        :param Object obj: The object to add.
+        """
+        self.observable_objects.append(obj)
+
+    def union(self, other: "Workflow"):
+        """
+        Add another workflow to this workflow. Merges external /
+        observable objects and recalculates registers so there
+        are no confilicts.
+
+        :param Workflow other: Other workflow to merge into this.
+        """
+        # TODO: maybe add validating that two tasks dont create
+        #   objects with the same name?
+
+        # Merge objects.
+        self.observable_objects = list(set(self.observable_objects + other.observable_objects))
+        self.external_objects = list(set(self.external_objects + other.external_objects))
+
+        # First, move registers in `self` workflow if `other workflow
+        # has any observable registers, since they have to be in the beginning.
+        to_move = other.observable_registers
+        for task in self.tasks:
+            if isinstance(task, ExecutionTask):
+                if task.output_register >= self.observable_registers:
+                    # This is non-observable register
+                    task.output_register += to_move
+            elif isinstance(task, ScriptTask):
+                for i in range(len(task.output_registers)):
+                    reg = task.output_registers[i]
+                    if reg >= self.observable_registers:
+                        # This is non-observable register
+                        task.output_registers[i] += to_move
+        self.observable_registers += to_move

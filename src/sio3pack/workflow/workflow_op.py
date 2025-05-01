@@ -1,23 +1,19 @@
-from sio3pack.workflow.workflow import Workflow
-
-
 class WorkflowOperation:
-    """
-    A class to represent a workflow that should be run on workers.
-    Allows for returning results.
-    """
+    def __init__(self, get_workflow_func: callable, return_results = False, return_results_func: callable = None):
+        self.get_workflow_func = get_workflow_func
+        self.return_results = return_results
+        self.return_results_func = return_results_func
+        self._last = False
+        self._data = None
+        self._workflow = None
 
-    def __init__(self, graph: Workflow, return_results: bool = False, return_func: callable = None):
-        """
-        :param graph: The workflow to run on workers.
-        :param return_results: Whether to return the results.
-        :param return_func: The function to use to return the
-                            results, if return_results is True.
-        """
-        self.graph = graph
-        self.should_return = return_results
-        self.return_func = return_func
+
+    def get_workflow(self):
+        while not self._last:
+            self._workflow, self._last = self.get_workflow_func(self._data)
+            yield self._workflow
 
     def return_results(self, data: dict):
-        if self.return_func and self.should_return:
-            return self.return_func(data)
+        if self.return_results_func:
+            return self.return_results_func(self._workflow, data)
+        self._data = data

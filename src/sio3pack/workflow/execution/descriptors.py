@@ -20,7 +20,7 @@ class DescriptorManager:
         self.filesystem_manager = filesystem_manager
         self.descriptors: dict[int, Stream] = {}
 
-    def add_descriptor(self, fd: int, stream: Stream):
+    def add(self, fd: int, stream: Stream):
         """
         Add a stream to the descriptor manager.
 
@@ -37,7 +37,7 @@ class DescriptorManager:
         """
         for fd, stream_data in data.items():
             stream = Stream.from_json(stream_data, self.objects_manager, self.filesystem_manager)
-            self.add_descriptor(int(fd), stream)
+            self.add(int(fd), stream)
 
     def to_json(self) -> dict:
         """

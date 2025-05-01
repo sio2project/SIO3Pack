@@ -56,9 +56,17 @@ class MountNamespace:
     :param list[Mountpoint] mountpoints: The mountpoints in the mount namespace.
     """
 
-    def __init__(self, id: int, mountpoints: list[Mountpoint] = None, root: int = 0):
+    def __init__(self, mountpoints: list[Mountpoint] = None, root: int = 0, id: int = None):
         self.mountpoints = mountpoints or []
         self.root = root
+        self.id = id
+
+    def _set_id(self, id: int):
+        """
+        Set the id of the mount namespace. Should only be used by the MountNamespaceManager.
+
+        :param id: The id to set.
+        """
         self.id = id
 
     @classmethod
@@ -70,9 +78,9 @@ class MountNamespace:
         :param filesystem_manager: The filesystem manager to use.
         """
         return cls(
-            id,
             [Mountpoint.from_json(mountpoint, filesystem_manager) for mountpoint in data["mountpoints"]],
             data["root"],
+            id,
         )
 
     def to_json(self) -> dict:
@@ -108,6 +116,7 @@ class MountNamespaceManager:
         Add a mount namespace to the manager.
         :param mount_namespace: The mount namespace to add.
         """
+        mount_namespace._set_id(self.id)
         self.mount_namespaces.append(mount_namespace)
 
     def get_by_id(self, id: int) -> MountNamespace:

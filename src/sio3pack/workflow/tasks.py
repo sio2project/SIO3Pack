@@ -168,6 +168,14 @@ class ExecutionTask(Task):
         """
         self.resource_group_manager.add(resource_group)
 
+    def add_process(self, process: Process):
+        """
+        Add a process to the task.
+
+        :param Process process: The process to add.
+        """
+        self.processes.append(process)
+
 
 class ScriptTask(Task):
     """
