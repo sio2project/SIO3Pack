@@ -1,18 +1,21 @@
 import os
-
 from enum import Enum
 from typing import Tuple
 
-from sio3pack.workflow.execution.filesystems import ImageFilesystem
 from sio3pack import lua
 from sio3pack.exceptions import WorkflowCreationError
 from sio3pack.files import File
 from sio3pack.packages.sinolpack import constants
 from sio3pack.test import Test
-from sio3pack.workflow import WorkflowManager, Workflow, WorkflowOperation, ExecutionTask, ScriptTask
-from sio3pack.workflow.execution import Filesystem, MountNamespace, Process, ResourceGroup, ObjectStream, \
-    ObjectReadStream, ObjectWriteStream
-from sio3pack.workflow.execution.filesystems import ObjectFilesystem, EmptyFilesystem
+from sio3pack.workflow import ExecutionTask, ScriptTask, Workflow, WorkflowManager, WorkflowOperation
+from sio3pack.workflow.execution import (
+    MountNamespace,
+    ObjectReadStream,
+    ObjectWriteStream,
+    Process,
+    ResourceGroup,
+)
+from sio3pack.workflow.execution.filesystems import EmptyFilesystem, ImageFilesystem, ObjectFilesystem
 from sio3pack.workflow.execution.mount_namespace import Mountpoint
 
 
@@ -117,7 +120,7 @@ class SinolpackWorkflowManager(WorkflowManager):
             workflow,
             exclusive=False,
             hard_time_limit=constants.OUTGEN_HARD_TIME_LIMIT,
-            output_register='r:outgen_res_<TEST_ID>',
+            output_register="r:outgen_res_<TEST_ID>",
         )
         default_rg = ResourceGroup()
         exec_outgen.resource_group_manager.add(default_rg)
@@ -174,7 +177,7 @@ class SinolpackWorkflowManager(WorkflowManager):
             reactive=False,
             input_registers=["<INPUT_REGS>"],
             output_registers=["obsreg:result"],
-            script=lua.get_script("verify_outgen")
+            script=lua.get_script("verify_outgen"),
         )
         workflow.add_task(script)
         return workflow
@@ -233,21 +236,25 @@ class SinolpackWorkflowManager(WorkflowManager):
                 workflow.add_observable_object(out_test_obj)
 
                 outgen_test_wf = self.get("outgen_test")
-                outgen_test_wf.replace_templates({
-                    "<IN_TEST_PATH>": in_test,
-                    "<OUT_TEST_PATH>": out_test,
-                    "<TEST_ID>": test_id,
-                })
-                script_input_regs.append(f'r:outgen_res_{test_id}')
-                outgen_output_registers[test_id] = f'<r:outgen_res_{test_id}>'
+                outgen_test_wf.replace_templates(
+                    {
+                        "<IN_TEST_PATH>": in_test,
+                        "<OUT_TEST_PATH>": out_test,
+                        "<TEST_ID>": test_id,
+                    }
+                )
+                script_input_regs.append(f"r:outgen_res_{test_id}")
+                outgen_output_registers[test_id] = f"<r:outgen_res_{test_id}>"
                 workflow.union(outgen_test_wf)
 
             # Now, get a workflow that checks if all outgens successfully finished.
             verify_wf = self.get("verify_outgen")
-            verify_wf.replace_templates({
-                "<LUA_MAP_TEST_ID_REG>": lua.to_lua_map(outgen_output_registers),
-                "<INPUT_REGS>": script_input_regs,
-            })
+            verify_wf.replace_templates(
+                {
+                    "<LUA_MAP_TEST_ID_REG>": lua.to_lua_map(outgen_output_registers),
+                    "<INPUT_REGS>": script_input_regs,
+                }
+            )
             workflow.union(verify_wf)
             return workflow, True
 
@@ -279,7 +286,7 @@ class SinolpackWorkflowManager(WorkflowManager):
             workflow,
             exclusive=False,
             hard_time_limit=constants.INWER_HARD_TIME_LIMIT,
-            output_register='r:inwer_res_<TEST_ID>',
+            output_register="r:inwer_res_<TEST_ID>",
         )
         default_rg = ResourceGroup()
         exec_inwer.resource_group_manager.add(default_rg)
@@ -334,7 +341,7 @@ class SinolpackWorkflowManager(WorkflowManager):
             reactive=False,
             input_registers=["<INPUT_REGS>"],
             output_registers=["obsreg:result"],
-            script=lua.get_script("verify_inwer")
+            script=lua.get_script("verify_inwer"),
         )
         workflow.add_task(script)
         return workflow
@@ -350,24 +357,30 @@ class SinolpackWorkflowManager(WorkflowManager):
         for test in input_tests:
             test_id = test.test_id
             inwer_test_wf = self.get("inwer")
-            inwer_test_wf.replace_templates({
-                "<IN_TEST_PATH>": test.in_file.path,
-                "<TEST_ID>": test_id,
-            })
-            script_input_regs.append(f'r:inwer_res_{test_id}')
-            inwer_output_registers[test_id] = f'<r:inwer_res_{test_id}>'
+            inwer_test_wf.replace_templates(
+                {
+                    "<IN_TEST_PATH>": test.in_file.path,
+                    "<TEST_ID>": test_id,
+                }
+            )
+            script_input_regs.append(f"r:inwer_res_{test_id}")
+            inwer_output_registers[test_id] = f"<r:inwer_res_{test_id}>"
             workflow.union(inwer_test_wf)
 
         # Now, get a workflow that checks if all inwer successfully finished.
         verify_wf = self.get("verify_inwer")
-        verify_wf.replace_templates({
-            "<LUA_MAP_TEST_ID_REG>": lua.to_lua_map(inwer_output_registers),
-            "<INPUT_REGS>": script_input_regs,
-        })
+        verify_wf.replace_templates(
+            {
+                "<LUA_MAP_TEST_ID_REG>": lua.to_lua_map(inwer_output_registers),
+                "<INPUT_REGS>": script_input_regs,
+            }
+        )
         workflow.union(verify_wf)
         return workflow, True
 
-    def get_unpack_operation(self, has_ingen: bool, has_outgen: bool, has_inwer: bool, return_func: callable = None) -> WorkflowOperation:
+    def get_unpack_operation(
+        self, has_ingen: bool, has_outgen: bool, has_inwer: bool, return_func: callable = None
+    ) -> WorkflowOperation:
         """
         Get the unpack operation for the given data.
         """
@@ -383,7 +396,9 @@ class SinolpackWorkflowManager(WorkflowManager):
         else:
             # This will be handled by the base class, since there is no unpacking to do.
             pass
-        return super().get_unpack_operation(has_test_gen=(has_ingen or has_outgen), has_verify=has_inwer, return_func=return_func)
+        return super().get_unpack_operation(
+            has_test_gen=(has_ingen or has_outgen), has_verify=has_inwer, return_func=return_func
+        )
 
     def _get_run_test_workflow(self) -> Workflow:
         """
@@ -551,7 +566,7 @@ class SinolpackWorkflowManager(WorkflowManager):
             reactive=True,
             input_registers=["<INPUT_REGS>"],
             output_registers=["r:group_grade_res_<GROUP_ID>"],
-            script=lua.get_script("grade_group")
+            script=lua.get_script("grade_group"),
         )
         workflow.add_task(script)
         return workflow
@@ -576,7 +591,7 @@ class SinolpackWorkflowManager(WorkflowManager):
             reactive=True,
             input_registers=["<INPUT_REGS>"],
             output_registers=["obsreg:result"],
-            script=lua.get_script("grade_run")
+            script=lua.get_script("grade_run"),
         )
         workflow.add_task(script)
         return workflow
@@ -619,35 +634,43 @@ class SinolpackWorkflowManager(WorkflowManager):
                 run_test_wf = self.get("run_test")
                 group_out_registers.append(f"r:grade_res_{test_id}")
                 group_out_registers_map[test_id] = f"<r:grade_res_{test_id}>"
-                run_test_wf.replace_templates({
-                    "<IN_TEST_PATH>": test.in_file.path,
-                    "<OUT_TEST_PATH>": test.out_file.path,
-                    "<SOL_PATH>": program.path,
-                    "<TEST_ID>": test_id,
-                })
+                run_test_wf.replace_templates(
+                    {
+                        "<IN_TEST_PATH>": test.in_file.path,
+                        "<OUT_TEST_PATH>": test.out_file.path,
+                        "<SOL_PATH>": program.path,
+                        "<TEST_ID>": test_id,
+                    }
+                )
                 workflow.union(run_test_wf)
 
             # Now, run the grading script for the group.
             grade_group_wf = self.get("grade_group")
-            grade_group_wf.replace_templates({
-                "<LUA_MAP_TEST_ID_REG>": lua.to_lua_map(group_out_registers_map),
-                "<INPUT_REGS>": group_out_registers,
-                "<GROUP_ID>": group,
-            })
+            grade_group_wf.replace_templates(
+                {
+                    "<LUA_MAP_TEST_ID_REG>": lua.to_lua_map(group_out_registers_map),
+                    "<INPUT_REGS>": group_out_registers,
+                    "<GROUP_ID>": group,
+                }
+            )
             workflow.union(grade_group_wf)
             output_registers.append(f"r:group_grade_res_{group}")
             output_registers_map[group] = f"<r:group_grade_res_{group}>"
 
         # Finally, add the script that grades the whole solution.
         grade_run_wf = self.get("grade_run")
-        grade_run_wf.replace_templates({
-            "<LUA_MAP_TEST_ID_REG>": lua.to_lua_map(output_registers_map),
-            "<INPUT_REGS>": output_registers,
-        })
+        grade_run_wf.replace_templates(
+            {
+                "<LUA_MAP_TEST_ID_REG>": lua.to_lua_map(output_registers_map),
+                "<INPUT_REGS>": output_registers,
+            }
+        )
         workflow.union(grade_run_wf)
         return workflow, True
 
-    def get_run_operation(self, program: File, tests: list[Test] | None = None, return_func: callable = None) -> WorkflowOperation:
+    def get_run_operation(
+        self, program: File, tests: list[Test] | None = None, return_func: callable = None
+    ) -> WorkflowOperation:
         """
         Get the run operation for the given data.
         """
@@ -731,11 +754,13 @@ class SinolpackWorkflowManager(WorkflowManager):
         workflow.add_observable_object(user_out_obj)
 
         user_out_wf = self.get("user_out")
-        user_out_wf.replace_templates({
-            "<IN_TEST_PATH>": test.in_file.path,
-            "<SOL_PATH>": program.path,
-            "<TEST_ID>": test.test_id,
-        })
+        user_out_wf.replace_templates(
+            {
+                "<IN_TEST_PATH>": test.in_file.path,
+                "<SOL_PATH>": program.path,
+                "<TEST_ID>": test.test_id,
+            }
+        )
         workflow.union(user_out_wf)
         return workflow, True
 
@@ -823,14 +848,15 @@ class SinolpackWorkflowManager(WorkflowManager):
         workflow.add_observable_object(user_out_obj)
 
         test_run_wf = self.get("test_run")
-        test_run_wf.replace_templates({
-            "<IN_TEST_PATH>": test.path,
-            "<SOL_PATH>": program.path,
-            "<USER_OUT_PATH>": user_out_obj.handle,
-        })
+        test_run_wf.replace_templates(
+            {
+                "<IN_TEST_PATH>": test.path,
+                "<SOL_PATH>": program.path,
+                "<USER_OUT_PATH>": user_out_obj.handle,
+            }
+        )
         workflow.union(test_run_wf)
         return workflow, True
-
 
     def get_test_run_operation(self, program: File, test: File, return_func: callable = None) -> WorkflowOperation:
         """

@@ -165,7 +165,9 @@ class Package(RegisteredSubclassesBase):
     def get_unpack_graph(self, return_func: callable = None) -> WorkflowOperation | None:
         return self.workflow_manager.get_unpack_operation(self.has_test_gen(), self.has_verify(), return_func)
 
-    def get_run_graph(self, program: File, tests: list[Test] | None = None, return_func: callable = None) -> WorkflowOperation | None:
+    def get_run_graph(
+        self, program: File, tests: list[Test] | None = None, return_func: callable = None
+    ) -> WorkflowOperation | None:
         """
         Get the run graph for the package. If the package doesn't have a
         run graph, it should return None.

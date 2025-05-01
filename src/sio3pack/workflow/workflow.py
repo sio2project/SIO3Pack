@@ -1,5 +1,5 @@
-from sio3pack.workflow import Object, ExecutionTask, ScriptTask
-from sio3pack.workflow.object import ObjectsManager, ObjectList
+from sio3pack.workflow import ExecutionTask, Object, ScriptTask
+from sio3pack.workflow.object import ObjectList, ObjectsManager
 from sio3pack.workflow.tasks import Task
 
 
@@ -115,18 +115,18 @@ class Workflow:
             regs = set()
             for task in self.tasks:
                 if isinstance(task, ExecutionTask):
-                    if task.output_register.startswith('obsreg'):
+                    if task.output_register.startswith("obsreg"):
                         observable_regs.add(task.output_register)
                     else:
                         regs.add(task.output_register)
                 elif isinstance(task, ScriptTask):
                     for reg in task.input_registers:
-                        if reg.startswith('obsreg'):
+                        if reg.startswith("obsreg"):
                             observable_regs.add(reg)
                         else:
                             regs.add(reg)
                     for reg in task.output_registers:
-                        if reg.startswith('obsreg'):
+                        if reg.startswith("obsreg"):
                             observable_regs.add(reg)
                         else:
                             regs.add(reg)

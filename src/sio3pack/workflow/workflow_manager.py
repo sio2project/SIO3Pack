@@ -3,8 +3,8 @@ from enum import Enum
 
 from sio3pack.files import File
 from sio3pack.test import Test
-from sio3pack.workflow.workflow_op import WorkflowOperation
 from sio3pack.workflow.workflow import Workflow
+from sio3pack.workflow.workflow_op import WorkflowOperation
 
 
 class UnpackStage(Enum):
@@ -86,7 +86,9 @@ class WorkflowManager:
             raise ValueError(f"Invalid unpack stage: {self._unpack_stage}")
         return workflow, self._unpack_stage == UnpackStage.FINISHED
 
-    def get_unpack_operation(self, has_test_gen: bool, has_verify: bool, return_func: callable = None) -> WorkflowOperation:
+    def get_unpack_operation(
+        self, has_test_gen: bool, has_verify: bool, return_func: callable = None
+    ) -> WorkflowOperation:
         self._has_test_gen = has_test_gen
         self._has_verify = has_verify
         if has_test_gen:
@@ -96,9 +98,13 @@ class WorkflowManager:
         else:
             # TODO: this. maybe return empty WorkflowOperation
             raise NotImplementedError
-        return WorkflowOperation(self._get_unpack_workflows, return_results=(return_func is not None), return_results_func=return_func)
+        return WorkflowOperation(
+            self._get_unpack_workflows, return_results=(return_func is not None), return_results_func=return_func
+        )
 
-    def get_run_operation(self, program: File, tests: list[Test] | None = None, return_func: callable = None) -> WorkflowOperation:
+    def get_run_operation(
+        self, program: File, tests: list[Test] | None = None, return_func: callable = None
+    ) -> WorkflowOperation:
         raise NotImplementedError
 
     def get_user_out_operation(self, program: File, test: Test, return_func: callable = None) -> WorkflowOperation:
