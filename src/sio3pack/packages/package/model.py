@@ -178,6 +178,14 @@ class Package(RegisteredSubclassesBase):
         """
         return self.workflow_manager.get_user_out_operation(program, test, return_func)
 
+    def get_test_run_graph(self, program: File, test: File, return_func: callable = None) -> WorkflowOperation | None:
+        """
+        Get the workflow for running a test run. This means that
+        the user can provide a test and the program, and the workflow will
+        run the program with the test.
+        """
+        return self.workflow_manager.get_test_run_operation(program, test, return_func)
+
     @wrap_exceptions
     def get_save_outs_graph(self, tests: list[Test] | None = None) -> WorkflowOperation | None:
         pass

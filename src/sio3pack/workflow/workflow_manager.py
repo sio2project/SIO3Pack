@@ -103,3 +103,6 @@ class WorkflowManager:
 
     def get_user_out_operation(self, program: File, test: Test, return_func: callable = None) -> WorkflowOperation:
         raise NotImplementedError
+
+    def get_test_run_operation(self, program: File, test: File, return_func: callable = None) -> WorkflowOperation:
+        raise NotImplementedError

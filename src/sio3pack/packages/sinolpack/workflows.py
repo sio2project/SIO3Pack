@@ -198,6 +198,8 @@ class SinolpackWorkflowManager(WorkflowManager):
             return self._get_grade_run_workflow()
         elif name == "user_out":
             return self._get_default_user_out_workflow()
+        elif name == "test_run":
+            return self._get_default_test_run_workflow()
         else:
             raise NotImplementedError(f"Default workflow for {name} not implemented.")
 
@@ -743,6 +745,99 @@ class SinolpackWorkflowManager(WorkflowManager):
         """
         return WorkflowOperation(
             self._get_user_out_workflow,
+            return_results=(return_func is not None),
+            return_results_func=return_func,
+            program=program,
+            test=test,
+        )
+
+    def _get_default_test_run_workflow(self):
+        """
+        Creates a workflow that runs the given test on the given program.
+        Used templates:
+        - <IN_TEST_PATH> -- a path to the input test file.
+        - <SOL_PATH> -- a path to the solution file.
+        - <USER_OUT_PATH> -- a path to the user output file.
+        """
+        wf = Workflow(
+            name="Test run",
+        )
+        in_test_obj = wf.objects_manager.get_or_create_object("<IN_TEST_PATH>")
+        sol_obj = wf.objects_manager.get_or_create_object("<SOL_PATH>")
+        out_obj = wf.objects_manager.get_or_create_object("<USER_OUT_PATH>")
+        wf.add_external_object(in_test_obj)
+        wf.add_external_object(sol_obj)
+        wf.add_observable_object(out_obj)
+
+        # Run the solution, on stdin it will get the input test object and stdout is
+        # piped to a new object which is user out.
+        exec_run = ExecutionTask(
+            "Run solution for test",
+            wf,
+            exclusive=False,
+            output_register="obsreg:result",
+        )
+        rg = ResourceGroup()
+        exec_run.resource_group_manager.add(rg)
+        run_fs = ObjectFilesystem(
+            object=sol_obj,
+        )
+        exec_run.add_filesystem(run_fs)
+        run_mp = Mountpoint(
+            source=run_fs,
+            target="/exe",
+        )
+        run_ms = MountNamespace(
+            mountpoints=[run_mp],
+        )
+        exec_run.add_mount_namespace(run_ms)
+        run_proc = Process(
+            wf,
+            exec_run,
+            arguments=["/exe"],
+            mount_namespace=run_ms,
+            resource_group=rg,
+            working_directory="/",
+        )
+
+        # Link stdin to input test object and stdout to user out object
+        in_stream = ObjectReadStream(in_test_obj)
+        out_stream = ObjectWriteStream(out_obj)
+        run_proc.descriptor_manager.add(0, in_stream)
+        run_proc.descriptor_manager.add(1, out_stream)
+
+        # Add the process to the task
+        exec_run.add_process(run_proc)
+        wf.add_task(exec_run)
+        return wf
+
+    def _get_test_run_workflow(self, data: dict, program: File, test: File) -> Tuple[Workflow, bool]:
+        workflow = Workflow(
+            name="Test run",
+        )
+        in_test_obj = workflow.objects_manager.get_or_create_object(test.path)
+        user_out_obj = workflow.objects_manager.get_or_create_object(f"test_run_{program.filename}")
+        sol_obj = workflow.objects_manager.get_or_create_object(program.path)
+        workflow.add_external_object(sol_obj)
+        workflow.add_external_object(in_test_obj)
+        workflow.add_observable_object(user_out_obj)
+
+        test_run_wf = self.get("test_run")
+        test_run_wf.replace_templates({
+            "<IN_TEST_PATH>": test.path,
+            "<SOL_PATH>": program.path,
+            "<USER_OUT_PATH>": user_out_obj.handle,
+        })
+        workflow.union(test_run_wf)
+        return workflow, True
+
+
+    def get_test_run_operation(self, program: File, test: File, return_func: callable = None) -> WorkflowOperation:
+        """
+        Get the workflow for running a given test on a given program.
+        """
+        return WorkflowOperation(
+            self._get_test_run_workflow,
             return_results=(return_func is not None),
             return_results_func=return_func,
             program=program,
