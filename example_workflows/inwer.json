@@ -1,7 +1,7 @@
 {
   "name": "Inwer",
   "external_objects": [
-    "abc/prog/abcinwer.cpp",=
+    "abc/prog/abcinwer.cpp",
     "abc/in/abc0.in",
     "abc/in/abc1a.in"
   ],

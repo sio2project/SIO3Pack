@@ -9,7 +9,7 @@ __all__ = ["from_file", "from_db"]
 from sio3pack.packages.package.configuration import SIO3PackConfig
 
 
-def from_file(file: str | LocalFile, configuration: SIO3PackConfig) -> Package:
+def from_file(file: str | LocalFile, configuration: SIO3PackConfig = None) -> Package:
     """
     Initialize a package object from a file (archive or directory).
 
