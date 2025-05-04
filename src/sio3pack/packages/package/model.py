@@ -10,7 +10,7 @@ from sio3pack.packages.package.handler import NoDjangoHandler
 from sio3pack.test import Test
 from sio3pack.utils.archive import Archive
 from sio3pack.utils.classinit import RegisteredSubclassesBase
-from sio3pack.workflow import Workflow, WorkflowOperation
+from sio3pack.workflow import WorkflowOperation
 
 
 def wrap_exceptions(func):
@@ -180,13 +180,17 @@ class Package(RegisteredSubclassesBase):
         """
         return self.workflow_manager.get_run_operation(program, tests, return_func)
 
-    def get_user_out_operation(self, program: File, test: Test, return_func: callable = None) -> WorkflowOperation | None:
+    def get_user_out_operation(
+        self, program: File, test: Test, return_func: callable = None
+    ) -> WorkflowOperation | None:
         """
         Get the workflow for getting the user's output for a given test.
         """
         return self.workflow_manager.get_user_out_operation(program, test, return_func)
 
-    def get_test_run_operation(self, program: File, test: File, return_func: callable = None) -> WorkflowOperation | None:
+    def get_test_run_operation(
+        self, program: File, test: File, return_func: callable = None
+    ) -> WorkflowOperation | None:
         """
         Get the workflow for running a test run. This means that
         the user can provide a test and the program, and the workflow will
