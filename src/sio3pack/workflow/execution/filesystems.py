@@ -42,6 +42,14 @@ class Filesystem:
         """
         return NotImplementedError()
 
+    def replace_templates(self, replacements: dict[str, str]):
+        """
+        Replace strings in the task with the given replacements.
+
+        :param replacements: The replacements to make.
+        """
+        pass
+
 
 class ImageFilesystem(Filesystem):
     """
@@ -147,6 +155,14 @@ class ObjectFilesystem(Filesystem):
             "handle": self.object.handle,
         }
 
+    def replace_templates(self, replacements: dict[str, str]):
+        """
+        Replace strings in the task with the given replacements.
+
+        :param replacements: The replacements to make.
+        """
+        self.object.replace_templates(replacements)
+
 
 class FilesystemManager:
     """
@@ -203,3 +219,12 @@ class FilesystemManager:
         filesystem._set_id(self.id)
         self.filesystems.append(filesystem)
         self.id += 1
+
+    def replace_templates(self, replacements: dict[str, str]):
+        """
+        Replace strings in the task with the given replacements.
+
+        :param replacements: The replacements to make.
+        """
+        for fs in self.filesystems:
+            fs.replace_templates(replacements)

@@ -4,7 +4,7 @@ import tempfile
 
 import yaml
 
-from sio3pack.files import File, LocalFile
+from sio3pack.files import File, LocalFile, RemoteFile
 from sio3pack.packages.exceptions import ImproperlyConfigured
 from sio3pack.packages.package import Package
 from sio3pack.packages.sinolpack.enums import ModelSolutionKind
@@ -92,8 +92,8 @@ class Sinolpack(Package):
     def __init__(self):
         super().__init__()
 
-    def _from_file(self, file: LocalFile, django_settings=None):
-        super()._from_file(file)
+    def _from_file(self, file: LocalFile, configuration=None):
+        super()._from_file(file, configuration)
         if self.is_archive:
             archive = Archive(file.path)
             self.short_name = self._find_main_dir(archive)
@@ -111,8 +111,6 @@ class Sinolpack(Package):
         except FileNotFoundError:
             self.has_custom_graph = False
 
-        self.django_settings = django_settings
-
         self._process_package()
 
     def _from_db(self, problem_id: int):
@@ -125,9 +123,9 @@ class Sinolpack(Package):
         return SinolpackWorkflowManager(self, {})
 
     def _get_from_django_settings(self, key: str, default=None):
-        if self.django_settings is None:
+        if self.configuration.django_settings is None:
             return default
-        return getattr(self.django_settings, key, default)
+        return getattr(self.configuration.django_settings, key, default)
 
     def get_doc_dir(self) -> str:
         """
@@ -474,6 +472,18 @@ class Sinolpack(Package):
 
     def get_inwer_path(self) -> str | None:
         return self._get_special_file_path("inwer")
+
+    def get_checker_file(self) -> File | None:
+        """
+        Returns the checker file.
+        """
+        path = self.get_checker_path()
+        if path:
+            if self.is_from_db:
+                return RemoteFile(path)
+            else:
+                return LocalFile(path)
+        return None
 
     def get_checker_path(self) -> str | None:
         return self._get_special_file_path("chk")

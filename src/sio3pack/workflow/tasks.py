@@ -207,6 +207,7 @@ class ExecutionTask(Task):
         """
         for process in self.processes:
             process.replace_templates(replacements)
+        self.filesystem_manager.replace_templates(replacements)
         for key, value in replacements.items():
             if key in self.name:
                 self.name = self.name.replace(key, value)

@@ -46,6 +46,13 @@ class SinolpackWorkflowManager(WorkflowManager):
 
         ingen = workflow.objects_manager.get_or_create_object(ingen_path)
         workflow.add_external_object(ingen)
+
+        # Compile ingen
+        compile_wf, ingen_exe_path = self.get_compile_file_workflow(ingen_path)
+        ingen_exe_obj = workflow.objects_manager.get_or_create_object(ingen_exe_path)
+        workflow.union(compile_wf)
+
+        # Run ingen
         exec_ingen = ExecutionTask(
             "Run ingen",
             workflow,
@@ -57,7 +64,7 @@ class SinolpackWorkflowManager(WorkflowManager):
         exec_ingen.resource_group_manager.add(default_rg)
 
         ingen_fs = ObjectFilesystem(
-            object=ingen,
+            object=ingen_exe_obj,
         )
         exec_ingen.add_filesystem(ingen_fs)
         ingen_mp = Mountpoint(
@@ -99,19 +106,16 @@ class SinolpackWorkflowManager(WorkflowManager):
         - <IN_TEST_PATH>
         - <OUT_TEST_PATH>
         - <TEST_ID>
+        - <COMPILED_OUTGEN_PATH> -- a path to the compiled outgen file.
         """
         workflow = Workflow(
             "Generate output test for <TEST_ID>",
         )
-        outgen_path = self.package.get_outgen_path()
-        if not outgen_path:
-            raise WorkflowCreationError("Creating outgen workflow when no outgen present")
 
         # Create objects for outgen and tests
-        outgen_obj = workflow.objects_manager.get_or_create_object(outgen_path)
+        outgen_obj = workflow.objects_manager.get_or_create_object("<COMPILED_OUTGEN_PATH>")
         in_test_obj = workflow.objects_manager.get_or_create_object("<IN_TEST_PATH>")
         out_test_obj = workflow.objects_manager.get_or_create_object("<OUT_TEST_PATH>")
-        workflow.add_external_object(outgen_obj)
 
         # Run the outgen, on stdin it will get the input test object and stdout is
         # piped to the output test object.
@@ -183,6 +187,9 @@ class SinolpackWorkflowManager(WorkflowManager):
         return workflow
 
     def get_default(self, name: str) -> Workflow:
+        wf = super().get_default(name)
+        if wf is not None:
+            return wf
         if name == "ingen":
             return self._get_ingen_workflow()
         elif name == "outgen_test":
@@ -206,6 +213,24 @@ class SinolpackWorkflowManager(WorkflowManager):
         else:
             raise NotImplementedError(f"Default workflow for {name} not implemented.")
 
+    def _get_compile_files_workflows(self, data: dict) -> tuple[Workflow, bool]:
+        """
+        Creates a workflow that compiles the checker, if it exists.
+        """
+        checker = self.package.get_checker_file()
+        if checker is None:
+            wf = Workflow("Nothing to compile")
+            return wf, True
+
+        wf = Workflow("Compile checker")
+        checker_obj = wf.objects_manager.get_or_create_object(checker.path)
+        wf.add_external_object(checker_obj)
+        compile_wf, exe_path = self.get_compile_file_workflow(checker)
+        exe_obj = wf.objects_manager.get_or_create_object(exe_path)
+        wf.add_observable_object(exe_obj)
+        wf.union(compile_wf)
+        return wf, True
+
     def _get_generate_tests_workflows(self, data: dict) -> tuple[Workflow, bool]:
         if self._sp_unpack_stage == UnpackStage.INGEN:
             workflow = self.get("ingen")
@@ -225,6 +250,17 @@ class SinolpackWorkflowManager(WorkflowManager):
             input_tests = set(data.get("input_tests", [])).union(set([t.in_file.path for t in tests_with_inputs]))
 
             workflow = Workflow("Outgen tests", observable_registers=1)
+
+            # Compile outgen
+            outgen_path = self.package.get_outgen_path()
+            if not outgen_path:
+                raise WorkflowCreationError("Creating outgen workflow when no model solution present")
+            outgen_obj = workflow.objects_manager.get_or_create_object(outgen_path)
+            workflow.add_external_object(outgen_obj)
+            compile_wf, outgen_exe_path = self.get_compile_file_workflow(outgen_path)
+            workflow.objects_manager.get_or_create_object(outgen_exe_path)
+            workflow.union(compile_wf)
+
             outgen_output_registers = {}
             script_input_regs = []
             for in_test in input_tests:
@@ -241,6 +277,7 @@ class SinolpackWorkflowManager(WorkflowManager):
                         "<IN_TEST_PATH>": in_test,
                         "<OUT_TEST_PATH>": out_test,
                         "<TEST_ID>": test_id,
+                        "<COMPILED_OUTGEN_PATH>": outgen_exe_path,
                     }
                 )
                 script_input_regs.append(f"r:outgen_res_{test_id}")
@@ -265,18 +302,15 @@ class SinolpackWorkflowManager(WorkflowManager):
         Used templates:
         - <IN_TEST_PATH>
         - <TEST_ID>
+        - <COMPILED_INWER_PATH> -- a path to the compiled inwer file.
         """
         workflow = Workflow(
             "Inwer for test",
         )
-        inwer_path = self.package.get_inwer_path()
-        if not inwer_path:
-            raise WorkflowCreationError("Creating inwer workflow when no inwer present")
 
         # Create objects for inwer and input test
-        inwer_obj = workflow.objects_manager.get_or_create_object(inwer_path)
+        inwer_obj = workflow.objects_manager.get_or_create_object("<COMPILED_INWER_PATH>")
         in_test_obj = workflow.objects_manager.get_or_create_object("<IN_TEST_PATH>")
-        workflow.add_external_object(inwer_obj)
         workflow.add_external_object(in_test_obj)
 
         # Run the inwer, on stdin it will get the input test object and test ID
@@ -352,6 +386,17 @@ class SinolpackWorkflowManager(WorkflowManager):
         """
         input_tests: list["Test"] = self.package.get_input_tests()
         workflow = Workflow("Inwer", observable_registers=1)
+
+        # Compile inwer
+        inwer_path = self.package.get_inwer_path()
+        if not inwer_path:
+            raise WorkflowCreationError("Creating inwer workflow when no inwer present")
+        inwer_obj = workflow.objects_manager.get_or_create_object(inwer_path)
+        workflow.add_external_object(inwer_obj)
+        compile_wf, inwer_exe_path = self.get_compile_file_workflow(inwer_path)
+        workflow.objects_manager.get_or_create_object(inwer_exe_path)
+        workflow.union(compile_wf)
+
         inwer_output_registers = {}
         script_input_regs = []
         for test in input_tests:
@@ -361,6 +406,7 @@ class SinolpackWorkflowManager(WorkflowManager):
                 {
                     "<IN_TEST_PATH>": test.in_file.path,
                     "<TEST_ID>": test_id,
+                    "<COMPILED_INWER_PATH>": inwer_exe_path,
                 }
             )
             script_input_regs.append(f"r:inwer_res_{test_id}")
@@ -402,7 +448,7 @@ class SinolpackWorkflowManager(WorkflowManager):
 
     def _get_run_test_workflow(self) -> Workflow:
         """
-        Creates a worfklow that runs the solution for a test and verifies the output with the checker.
+        Creates a workflow that runs the solution for a test and verifies the output with the checker.
         Used templates:
         - <TEST_ID>
         - <IN_TEST_PATH>
@@ -417,7 +463,6 @@ class SinolpackWorkflowManager(WorkflowManager):
         sol_obj = wf.objects_manager.get_or_create_object("<SOL_PATH>")
         wf.add_external_object(in_test_obj)
         wf.add_external_object(out_test_obj)
-        wf.add_external_object(sol_obj)
 
         # This object will store the output of the solution.
         user_out_obj = wf.objects_manager.get_or_create_object("user_out_<TEST_ID>")
@@ -478,9 +523,10 @@ class SinolpackWorkflowManager(WorkflowManager):
 
         checker_path = self.package.get_checker_path()
         if checker_path is None:
-            chk_fs = ImageFilesystem("oicompare")
+            chk_fs = ImageFilesystem("checkers:oicompare")
         else:
-            checker_obj = wf.objects_manager.get_or_create_object(checker_path)
+            exe_checker = self.package.get_executable_path(checker_path)
+            checker_obj = wf.objects_manager.get_or_create_object(exe_checker)
             chk_fs = ObjectFilesystem(
                 object=checker_obj,
             )
@@ -603,6 +649,14 @@ class SinolpackWorkflowManager(WorkflowManager):
         workflow = Workflow(
             name="Run solution",
         )
+
+        # Compile the solution
+        program_obj = workflow.objects_manager.get_or_create_object(program.path)
+        workflow.add_external_object(program_obj)
+        compile_wf, exe_path = self.get_compile_file_workflow(program)
+        workflow.objects_manager.get_or_create_object(exe_path)
+        workflow.union(compile_wf)
+
         groups = {}
         for test in tests:
             if test.group not in groups:
@@ -611,17 +665,12 @@ class SinolpackWorkflowManager(WorkflowManager):
             workflow.add_external_object(workflow.objects_manager.get_or_create_object(test.in_file.path))
             workflow.add_external_object(workflow.objects_manager.get_or_create_object(test.out_file.path))
 
-        program_obj = workflow.objects_manager.get_or_create_object(program.path)
-        workflow.add_external_object(program_obj)
-        has_checker = self.package.get_checker_path() is not None
-        if has_checker:
-            checker_obj = workflow.objects_manager.get_or_create_object(self.package.get_checker_path())
+        checker_path = self.package.get_checker_path()
+        if checker_path is not None:
+            checker_exe_path = self.package.get_executable_path(checker_path)
+            checker_obj = workflow.objects_manager.get_or_create_object(checker_exe_path)
             workflow.add_external_object(checker_obj)
 
-        workflow = Workflow(
-            name="Run solution",
-            observable_registers=1,
-        )
         output_registers = []
         output_registers_map = {}
         for group, tests in groups.items():
@@ -638,7 +687,7 @@ class SinolpackWorkflowManager(WorkflowManager):
                     {
                         "<IN_TEST_PATH>": test.in_file.path,
                         "<OUT_TEST_PATH>": test.out_file.path,
-                        "<SOL_PATH>": program.path,
+                        "<SOL_PATH>": exe_path,
                         "<TEST_ID>": test_id,
                     }
                 )
@@ -697,7 +746,7 @@ class SinolpackWorkflowManager(WorkflowManager):
         sol_obj = wf.objects_manager.get_or_create_object("<SOL_PATH>")
         out_obj = wf.objects_manager.get_or_create_object("user_out_<TEST_ID>")
         wf.add_external_object(in_test_obj)
-        wf.add_external_object(sol_obj)
+
         wf.add_observable_object(out_obj)
 
         # Run the solution, on stdin it will get the input test object and stdout is
@@ -746,10 +795,16 @@ class SinolpackWorkflowManager(WorkflowManager):
         workflow = Workflow(
             name="Generate user out for test",
         )
+
+        # Compile the solution
+        program_obj = workflow.objects_manager.get_or_create_object(program.path)
+        workflow.add_external_object(program_obj)
+        compile_wf, exe_path = self.get_compile_file_workflow(program)
+        workflow.objects_manager.get_or_create_object(exe_path)
+        workflow.union(compile_wf)
+
         in_test_obj = workflow.objects_manager.get_or_create_object(test.in_file.path)
         user_out_obj = workflow.objects_manager.get_or_create_object(f"user_out_{test.test_id}")
-        sol_obj = workflow.objects_manager.get_or_create_object(program.path)
-        workflow.add_external_object(sol_obj)
         workflow.add_external_object(in_test_obj)
         workflow.add_observable_object(user_out_obj)
 
@@ -757,7 +812,7 @@ class SinolpackWorkflowManager(WorkflowManager):
         user_out_wf.replace_templates(
             {
                 "<IN_TEST_PATH>": test.in_file.path,
-                "<SOL_PATH>": program.path,
+                "<SOL_PATH>": exe_path,
                 "<TEST_ID>": test.test_id,
             }
         )
@@ -791,7 +846,7 @@ class SinolpackWorkflowManager(WorkflowManager):
         sol_obj = wf.objects_manager.get_or_create_object("<SOL_PATH>")
         out_obj = wf.objects_manager.get_or_create_object("<USER_OUT_PATH>")
         wf.add_external_object(in_test_obj)
-        wf.add_external_object(sol_obj)
+
         wf.add_observable_object(out_obj)
 
         # Run the solution, on stdin it will get the input test object and stdout is
@@ -842,16 +897,21 @@ class SinolpackWorkflowManager(WorkflowManager):
         )
         in_test_obj = workflow.objects_manager.get_or_create_object(test.path)
         user_out_obj = workflow.objects_manager.get_or_create_object(f"test_run_{program.filename}")
-        sol_obj = workflow.objects_manager.get_or_create_object(program.path)
-        workflow.add_external_object(sol_obj)
         workflow.add_external_object(in_test_obj)
         workflow.add_observable_object(user_out_obj)
+
+        # Compile the solution
+        program_obj = workflow.objects_manager.get_or_create_object(program.path)
+        workflow.add_external_object(program_obj)
+        compile_wf, exe_path = self.get_compile_file_workflow(program)
+        workflow.objects_manager.get_or_create_object(exe_path)
+        workflow.union(compile_wf)
 
         test_run_wf = self.get("test_run")
         test_run_wf.replace_templates(
             {
                 "<IN_TEST_PATH>": test.path,
-                "<SOL_PATH>": program.path,
+                "<SOL_PATH>": exe_path,
                 "<USER_OUT_PATH>": user_out_obj.handle,
             }
         )
