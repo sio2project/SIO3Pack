@@ -1,11 +1,11 @@
-import os
 import importlib
+import os
 from typing import Any
 
-from sio3pack.packages.package.configuration import SIO3PackConfig
 from sio3pack.exceptions import SIO3PackException
 from sio3pack.files import File, LocalFile
 from sio3pack.packages.exceptions import UnknownPackageType
+from sio3pack.packages.package.configuration import SIO3PackConfig
 from sio3pack.packages.package.handler import NoDjangoHandler
 from sio3pack.test import Test
 from sio3pack.utils.archive import Archive
@@ -203,9 +203,9 @@ class Package(RegisteredSubclassesBase):
         else:
             if isinstance(program, File):
                 assert isinstance(program, LocalFile)
-                return os.path.join(self.file.path, '.cache', 'executables', program.filename + '.e')
+                return os.path.join(self.file.path, ".cache", "executables", program.filename + ".e")
             else:
-                return os.path.join(self.file.path, '.cache', 'executables', os.path.basename(program) + '.e')
+                return os.path.join(self.file.path, ".cache", "executables", os.path.basename(program) + ".e")
 
     def _get_compiler_full_name(self, lang: str) -> str:
         """
@@ -233,7 +233,6 @@ class Package(RegisteredSubclassesBase):
             return self.configuration.compilers_config[lang].flags
         else:
             raise KeyError(f"Compiler for language '{lang}' not found in configuration.")
-
 
     def get_cpp_compiler_full_name(self) -> str:
         """

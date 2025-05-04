@@ -11,7 +11,12 @@ class SIO3PackConfig:
     Configuration class for SIO3Pack.
     """
 
-    def __init__(self, django_settings=None, compilers_config: dict[str, CompilerConfig] = None, extensions_config: dict[str, str] = None):
+    def __init__(
+        self,
+        django_settings=None,
+        compilers_config: dict[str, CompilerConfig] = None,
+        extensions_config: dict[str, str] = None,
+    ):
         """
         Initialize the configuration with Django settings.
 

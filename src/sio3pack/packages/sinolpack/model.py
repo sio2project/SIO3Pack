@@ -536,7 +536,7 @@ class Sinolpack(Package):
             return self.django.extra_execution_files
         else:
             return [
-                LocalFile(os.path.join(self.rootdir, 'prog', f))
+                LocalFile(os.path.join(self.rootdir, "prog", f))
                 for f in self.config.get("extra_execution_files", [])
                 if os.path.isfile(os.path.join(self.rootdir, f))
             ]
@@ -552,7 +552,7 @@ class Sinolpack(Package):
             return self.django.extra_compilation_files
         else:
             return [
-                LocalFile(os.path.join(self.rootdir, 'prog', f))
+                LocalFile(os.path.join(self.rootdir, "prog", f))
                 for f in self.config.get("extra_compilation_files", [])
                 if os.path.isfile(os.path.join(self.rootdir, f))
             ]
@@ -590,7 +590,6 @@ class Sinolpack(Package):
             return constants.DEFAULT_MEMORY_LIMIT
         else:
             return constants.DEFAULT_TIME_LIMIT
-
 
     def get_time_limit_for_test(self, test: Test, language: str) -> int:
         """

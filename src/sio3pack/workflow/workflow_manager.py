@@ -4,8 +4,8 @@ from enum import Enum
 from sio3pack.files import File
 from sio3pack.test import Test
 from sio3pack.workflow import ExecutionTask, constants
-from sio3pack.workflow.execution import ResourceGroup, MountNamespace, Process, ObjectWriteStream
-from sio3pack.workflow.execution.filesystems import ObjectFilesystem, ImageFilesystem
+from sio3pack.workflow.execution import MountNamespace, ObjectWriteStream, Process, ResourceGroup
+from sio3pack.workflow.execution.filesystems import ObjectFilesystem
 from sio3pack.workflow.execution.mount_namespace import Mountpoint
 from sio3pack.workflow.workflow import Workflow
 from sio3pack.workflow.workflow_op import WorkflowOperation
@@ -92,10 +92,12 @@ class WorkflowManager:
         wf = self.get(f"compile_{language}")
         file_obj = wf.objects_manager.get_or_create_object(file)
         compiled_obj = wf.objects_manager.get_or_create_object(exe_path)
-        wf.replace_templates({
-            "<FILE>": file_obj.handle,
-            "<OUT>": compiled_obj.handle,
-        })
+        wf.replace_templates(
+            {
+                "<FILE>": file_obj.handle,
+                "<OUT>": compiled_obj.handle,
+            }
+        )
         return wf, exe_path
 
     def _get_compile_cpp_workflow(self) -> Workflow:

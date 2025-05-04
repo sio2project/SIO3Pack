@@ -8,13 +8,7 @@ from sio3pack.files import File
 from sio3pack.packages.sinolpack import constants
 from sio3pack.test import Test
 from sio3pack.workflow import ExecutionTask, ScriptTask, Workflow, WorkflowManager, WorkflowOperation
-from sio3pack.workflow.execution import (
-    MountNamespace,
-    ObjectReadStream,
-    ObjectWriteStream,
-    Process,
-    ResourceGroup,
-)
+from sio3pack.workflow.execution import MountNamespace, ObjectReadStream, ObjectWriteStream, Process, ResourceGroup
 from sio3pack.workflow.execution.filesystems import EmptyFilesystem, ImageFilesystem, ObjectFilesystem
 from sio3pack.workflow.execution.mount_namespace import Mountpoint
 
