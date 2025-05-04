@@ -1,3 +1,6 @@
+import os
+
+
 class File:
     """
     Base class for all files in a package.
@@ -7,6 +10,7 @@ class File:
 
     def __init__(self, path: str):
         self.path = path
+        self.name = os.path.basename(path)
 
     def __str__(self):
         return f"<{self.__class__.__name__} {self.path}>"

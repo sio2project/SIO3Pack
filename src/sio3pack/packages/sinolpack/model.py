@@ -1,6 +1,7 @@
 import os
 import re
 import tempfile
+from typing import Any
 
 import yaml
 
@@ -8,6 +9,7 @@ from sio3pack.files import File, LocalFile
 from sio3pack.packages.exceptions import ImproperlyConfigured
 from sio3pack.packages.package import Package
 from sio3pack.packages.sinolpack.enums import ModelSolutionKind
+from sio3pack.test import Test
 from sio3pack.util import naturalsort_key
 from sio3pack.utils.archive import Archive, UnrecognizedArchiveFormat
 from sio3pack.workflow import Workflow, WorkflowManager, WorkflowOperation
@@ -24,8 +26,8 @@ class Sinolpack(Package):
     :param dict[str, File] lang_statements: A dictionary of problem
         statements, where keys are language codes and values are files.
     :param dict[str, Any] config: Configuration of the problem.
-    :param list[tuple[ModelSolutionKind, File]] model_solutions: A list
-        of model solutions, where each element is a tuple containing
+    :param list[dict[str, Any]] model_solutions: A list
+        of model solutions, where each element is a list of dicts containing
         a model solution kind and a file.
     :param list[File] additional_files: A list of additional files for
         the problem.
@@ -167,6 +169,18 @@ class Sinolpack(Package):
         """
         return os.path.join(self.rootdir, "attachments")
 
+    def get_in_test_dir(self) -> str:
+        """
+        Returns the path to the directory containing inputs to the problem's tests.
+        """
+        return os.path.join(self.rootdir, "in")
+
+    def get_out_test_dir(self) -> str:
+        """
+        Returns the path to the directory containing outputs to the problem's tests.
+        """
+        return os.path.join(self.rootdir, "out")
+
     def _process_package(self):
         self._process_config_yml()
         self._detect_full_name()
@@ -174,6 +188,7 @@ class Sinolpack(Package):
         self._process_prog_files()
         self._process_statements()
         self._process_attachments()
+        self._process_tests() # TODO: Delete when SIO3Worker will be implemented.
 
         if not self.has_custom_graph:
             # Create the workflow with processed files.
@@ -248,9 +263,9 @@ class Sinolpack(Package):
         extensions = self.get_submittable_extensions()
         return rf"^{self.short_name}[0-9]*([bs]?)[0-9]*(_.*)?\.({'|'.join(extensions)})"
 
-    def _get_model_solutions(self) -> list[tuple[ModelSolutionKind, File]]:
+    def _get_model_solutions(self) -> list[dict[str, Any]]:
         """
-        Returns a list of model solutions, where each element is a tuple of model solution kind and filename.
+        Returns a list of model solutions, where each element is a list of dicts of model solution kind and filename.
         """
         if not os.path.exists(self.get_prog_dir()):
             return []
@@ -261,19 +276,20 @@ class Sinolpack(Package):
             match = re.match(regex, file)
             if match and os.path.isfile(os.path.join(self.get_prog_dir(), file)):
                 file = LocalFile(os.path.join(self.get_prog_dir(), file))
-                model_solutions.append((ModelSolutionKind.from_regex(match.group(1)), file))
+                model_solutions.append({"file": file, "kind": ModelSolutionKind.from_regex(match.group(1))})
 
         return model_solutions
 
     def sort_model_solutions(
-        self, model_solutions: list[tuple[ModelSolutionKind, File]]
-    ) -> list[tuple[ModelSolutionKind, File]]:
+        self, model_solutions: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
         """
         Sorts model solutions by kind.
         """
 
         def sort_key(model_solution):
-            kind, file = model_solution
+            kind: ModelSolutionKind = model_solution['kind']
+            file: LocalFile = model_solution['file']
             return kind.value, naturalsort_key(file.filename[: file.filename.index(".")])
 
         return list(sorted(model_solutions, key=sort_key))
@@ -398,3 +414,74 @@ class Sinolpack(Package):
         if not self.django_enabled:
             raise ImproperlyConfigured("sio3pack is not installed with Django support.")
         self.django.save_to_db()
+
+    def _process_tests(self):
+        """
+        Process the tests in the problem's directory.
+        """
+        self.tests = []
+        in_dir = self.get_in_test_dir()
+        out_dir = self.get_out_test_dir()
+        if not os.path.exists(in_dir):
+            raise ImproperlyConfigured("Package does not contain a directory for test inputs.")
+        if not os.path.exists(out_dir):
+            raise ImproperlyConfigured("Package does not contain a directory for test outputs.")
+
+        test_dict: dict[str, (str, str)] = {}
+        for in_file in os.listdir(in_dir):
+            test_name = os.path.splitext(in_file)[0]
+            if os.path.splitext(in_file)[1] != '.in':
+                continue
+            if test_name not in test_dict:
+                test_dict[test_name] = (in_file, None)
+            elif test_dict[test_name][1] is not None:
+                test_dict[test_name] = (in_file, test_dict[test_name][1])
+            else:
+                raise ImproperlyConfigured(f"Duplicate test input for: {test_name}")
+
+        for out_file in os.listdir(out_dir):
+            test_name = os.path.splitext(out_file)[0]
+            if os.path.splitext(out_file)[1] != '.out':
+                continue
+            if test_name not in test_dict:
+                test_dict[test_name] = (None, out_file)
+            elif test_dict[test_name][0] is not None:
+                test_dict[test_name] = (test_dict[test_name][0], out_file)
+            else:
+                raise ImproperlyConfigured(f"Duplicate test output for: {test_name}")
+
+        for test_name, (in_file, out_file) in test_dict.items():
+            test_id = self._extract_test_id(test_name)
+            group = self._extract_test_group(test_name)
+            self.tests.append(
+                Test(
+                    test_name,
+                    test_id,
+                    LocalFile(os.path.join(in_dir, in_file)) if in_file else None,
+                    LocalFile(os.path.join(out_dir, out_file)) if out_file else None,
+                    group,
+                )
+            )
+
+    def _extract_test_id(self, test_name: str) -> str:
+        """
+        Extracts the test ID from the test name.
+        """
+        return test_name.removeprefix(self.short_name)
+
+    def _extract_test_group(self, test_name: str) -> str:
+        """
+        Extracts the test group from the test name.
+        """
+        test_id = self._extract_test_id(test_name)
+        # Get leading numbers
+        return re.match(r"^\d+", test_id).group(0)
+
+    def get_additional_files(self) -> list[File]:
+        """
+        Returns the list of additional files.
+        """
+        return self.additional_files
+
+    def reload_tests(self):
+        self._process_tests()
