@@ -7,6 +7,7 @@ import yaml
 from sio3pack.files import File, LocalFile, RemoteFile
 from sio3pack.packages.exceptions import ImproperlyConfigured
 from sio3pack.packages.package import Package
+from sio3pack.packages.sinolpack import constants
 from sio3pack.packages.sinolpack.enums import ModelSolutionKind
 from sio3pack.packages.sinolpack.workflows import SinolpackWorkflowManager
 from sio3pack.test import Test
@@ -510,3 +511,105 @@ class Sinolpack(Package):
         if not self.django_enabled:
             raise ImproperlyConfigured("sio3pack is not installed with Django support.")
         self.django.save_to_db()
+
+    def _get_compiler_flags(self, lang: str) -> list[str]:
+        """
+        Extends the compiler flags with the ones from the config.yml file.
+        """
+
+        flags = super()._get_compiler_flags(lang)
+        if "extra_compilation_args" in self.config and lang in self.config["extra_compilation_args"]:
+            config_flags = self.config["extra_compilation_args"][lang]
+            if isinstance(config_flags, str):
+                config_flags = [config_flags]
+            flags.extend(config_flags)
+        return flags
+
+    def get_extra_execution_files(self) -> list[File]:
+        """
+        Returns the list of extra execution files specified in the config.yml file.
+        If no such files are specified, an empty list is returned.
+
+        :return: List of extra execution files.
+        """
+        if self.is_from_db:
+            return self.django.extra_execution_files
+        else:
+            return [
+                LocalFile(os.path.join(self.rootdir, 'prog', f))
+                for f in self.config.get("extra_execution_files", [])
+                if os.path.isfile(os.path.join(self.rootdir, f))
+            ]
+
+    def get_extra_compilation_files(self) -> list[File]:
+        """
+        Returns the list of extra compilation files specified in the config.yml file.
+        If no such files are specified, an empty list is returned.
+
+        :return: List of extra compilation files.
+        """
+        if self.is_from_db:
+            return self.django.extra_compilation_files
+        else:
+            return [
+                LocalFile(os.path.join(self.rootdir, 'prog', f))
+                for f in self.config.get("extra_compilation_files", [])
+                if os.path.isfile(os.path.join(self.rootdir, f))
+            ]
+
+    def _get_limit(self, test: Test, language: str, type: str) -> int:
+        """
+        Helper function to get a time/memory limit for a test from the config.
+
+        :param test: The test to get the limit for.
+        :param language: The language of the program.
+        :param type: The type of limit to get (time or memory).
+        :return: The limit for the test in seconds or bytes.
+        """
+        if type not in ("time", "memory"):
+            raise ValueError("Type must be either 'time' or 'memory'")
+
+        def get(conf) -> int:
+            if f"{type}_limits" in conf:
+                if test.test_id in conf[f"{type}_limits"]:
+                    return conf[f"{type}_limits"][test.test_id]
+                if test.group in conf[f"{type}_limits"]:
+                    return conf[f"{type}_limits"][test.group]
+            if f"{type}_limit" in conf:
+                return conf[f"{type}_limit"]
+            return None
+
+        if "override_limits" in self.config and language in self.config["override_limits"]:
+            limit = get(self.config["override_limits"][language])
+            if limit is not None:
+                return limit
+        limit = get(self.config)
+        if limit is not None:
+            return limit
+        if type == "memory":
+            return constants.DEFAULT_MEMORY_LIMIT
+        else:
+            return constants.DEFAULT_TIME_LIMIT
+
+
+    def get_time_limit_for_test(self, test: Test, language: str) -> int:
+        """
+        Returns the time limit for the given test.
+        Read the Sinolpack specification for more details.
+
+        :param test: The test to get the time limit for.
+        :param language: The language of the program.
+        :return: The time limit for the test in seconds.
+        """
+        return self._get_limit(test, language, "time")
+
+    def get_memory_limit_for_test(self, test: Test, language: str) -> int:
+        """
+        Returns the memory limit for the given test.
+        Read the Sinolpack specification for more details.
+
+        :param test: The test to get the memory limit for.
+        :param language: The language of the program.
+        :return: The memory limit for the test in bytes.
+        """
+        return self._get_limit(test, language, "memory")

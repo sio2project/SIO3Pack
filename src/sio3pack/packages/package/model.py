@@ -284,13 +284,21 @@ class Package(RegisteredSubclassesBase):
             raise SIO3PackException(f"Unknown file extension '{ext}' for file '{file}'")
 
     @wrap_exceptions
-    def get_save_outs_graph(self, tests: list[Test] | None = None) -> WorkflowOperation | None:
-        pass
-
-    @wrap_exceptions
     def save_to_db(self, problem_id: int):
         """
         Save the package to the database. If sio3pack isn't installed with Django
         support, it should raise an ImproperlyConfigured exception.
         """
         pass
+
+    def get_time_limit_for_test(self, test: Test) -> int:
+        """
+        Get the time limit for a given test.
+        """
+        raise NotImplementedError("This method should be implemented in subclasses.")
+
+    def get_memory_limit_for_test(self, test: Test) -> int:
+        """
+        Get the memory limit for a given test.
+        """
+        raise NotImplementedError("This method should be implemented in subclasses.")

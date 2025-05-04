@@ -38,6 +38,19 @@ class ResourceGroup:
         """
         self.id = id
 
+    def set_limits(self, cpu_usage_limit: int, instruction_limit: int, memory_limit: int, time_limit: int):
+        """
+        Set the limits of the resource group.
+        :param cpu_usage_limit: The CPU usage limit.
+        :param instruction_limit: The instruction usage limit.
+        :param memory_limit: The memory limit.
+        :param time_limit: The time limit.
+        """
+        self.cpu_usage_limit = cpu_usage_limit
+        self.instruction_limit = instruction_limit
+        self.memory_limit = memory_limit
+        self.time_limit = time_limit
+
     @classmethod
     def from_json(cls, data: dict, id: int):
         """

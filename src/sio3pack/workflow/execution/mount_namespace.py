@@ -89,6 +89,14 @@ class MountNamespace:
         """
         return {"mountpoints": [mountpoint.to_json() for mountpoint in self.mountpoints], "root": self.root}
 
+    def add_mountpoint(self, mountpoint: Mountpoint):
+        """
+        Add a mountpoint to the mount namespace.
+
+        :param mountpoint: The mountpoint to add.
+        """
+        self.mountpoints.append(mountpoint)
+
 
 class MountNamespaceManager:
     def __init__(self, task: "Task", filesystem_manager: FilesystemManager):

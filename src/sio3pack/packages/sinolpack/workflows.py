@@ -35,6 +35,27 @@ class SinolpackWorkflowManager(WorkflowManager):
         self._has_inwer = False
         self._sp_unpack_stage = UnpackStage.NONE
 
+    def get_compile_file_workflow(self, file: File | str) -> tuple[Workflow, str]:
+        """
+        Creates a workflow that compiles the given file and returns the path to the compiled file.
+        The difference between this function and the base class is that this function
+        adds the `extra_compilation_files` to the workflow.
+        """
+        wf, exe_path = super().get_compile_file_workflow(file)
+        for task in wf.tasks:
+            if isinstance(task, ExecutionTask):
+                for extra_file in self.package.get_extra_compilation_files():
+                    extra_obj = wf.objects_manager.get_or_create_object(extra_file.path)
+                    wf.add_external_object(extra_obj)
+                    extra_fs = ObjectFilesystem(extra_obj)
+                    task.add_filesystem(extra_fs)
+                    extra_mp = Mountpoint(
+                        source=extra_fs,
+                        target=f"/{extra_file.filename}",
+                    )
+                    task.processes[0].mount_namespace.add_mountpoint(extra_mp)
+        return wf, exe_path
+
     def _get_ingen_workflow(self) -> Workflow:
         workflow = Workflow(
             "ingen",
@@ -446,6 +467,27 @@ class SinolpackWorkflowManager(WorkflowManager):
             has_test_gen=(has_ingen or has_outgen), has_verify=has_inwer, return_func=return_func
         )
 
+    def _add_extra_execution_files(self, workflow: Workflow, task: ExecutionTask) -> list[Mountpoint]:
+        """
+        Adds extra execution files from config file to the task.
+
+        :param workflow: The workflow to add the extra execution files to.
+        :param task: The task to add the extra execution files to.
+        :return: A list of mountpoints for the extra execution files.
+        """
+        mps = []
+        for file in self.package.get_extra_execution_files():
+            file_obj = workflow.objects_manager.get_or_create_object(file.path)
+            workflow.add_external_object(file_obj)
+            file_fs = ObjectFilesystem(file_obj)
+            task.add_filesystem(file_fs)
+            file_mp = Mountpoint(
+                source=file_fs,
+                target=f"/{file.filename}",
+            )
+            mps.append(file_mp)
+        return mps
+
     def _get_run_test_workflow(self) -> Workflow:
         """
         Creates a workflow that runs the solution for a test and verifies the output with the checker.
@@ -468,7 +510,9 @@ class SinolpackWorkflowManager(WorkflowManager):
         user_out_obj = wf.objects_manager.get_or_create_object("user_out_<TEST_ID>")
 
         # Run the solution, on stdin it will get the input test object and stdout is
-        # piped to a new object which is user out.
+        # piped to a new object which is user out. The name is important, because
+        # the resource group in the task beginning with the "Run solution for test" will
+        # be set with correct time limit and memory limit.
         exec_run = ExecutionTask(
             "Run solution for test <TEST_ID>",
             wf,
@@ -486,8 +530,9 @@ class SinolpackWorkflowManager(WorkflowManager):
             target="/exe",
         )
 
+        extra_mps = self._add_extra_execution_files(wf, exec_run)
         run_ms = MountNamespace(
-            mountpoints=[run_mp],
+            mountpoints=[run_mp] + extra_mps,
         )
         exec_run.add_mount_namespace(run_ms)
         run_proc = Process(
@@ -649,6 +694,7 @@ class SinolpackWorkflowManager(WorkflowManager):
         workflow = Workflow(
             name="Run solution",
         )
+        language = self.package.get_file_language(program)
 
         # Compile the solution
         program_obj = workflow.objects_manager.get_or_create_object(program.path)
@@ -691,6 +737,15 @@ class SinolpackWorkflowManager(WorkflowManager):
                         "<TEST_ID>": test_id,
                     }
                 )
+
+                # Find the task which executes the solution and fix the resource group
+                time_limit = self.package.get_time_limit_for_test(test, language)
+                memory_limit = self.package.get_memory_limit_for_test(test, language)
+                for task in run_test_wf.tasks:
+                    if isinstance(task, ExecutionTask) and task.name == f"Run solution for test {test_id}":
+                        for process in task.processes:
+                            process.resource_group.set_limits(100, time_limit * 1e9, memory_limit, time_limit)
+
                 workflow.union(run_test_wf)
 
             # Now, run the grading script for the group.
@@ -767,8 +822,9 @@ class SinolpackWorkflowManager(WorkflowManager):
             source=run_fs,
             target="/exe",
         )
+        extra_mps = self._add_extra_execution_files(wf, exec_run)
         run_ms = MountNamespace(
-            mountpoints=[run_mp],
+            mountpoints=[run_mp] + extra_mps,
         )
         exec_run.add_mount_namespace(run_ms)
         run_proc = Process(
@@ -867,8 +923,9 @@ class SinolpackWorkflowManager(WorkflowManager):
             source=run_fs,
             target="/exe",
         )
+        extra_mps = self._add_extra_execution_files(wf, exec_run)
         run_ms = MountNamespace(
-            mountpoints=[run_mp],
+            mountpoints=[run_mp] + extra_mps,
         )
         exec_run.add_mount_namespace(run_ms)
         run_proc = Process(

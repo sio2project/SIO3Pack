@@ -12,3 +12,9 @@ INWER_HARD_TIME_LIMIT = 10 * 1000  # 10 seconds
 
 # Hard time limit for checker execution
 CHECKER_HARD_TIME_LIMIT = 30 * 1000  # 30 seconds
+
+# Default time limit for programs
+DEFAULT_TIME_LIMIT = 30 * 1000 # 30 seconds
+
+# Default memory limit for programs
+DEFAULT_MEMORY_LIMIT = 100 * 1024 * 1024 * 1  # 100 MB
