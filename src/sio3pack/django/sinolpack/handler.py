@@ -95,6 +95,22 @@ class SinolpackDjangoHandler(DjangoHandler):
         return [RemoteFile(f.file.path) for f in self.db_package.additional_files.all()]
 
     @property
+    def extra_execution_files(self) -> list[RemoteFile]:
+        """
+        A list of extra execution files (as :class:`sio3pack.RemoteFile`) specified in the config file.
+        """
+        files = self.config.get("extra_execution_files", [])
+        return [RemoteFile(f.file.path) for f in self.db_package.additional_files.filter(name__in=files)]
+
+    @property
+    def extra_compilation_files(self) -> list[RemoteFile]:
+        """
+        A list of extra compilation files (as :class:`sio3pack.RemoteFile`) specified in the config file.
+        """
+        files = self.config.get("extra_compilation_files", [])
+        return [RemoteFile(f.file.path) for f in self.db_package.additional_files.filter(name__in=files)]
+
+    @property
     def attachments(self) -> list[RemoteFile]:
         """
         A list of attachments (as :class:`sio3pack.RemoteFile`) related to the problem.

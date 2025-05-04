@@ -1,3 +1,5 @@
+import re
+
 from sio3pack.workflow import Object
 from sio3pack.workflow.execution.channels import Channel
 from sio3pack.workflow.execution.filesystems import Filesystem, FilesystemManager
@@ -26,6 +28,23 @@ class Task:
         else:
             raise ValueError(f"Unknown task type: {data['type']}")
 
+    def to_json(self, reg_map: dict[str, int] = None) -> dict:
+        """
+        Convert the task to a dictionary.
+
+        :param reg_map: A mapping of register names to register numbers.
+        :return dict: The dictionary representation of the task.
+        """
+        raise NotImplementedError("Subclasses must implement this method.")
+
+    def replace_templates(self, replacements: dict[str, str]):
+        """
+        Replace strings in the task with the given replacements.
+
+        :param replacements: The replacements to make.
+        """
+        raise NotImplementedError("Subclasses must implement this method.")
+
 
 class ExecutionTask(Task):
     """
@@ -36,7 +55,7 @@ class ExecutionTask(Task):
     :param bool exclusive: Whether the task is exclusive.
     :param int hard_time_limit: The hard time limit.
     :param int extra_limit: If set, the hard_time_limit for the task will be the maximum time limit of all resource groups plus this value.
-    :param int output_register: The output register of the task.
+    :param int | str output_register: The output register of the task.
     :param int pid_namespaces: The number of PID namespaces.
     :param list[Process] processes: The processes of the task.
     :param int pipes: The number of pipes available to the task.
@@ -50,7 +69,7 @@ class ExecutionTask(Task):
         exclusive: bool = False,
         hard_time_limit: int = None,
         extra_limit: int = None,
-        output_register: int = None,
+        output_register: int | str = None,
         pid_namespaces: int = 1,
         processes: list[Process] = None,
         pipes: int = 0,
@@ -114,18 +133,22 @@ class ExecutionTask(Task):
         task.processes = [Process.from_json(process, workflow, task) for process in data["processes"]]
         return task
 
-    def to_json(self) -> dict:
+    def to_json(self, reg_map: dict[str, int] = None) -> dict:
         """
         Convert the task to a dictionary.
 
+        :param reg_map: A mapping of register names to register numbers.
         :return dict: The dictionary representation of the task.
         """
-        hard_time_limit = self.hard_time_limit
+        hard_time_limit = getattr(self, "hard_time_limit", 0)
         if self.extra_limit is not None:
             hard_time_limit = 0
             for rg in self.resource_group_manager.all():
                 hard_time_limit = max(hard_time_limit, rg.time_limit)
             hard_time_limit += self.extra_limit
+
+        if reg_map:
+            self.output_register = reg_map.get(self.output_register, self.output_register)
 
         res = {
             "name": self.name,
@@ -168,6 +191,29 @@ class ExecutionTask(Task):
         """
         self.resource_group_manager.add(resource_group)
 
+    def add_process(self, process: Process):
+        """
+        Add a process to the task.
+
+        :param Process process: The process to add.
+        """
+        self.processes.append(process)
+
+    def replace_templates(self, replacements: dict[str, str]):
+        """
+        Replace strings in the task with the given replacements.
+
+        :param replacements: The replacements to make.
+        """
+        for process in self.processes:
+            process.replace_templates(replacements)
+        self.filesystem_manager.replace_templates(replacements)
+        for key, value in replacements.items():
+            if key in self.name:
+                self.name = self.name.replace(key, value)
+            if isinstance(self.output_register, str) and key in self.output_register:
+                self.output_register = self.output_register.replace(key, value)
+
 
 class ScriptTask(Task):
     """
@@ -176,8 +222,8 @@ class ScriptTask(Task):
     :param str name: The name of the task.
     :param Workflow workflow: The workflow the task belongs to.
     :param bool reactive: Whether the task is reactive.
-    :param list[int] input_registers: The input registers of the task.
-    :param list[int] output_registers: The output registers of the task.
+    :param list[int | str] input_registers: The input registers of the task.
+    :param list[int | str] output_registers: The output registers of the task.
     :param list[Object] objects: The objects the task uses.
     :param str script: The script to run.
     """
@@ -187,8 +233,8 @@ class ScriptTask(Task):
         name: str,
         workflow: "Workflow",
         reactive: bool = False,
-        input_registers: list[int] = None,
-        output_registers: list[int] = None,
+        input_registers: list[int | str] = None,
+        output_registers: list[int | str] = None,
         objects: list[Object] = None,
         script: str = None,
     ):
@@ -231,12 +277,24 @@ class ScriptTask(Task):
             data["script"],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self, reg_map: dict[str, int] = None) -> dict:
         """
         Convert the task to a dictionary.
 
+        :param reg_map: A mapping of register names to register numbers.
         :return: The dictionary representation of the task.
         """
+        if reg_map:
+            self.input_registers = [reg_map.get(reg, reg) for reg in self.input_registers]
+            self.output_registers = [reg_map.get(reg, reg) for reg in self.output_registers]
+
+            # Now, replace the register names in the script. Since we want this to not be slow
+            # let's use regex.
+            reg_pattern = r"<(r:[a-zA-Z0-9_]+)>"
+            obs_pattern = r"<(obsreg:[a-zA-Z0-9_]+)>"
+            self.script = re.sub(reg_pattern, lambda m: f"{reg_map.get(m.group(1), m.group(1))}", self.script)
+            self.script = re.sub(obs_pattern, lambda m: f"{reg_map.get(m.group(1), m.group(1))}", self.script)
+
         res = {
             "name": self.name,
             "type": "script",
@@ -248,3 +306,42 @@ class ScriptTask(Task):
         if self.objects:
             res["objects"] = [obj.handle for obj in self.objects]
         return res
+
+    def replace_templates(self, replacements: dict[str, str]):
+        """
+        Replace strings in the task with the given replacements.
+
+        :param replacements: The replacements to make.
+        """
+        for obj in self.objects:
+            obj.replace_templates(replacements)
+        for key, value in replacements.items():
+            if key in self.name:
+                self.name = self.name.replace(key, value)
+
+            if key in self.script:
+                self.script = self.script.replace(key, value)
+
+            new_inputs = []
+            for reg in self.input_registers:
+                if isinstance(reg, str) and key in reg:
+                    # If the replacement is a list, extend the new_inputs list with the values
+                    if isinstance(value, list):
+                        new_inputs.extend(value)
+                    else:
+                        new_inputs.append(reg.replace(key, value))
+                else:
+                    new_inputs.append(reg)
+            self.input_registers = new_inputs
+
+            new_outputs = []
+            for reg in self.output_registers:
+                if isinstance(reg, str) and key in reg:
+                    # If the replacement is a list, extend the new_outputs list with the values
+                    if isinstance(value, list):
+                        new_outputs.extend(value)
+                    else:
+                        new_outputs.append(reg.replace(key, value))
+                else:
+                    new_outputs.append(reg)
+            self.output_registers = new_outputs

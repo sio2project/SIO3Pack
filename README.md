@@ -22,8 +22,9 @@ pip install sio3pack
 # Package unpacking
 import sio3pack, sio3workers
 from django.conf import settings
+
 package = sio3pack.from_file(path_to_package, django_settings=settings)
-graph_op: GraphOperation = package.get_unpack_graph()
+graph_op: GraphOperation = package.get_unpack_operation()
 results = sioworkers.run(graph_op)
 graph_op.return_results(results)
 package.save_to_db(problem_id=1)
@@ -33,8 +34,9 @@ package.save_to_db(problem_id=1)
 
 ```python
 import sio3pack, sio3workers.local
+
 package = sio3pack.from_file(path_to_package)
-graph_op: GraphOperation = package.get_unpack_graph()
+graph_op: GraphOperation = package.get_unpack_operation()
 results = sio3workers.local.run(graph_op)
 graph_op.return_results(results)
 ```

@@ -67,3 +67,16 @@ class Process:
         )
         process.descriptor_manager.from_json(data["descriptors"])
         return process
+
+    def replace_templates(self, replacements: dict[str, str]):
+        """
+        Replace strings in the process with the given replacements.
+        :param replacements: The replacements to make.
+        """
+        for key, value in replacements.items():
+            if key in self.image:
+                self.image = self.image.replace(key, value)
+            if key in self.arguments:
+                self.arguments = [arg.replace(key, value) for arg in self.arguments]
+            for _, desc in self.descriptor_manager.items():
+                desc.replace_templates(replacements)

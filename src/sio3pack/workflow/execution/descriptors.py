@@ -1,3 +1,5 @@
+from typing import ItemsView
+
 from sio3pack.workflow.execution.stream import Stream
 
 
@@ -20,7 +22,7 @@ class DescriptorManager:
         self.filesystem_manager = filesystem_manager
         self.descriptors: dict[int, Stream] = {}
 
-    def add_descriptor(self, fd: int, stream: Stream):
+    def add(self, fd: int, stream: Stream):
         """
         Add a stream to the descriptor manager.
 
@@ -37,7 +39,7 @@ class DescriptorManager:
         """
         for fd, stream_data in data.items():
             stream = Stream.from_json(stream_data, self.objects_manager, self.filesystem_manager)
-            self.add_descriptor(int(fd), stream)
+            self.add(int(fd), stream)
 
     def to_json(self) -> dict:
         """
@@ -45,3 +47,11 @@ class DescriptorManager:
         """
         # Convert the fd numbers to strings, since in JSON keys cant be ints.
         return {str(fd): stream.to_json() for fd, stream in self.descriptors.items()}
+
+    def items(self) -> ItemsView[int, Stream]:
+        """
+        Get the items in the descriptor manager.
+
+        :return: A view of the descriptor manager's items.
+        """
+        return self.descriptors.items()
