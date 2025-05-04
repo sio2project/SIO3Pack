@@ -4,10 +4,13 @@ import tempfile
 
 import yaml
 
-from sio3pack.files import File, LocalFile
+from sio3pack.files import File, LocalFile, RemoteFile
 from sio3pack.packages.exceptions import ImproperlyConfigured
 from sio3pack.packages.package import Package
+from sio3pack.packages.sinolpack import constants
 from sio3pack.packages.sinolpack.enums import ModelSolutionKind
+from sio3pack.packages.sinolpack.workflows import SinolpackWorkflowManager
+from sio3pack.test import Test
 from sio3pack.util import naturalsort_key
 from sio3pack.utils.archive import Archive, UnrecognizedArchiveFormat
 from sio3pack.workflow import Workflow, WorkflowManager, WorkflowOperation
@@ -30,6 +33,11 @@ class Sinolpack(Package):
     :param list[File] additional_files: A list of additional files for
         the problem.
     :param list[File] attachments: A list of attachments related to the problem.
+    :param WorkflowManager workflow_manager: A workflow manager for the problem.
+    :param File | None main_model_solution: The main model solution file.
+    :param dict[str, bool] special_files: A dictionary of special files,
+        where keys are file names and values are booleans indicating
+        whether the file exists or not.
     """
 
     django_handler = "sio3pack.django.sinolpack.handler.SinolpackDjangoHandler"
@@ -85,8 +93,8 @@ class Sinolpack(Package):
     def __init__(self):
         super().__init__()
 
-    def _from_file(self, file: LocalFile, django_settings=None):
-        super()._from_file(file)
+    def _from_file(self, file: LocalFile, configuration=None):
+        super()._from_file(file, configuration)
         if self.is_archive:
             archive = Archive(file.path)
             self.short_name = self._find_main_dir(archive)
@@ -95,16 +103,14 @@ class Sinolpack(Package):
             self.rootdir = os.path.join(self.tmpdir.name, self.short_name)
         else:
             # FIXME: Won't work in sinol-make.
-            self.short_name = os.path.basename(file.path)
-            self.rootdir = file.path
+            self.short_name = os.path.basename(os.path.abspath(file.path))
+            self.rootdir = os.path.abspath(file.path)
 
         try:
             graph_file = self.get_in_root("workflow.json")
-            self.graph_manager = WorkflowManager.from_file(graph_file)
+            self.workflow_manager = SinolpackWorkflowManager.from_file(graph_file)
         except FileNotFoundError:
             self.has_custom_graph = False
-
-        self.django_settings = django_settings
 
         self._process_package()
 
@@ -114,22 +120,13 @@ class Sinolpack(Package):
         if not self.django_enabled:
             raise ImproperlyConfigured("sio3pack is not installed with Django support.")
 
-    def _default_graph_manager(self) -> WorkflowManager:
-        return WorkflowManager(
-            {
-                "unpack": Workflow.from_json(
-                    {
-                        "name": "unpack",
-                        # ...
-                    }
-                )
-            }
-        )
+    def _default_workflow_manager(self) -> WorkflowManager:
+        return SinolpackWorkflowManager(self, {})
 
     def _get_from_django_settings(self, key: str, default=None):
-        if self.django_settings is None:
+        if self.configuration.django_settings is None:
             return default
-        return getattr(self.django_settings, key, default)
+        return getattr(self.configuration.django_settings, key, default)
 
     def get_doc_dir(self) -> str:
         """
@@ -174,11 +171,12 @@ class Sinolpack(Package):
         self._process_prog_files()
         self._process_statements()
         self._process_attachments()
+        self._process_existing_tests()
 
         if not self.has_custom_graph:
             # Create the workflow with processed files.
             # TODO: Uncomment this line when Graph will work.
-            # self.graph_manager = self._default_graph_manager()
+            self.workflow_manager = self._default_workflow_manager()
             pass
 
     def _process_config_yml(self):
@@ -248,6 +246,13 @@ class Sinolpack(Package):
         extensions = self.get_submittable_extensions()
         return rf"^{self.short_name}[0-9]*([bs]?)[0-9]*(_.*)?\.({'|'.join(extensions)})"
 
+    def main_model_solution_regex(self):
+        """
+        Returns the regex used to determine main model solution.
+        """
+        extensions = self.get_submittable_extensions()
+        return rf"^{self.short_name}\.({'|'.join(extensions)})"
+
     def _get_model_solutions(self) -> list[tuple[ModelSolutionKind, File]]:
         """
         Returns a list of model solutions, where each element is a tuple of model solution kind and filename.
@@ -257,12 +262,17 @@ class Sinolpack(Package):
 
         regex = self.get_model_solution_regex()
         model_solutions = []
+        main_solution: File | None = None
+        main_regex = self.main_model_solution_regex()
         for file in os.listdir(self.get_prog_dir()):
             match = re.match(regex, file)
             if match and os.path.isfile(os.path.join(self.get_prog_dir(), file)):
                 file = LocalFile(os.path.join(self.get_prog_dir(), file))
                 model_solutions.append((ModelSolutionKind.from_regex(match.group(1)), file))
+                if re.match(main_regex, file.filename):
+                    main_solution = file
 
+        self.main_model_solution = main_solution
         return model_solutions
 
     def sort_model_solutions(
@@ -291,7 +301,7 @@ class Sinolpack(Package):
         self.model_solutions = self.sort_model_solutions(self._get_model_solutions())
 
         if self.has_custom_graph:
-            self.additional_files = self.graph_manager.get_prog_files()
+            self.additional_files = self.workflow_manager.get_prog_files()
         else:
             self.additional_files = []
             self.additional_files.extend(self.config.get("extra_compilation_files", []))
@@ -372,15 +382,118 @@ class Sinolpack(Package):
             if os.path.isfile(os.path.join(attachments_dir, attachment))
         ]
 
-    def get_unpack_graph(self) -> WorkflowOperation | None:
-        try:
-            return WorkflowOperation(
-                self.graph_manager.get("unpack"),
-                True,
-                self._unpack_return_data,
-            )
-        except KeyError:
-            return None
+    def get_test_id_from_filename(self, filename: str) -> str:
+        """
+        Returns the test ID from the filename.
+        """
+        match = re.match(rf"^{self.short_name}([a-zA-Z0-9]+)\.in$", filename)
+        if match:
+            return match.group(1)
+        raise ValueError(f"Invalid filename format: {filename}")
+
+    def _process_existing_tests(self):
+        """
+        Process pre-existing input and output tests.
+        """
+        # TODO: Rewrite this
+        test_ids = set()
+        for ext in ("in", "out"):
+            for file in os.listdir(os.path.join(self.rootdir, ext)):
+                try:
+                    test_ids.add(self.get_test_id_from_filename(file))
+                except ValueError:
+                    # Ignore files that don't match the pattern
+                    continue
+        # TODO: Sort this properly
+        test_ids = sorted(test_ids)
+        self.tests = []
+
+        for test_id in test_ids:
+            gr_match = re.match(r"^\d+", test_id)
+            if gr_match:
+                group = gr_match.group(0)
+            else:
+                group = None
+            if os.path.exists(os.path.join(self.rootdir, "in", self.short_name + test_id + ".in")):
+                in_file = LocalFile(os.path.join(self.rootdir, "in", self.short_name + test_id + ".in"))
+            else:
+                in_file = None
+            if os.path.exists(os.path.join(self.rootdir, "out", self.short_name + test_id + ".out")):
+                out_file = LocalFile(os.path.join(self.rootdir, "out", self.short_name + test_id + ".out"))
+            else:
+                out_file = None
+            self.tests.append(Test(test_id, in_file, out_file, group))
+
+    def get_tests(self) -> list[Test]:
+        """
+        Returns the list of tests.
+        """
+        return self.tests
+
+    def get_input_tests(self) -> list[Test]:
+        """
+        Returns the list of tests with input files.
+        """
+        return [test for test in self.tests if test.in_file is not None]
+
+    def get_test(self, test_id: str) -> Test:
+        """
+        Returns the test with the given ID.
+        """
+        for test in self.tests:
+            if test.test_id == test_id:
+                return test
+        raise ValueError(f"Test with ID {test_id} not found.")
+
+    def get_tests_with_inputs(self) -> list[Test]:
+        """
+        Returns the list of input tests.
+        """
+        return [test for test in self.tests if test.in_file is not None]
+
+    def get_corresponding_out_filename(self, in_test: str) -> str:
+        """
+        Returns the corresponding output test for the given input test.
+        """
+        return in_test.replace(".in", ".out")
+
+    def get_outgen_path(self) -> str | None:
+        return self.main_model_solution.path
+
+    def _get_special_file_path(self, file_type: str) -> str | None:
+        """
+        Returns the path to the special file in the program directory.
+        """
+        # TODO: This should be faster
+        if self.special_files[file_type]:
+            for af in self.additional_files:
+                if os.path.splitext(os.path.basename(af.path))[0] == self.short_name + file_type:
+                    return af.path
+        return None
+
+    def get_inwer_path(self) -> str | None:
+        return self._get_special_file_path("inwer")
+
+    def get_checker_file(self) -> File | None:
+        """
+        Returns the checker file.
+        """
+        path = self.get_checker_path()
+        if path:
+            if self.is_from_db:
+                return RemoteFile(path)
+            else:
+                return LocalFile(path)
+        return None
+
+    def get_checker_path(self) -> str | None:
+        return self._get_special_file_path("chk")
+
+    def get_unpack_operation(self, return_func: callable = None) -> WorkflowOperation | None:
+        has_ingen = self.special_files["ingen"]
+        has_outgen = self.main_model_solution is not None
+        has_inwer = self.special_files["inwer"]
+        return self.workflow_manager.get_unpack_operation(has_ingen, has_outgen, has_inwer, return_func)
 
     def _unpack_return_data(self, data: dict):
         """
@@ -398,3 +511,104 @@ class Sinolpack(Package):
         if not self.django_enabled:
             raise ImproperlyConfigured("sio3pack is not installed with Django support.")
         self.django.save_to_db()
+
+    def _get_compiler_flags(self, lang: str) -> list[str]:
+        """
+        Extends the compiler flags with the ones from the config.yml file.
+        """
+
+        flags = super()._get_compiler_flags(lang)
+        if "extra_compilation_args" in self.config and lang in self.config["extra_compilation_args"]:
+            config_flags = self.config["extra_compilation_args"][lang]
+            if isinstance(config_flags, str):
+                config_flags = [config_flags]
+            flags.extend(config_flags)
+        return flags
+
+    def get_extra_execution_files(self) -> list[File]:
+        """
+        Returns the list of extra execution files specified in the config.yml file.
+        If no such files are specified, an empty list is returned.
+
+        :return: List of extra execution files.
+        """
+        if self.is_from_db:
+            return self.django.extra_execution_files
+        else:
+            return [
+                LocalFile(os.path.join(self.rootdir, "prog", f))
+                for f in self.config.get("extra_execution_files", [])
+                if os.path.isfile(os.path.join(self.rootdir, f))
+            ]
+
+    def get_extra_compilation_files(self) -> list[File]:
+        """
+        Returns the list of extra compilation files specified in the config.yml file.
+        If no such files are specified, an empty list is returned.
+
+        :return: List of extra compilation files.
+        """
+        if self.is_from_db:
+            return self.django.extra_compilation_files
+        else:
+            return [
+                LocalFile(os.path.join(self.rootdir, "prog", f))
+                for f in self.config.get("extra_compilation_files", [])
+                if os.path.isfile(os.path.join(self.rootdir, f))
+            ]
+
+    def _get_limit(self, test: Test, language: str, type: str) -> int:
+        """
+        Helper function to get a time/memory limit for a test from the config.
+
+        :param test: The test to get the limit for.
+        :param language: The language of the program.
+        :param type: The type of limit to get (time or memory).
+        :return: The limit for the test in seconds or bytes.
+        """
+        if type not in ("time", "memory"):
+            raise ValueError("Type must be either 'time' or 'memory'")
+
+        def get(conf) -> int:
+            if f"{type}_limits" in conf:
+                if test.test_id in conf[f"{type}_limits"]:
+                    return conf[f"{type}_limits"][test.test_id]
+                if test.group in conf[f"{type}_limits"]:
+                    return conf[f"{type}_limits"][test.group]
+            if f"{type}_limit" in conf:
+                return conf[f"{type}_limit"]
+            return None
+
+        if "override_limits" in self.config and language in self.config["override_limits"]:
+            limit = get(self.config["override_limits"][language])
+            if limit is not None:
+                return limit
+        limit = get(self.config)
+        if limit is not None:
+            return limit
+        if type == "memory":
+            return constants.DEFAULT_MEMORY_LIMIT
+        else:
+            return constants.DEFAULT_TIME_LIMIT
+
+    def get_time_limit_for_test(self, test: Test, language: str) -> int:
+        """
+        Returns the time limit for the given test.
+        Read the Sinolpack specification for more details.
+
+        :param test: The test to get the time limit for.
+        :param language: The language of the program.
+        :return: The time limit for the test in seconds.
+        """
+        return self._get_limit(test, language, "time")
+
+    def get_memory_limit_for_test(self, test: Test, language: str) -> int:
+        """
+        Returns the memory limit for the given test.
+        Read the Sinolpack specification for more details.
+
+        :param test: The test to get the memory limit for.
+        :param language: The language of the program.
+        :return: The memory limit for the test in bytes.
+        """
+        return self._get_limit(test, language, "memory")

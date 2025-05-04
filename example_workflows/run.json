@@ -1,889 +1,448 @@
 {
-    "name": "Run the tests and grade the results",
-    "external_objects": [
-        "abc0a.in",
-        "abc0b.in",
-        "abc1a.in",
-        "abc1b.in",
-        "abc2a.in",
-        "abc0a.out",
-        "abc0b.out",
-        "abc1a.out",
-        "abc1b.out",
-        "abc2a.out",
-        "abcchk.e",
-        "sol.e"
-    ],
-    "observable_objects": [],
-    "observable_registers": 1,
-    "registers": 19,
-    "tasks": [
+  "name": "Run solution",
+  "external_objects": [
+    "prog/abc.cpp",
+    "abc/in/abc0.in",
+    "abc/out/abc0.out",
+    "abc/in/abc1a.in",
+    "abc/out/abc1a.out",
+    "executables/abcchk.cpp.e"
+  ],
+  "observable_objects": [],
+  "observable_registers": 2,
+  "tasks": [
+    {
+      "name": "Compile prog/abc.cpp using g++",
+      "type": "execution",
+      "channels": [],
+      "exclusive": false,
+      "hard_time_limit": 60000,
+      "output_register": 0,
+      "pid_namespaces": 1,
+      "filesystems": [
         {
-            "type": "execution",
-            "name": "Run test abc0a",
-            "exclusive": true,
-            "filesystems": [
-                {
-                    "type": "object",
-                    "handle": "abc0a.in"
-                },
-                {
-                    "type": "object",
-                    "handle": "sol.e"
-                },
-                {
-                    "type": "empty"
-                }
-            ],
-            "hard_time_limit": 2137,
-            "mount_namespaces": [
-                {
-                    "mountpoints": [
-                        {
-                            "source": 0,
-                            "target": "/in",
-                            "writable": false
-                        },
-                        {
-                            "source": 1,
-                            "target": "/exe",
-                            "writable": false
-                        }
-                    ],
-                    "root": 0
-                }
-            ],
-            "output_register": 1,
-            "pid_namespaces": 1,
-            "pipes" : [
-                {
-                "buffer_size" : 1048576,
-                "file_buffer_size" : 1073741824,
-                "limit" : 2147483648
-                }
-            ],
-            "processes" : [
-            {
-                "arguments" : [
-                    "/exe",
-                    "</in"
-                ],
-                "environment": [],
-                "image" : "/exe",
-                "mount_namespace" : 0,
-                "pid_namespace" : 0,
-                "resource_group" : 0,
-                "working_directory" : "/"
-                }
-            ],
-            "resource_groups" : [
-                {
-                "cpu_usage_limit" : 21.37,
-                "instruction_limit" : 2137000000,
-                "memory_limit" : 2147483648,
-                "oom_terminate_all_tasks" : false,
-                "pid_limit" : 8,
-                "swap_limit" : 4,
-                "time_limit" : 2137000000
-                }
-            ],
-            "system_pipes" : 3
-        },
-        {
-            "type": "execution",
-            "name": "Run test abc0b",
-            "exclusive": true,
-            "filesystems": [
-                {
-                    "type": "object",
-                    "handle": "abc0b.in"
-                },
-                {
-                    "type": "object",
-                    "handle": "sol.e"
-                },
-                {
-                    "type": "empty"
-                }
-            ],
-            "hard_time_limit": 2137,
-            "mount_namespaces": [
-                {
-                    "mountpoints": [
-                        {
-                            "source": 0,
-                            "target": "/in",
-                            "writable": false
-                        },
-                        {
-                            "source": 1,
-                            "target": "/exe",
-                            "writable": false
-                        }
-                    ],
-                    "root": 0
-                }
-            ],
-            "output_register": 2,
-            "pid_namespaces": 1,
-            "pipes" : [
-                {
-                "buffer_size" : 1048576,
-                "file_buffer_size" : 1073741824,
-                "limit" : 2147483648
-                }
-            ],
-            "processes" : [
-            {
-                "arguments" : [
-                    "/exe",
-                    "</in"
-                ],
-                "environment": [],
-                "image" : "/exe",
-                "mount_namespace" : 0,
-                "pid_namespace" : 0,
-                "resource_group" : 0,
-                "working_directory" : "/"
-                }
-            ],
-            "resource_groups" : [
-                {
-                "cpu_usage_limit" : 21.37,
-                "instruction_limit" : 2137000000,
-                "memory_limit" : 2147483648,
-                "oom_terminate_all_tasks" : false,
-                "pid_limit" : 8,
-                "swap_limit" : 4,
-                "time_limit" : 2137000000
-                }
-            ],
-            "system_pipes" : 3
-        },
-        {
-            "type": "execution",
-            "name": "Run test abc1a",
-            "exclusive": true,
-            "filesystems": [
-                {
-                    "type": "object",
-                    "handle": "abc1a.in"
-                },
-                {
-                    "type": "object",
-                    "handle": "sol.e"
-                },
-                {
-                    "type": "empty"
-                }
-            ],
-            "hard_time_limit": 2137,
-            "mount_namespaces": [
-                {
-                    "mountpoints": [
-                        {
-                            "source": 0,
-                            "target": "/in",
-                            "writable": false
-                        },
-                        {
-                            "source": 1,
-                            "target": "/exe",
-                            "writable": false
-                        }
-                    ],
-                    "root": 0
-                }
-            ],
-            "output_register": 3,
-            "pid_namespaces": 1,
-            "pipes" : [
-                {
-                "buffer_size" : 1048576,
-                "file_buffer_size" : 1073741824,
-                "limit" : 2147483648
-                }
-            ],
-            "processes" : [
-            {
-                "arguments" : [
-                    "/exe",
-                    "</in"
-                ],
-                "environment": [],
-                "image" : "/exe",
-                "mount_namespace" : 0,
-                "pid_namespace" : 0,
-                "resource_group" : 0,
-                "working_directory" : "/"
-                }
-            ],
-            "resource_groups" : [
-                {
-                "cpu_usage_limit" : 21.37,
-                "instruction_limit" : 2137000000,
-                "memory_limit" : 2147483648,
-                "oom_terminate_all_tasks" : false,
-                "pid_limit" : 8,
-                "swap_limit" : 4,
-                "time_limit" : 2137000000
-                }
-            ],
-            "system_pipes" : 3
-        },
-        {
-            "type": "execution",
-            "name": "Run test abc1b",
-            "exclusive": true,
-            "filesystems": [
-                {
-                    "type": "object",
-                    "handle": "abc1b.in"
-                },
-                {
-                    "type": "object",
-                    "handle": "sol.e"
-                },
-                {
-                    "type": "empty"
-                }
-            ],
-            "hard_time_limit": 2137,
-            "mount_namespaces": [
-                {
-                    "mountpoints": [
-                        {
-                            "source": 0,
-                            "target": "/in",
-                            "writable": false
-                        },
-                        {
-                            "source": 1,
-                            "target": "/exe",
-                            "writable": false
-                        }
-                    ],
-                    "root": 0
-                }
-            ],
-            "output_register": 4,
-            "pid_namespaces": 1,
-            "pipes" : [
-                {
-                "buffer_size" : 1048576,
-                "file_buffer_size" : 1073741824,
-                "limit" : 2147483648
-                }
-            ],
-            "processes" : [
-            {
-                "arguments" : [
-                    "/exe",
-                    "</in"
-                ],
-                "environment": [],
-                "image" : "/exe",
-                "mount_namespace" : 0,
-                "pid_namespace" : 0,
-                "resource_group" : 0,
-                "working_directory" : "/"
-                }
-            ],
-            "resource_groups" : [
-                {
-                "cpu_usage_limit" : 21.37,
-                "instruction_limit" : 2137000000,
-                "memory_limit" : 2147483648,
-                "oom_terminate_all_tasks" : false,
-                "pid_limit" : 8,
-                "swap_limit" : 4,
-                "time_limit" : 2137000000
-                }
-            ],
-            "system_pipes" : 3
-        },
-        {
-            "type": "execution",
-            "name": "Run test abc2a",
-            "exclusive": true,
-            "filesystems": [
-                {
-                    "type": "object",
-                    "handle": "abc2a.in"
-                },
-                {
-                    "type": "object",
-                    "handle": "sol.e"
-                },
-                {
-                    "type": "empty"
-                }
-            ],
-            "hard_time_limit": 2137,
-            "mount_namespaces": [
-                {
-                    "mountpoints": [
-                        {
-                            "source": 0,
-                            "target": "/in",
-                            "writable": false
-                        },
-                        {
-                            "source": 1,
-                            "target": "/exe",
-                            "writable": false
-                        }
-                    ],
-                    "root": 0
-                }
-            ],
-            "output_register": 5,
-            "pid_namespaces": 1,
-            "pipes" : [
-                {
-                "buffer_size" : 1048576,
-                "file_buffer_size" : 1073741824,
-                "limit" : 2147483648
-                }
-            ],
-            "processes" : [
-            {
-                "arguments" : [
-                    "/exe",
-                    "</in"
-                ],
-                "environment": [],
-                "image" : "/exe",
-                "mount_namespace" : 0,
-                "pid_namespace" : 0,
-                "resource_group" : 0,
-                "working_directory" : "/"
-                }
-            ],
-            "resource_groups" : [
-                {
-                "cpu_usage_limit" : 21.37,
-                "instruction_limit" : 2137000000,
-                "memory_limit" : 2147483648,
-                "oom_terminate_all_tasks" : false,
-                "pid_limit" : 8,
-                "swap_limit" : 4,
-                "time_limit" : 2137000000
-                }
-            ],
-            "system_pipes" : 3
-        },
-        {
-            "type": "execution",
-            "name": "Run checker on abc0a",
-            "exclusive": false,
-            "filesystems": [
-                {
-                    "type": "object",
-                    "handle": "abc0a.in"
-                },
-                {
-                    "type": "object",
-                    "handle": "abc0a.out"
-                },
-                {
-                    "type": "object",
-                    "handle": "abcchk.e"
-                },
-                {
-                    "type": "empty"
-                }
-            ],
-            "hard_time_limit": 2137,
-            "mount_namespaces": [
-                {
-                    "mountpoints": [
-                        {
-                            "source": 0,
-                            "target": "/in",
-                            "writable": false
-                        },
-                        {
-                            "source": 1,
-                            "target": "/wzo_out",
-                            "writable": false
-                        },
-                        {
-                            "source": "output_register_1",
-                            "target": "/out",
-                            "writable": false
-                        },
-                        {
-                            "source": 2,
-                            "target": "/chk",
-                            "writable": false
-                        }
-                    ],
-                    "root": 0
-                }
-            ],
-            "input_register": 1,
-            "output_register": 6,
-            "pid_namespaces": 1,
-            "pipes" : [
-                {
-                "buffer_size" : 1048576,
-                "file_buffer_size" : 1073741824,
-                "limit" : 2147483648
-                }
-            ],
-            "processes" : [
-            {
-                "arguments" : [
-                    "/chk",
-                    "/in",
-                    "/out",
-                    "wzo_out"
-                ],
-                "environment": [],
-                "image" : "/chk",
-                "mount_namespace" : 0,
-                "pid_namespace" : 0,
-                "resource_group" : 0,
-                "working_directory" : "/"
-                }
-            ],
-            "resource_groups" : [
-                {
-                "cpu_usage_limit" : 21.37,
-                "instruction_limit" : 2137000000,
-                "memory_limit" : 2147483648,
-                "oom_terminate_all_tasks" : false,
-                "pid_limit" : 8,
-                "swap_limit" : 4,
-                "time_limit" : 2137000000
-                }
-            ],
-            "system_pipes" : 3
-        },
-        {
-            "type": "execution",
-            "name": "Run checker on abc0b",
-            "exclusive": false,
-            "filesystems": [
-                {
-                    "type": "object",
-                    "handle": "abc0b.in"
-                },
-                {
-                    "type": "object",
-                    "handle": "abc0b.out"
-                },
-                {
-                    "type": "object",
-                    "handle": "abcchk.e"
-                },
-                {
-                    "type": "empty"
-                }
-            ],
-            "hard_time_limit": 2137,
-            "mount_namespaces": [
-                {
-                    "mountpoints": [
-                        {
-                            "source": 0,
-                            "target": "/in",
-                            "writable": false
-                        },
-                        {
-                            "source": 1,
-                            "target": "/wzo_out",
-                            "writable": false
-                        },
-                        {
-                            "source": "output_register_1",
-                            "target": "/out",
-                            "writable": false
-                        },
-                        {
-                            "source": 2,
-                            "target": "/chk",
-                            "writable": false
-                        }
-                    ],
-                    "root": 0
-                }
-            ],
-            "input_register": 2,
-            "output_register": 7,
-            "pid_namespaces": 1,
-            "pipes" : [
-                {
-                "buffer_size" : 1048576,
-                "file_buffer_size" : 1073741824,
-                "limit" : 2147483648
-                }
-            ],
-            "processes" : [
-            {
-                "arguments" : [
-                    "/chk",
-                    "/in",
-                    "/out",
-                    "wzo_out"
-                ],
-                "environment": [],
-                "image" : "/chk",
-                "mount_namespace" : 0,
-                "pid_namespace" : 0,
-                "resource_group" : 0,
-                "working_directory" : "/"
-                }
-            ],
-            "resource_groups" : [
-                {
-                "cpu_usage_limit" : 21.37,
-                "instruction_limit" : 2137000000,
-                "memory_limit" : 2147483648,
-                "oom_terminate_all_tasks" : false,
-                "pid_limit" : 8,
-                "swap_limit" : 4,
-                "time_limit" : 2137000000
-                }
-            ],
-            "system_pipes" : 3
-        },
-        {
-            "type": "execution",
-            "name": "Run checker on abc1a",
-            "exclusive": false,
-            "filesystems": [
-                {
-                    "type": "object",
-                    "handle": "abc1a.in"
-                },
-                {
-                    "type": "object",
-                    "handle": "abc1a.out"
-                },
-                {
-                    "type": "object",
-                    "handle": "abcchk.e"
-                },
-                {
-                    "type": "empty"
-                }
-            ],
-            "hard_time_limit": 2137,
-            "mount_namespaces": [
-                {
-                    "mountpoints": [
-                        {
-                            "source": 0,
-                            "target": "/in",
-                            "writable": false
-                        },
-                        {
-                            "source": 1,
-                            "target": "/wzo_out",
-                            "writable": false
-                        },
-                        {
-                            "source": "output_register_1",
-                            "target": "/out",
-                            "writable": false
-                        },
-                        {
-                            "source": 2,
-                            "target": "/chk",
-                            "writable": false
-                        }
-                    ],
-                    "root": 0
-                }
-            ],
-            "input_register": 3,
-            "output_register": 8,
-            "pid_namespaces": 1,
-            "pipes" : [
-                {
-                "buffer_size" : 1048576,
-                "file_buffer_size" : 1073741824,
-                "limit" : 2147483648
-                }
-            ],
-            "processes" : [
-            {
-                "arguments" : [
-                    "/chk",
-                    "/in",
-                    "/out",
-                    "wzo_out"
-                ],
-                "environment": [],
-                "image" : "/chk",
-                "mount_namespace" : 0,
-                "pid_namespace" : 0,
-                "resource_group" : 0,
-                "working_directory" : "/"
-                }
-            ],
-            "resource_groups" : [
-                {
-                "cpu_usage_limit" : 21.37,
-                "instruction_limit" : 2137000000,
-                "memory_limit" : 2147483648,
-                "oom_terminate_all_tasks" : false,
-                "pid_limit" : 8,
-                "swap_limit" : 4,
-                "time_limit" : 2137000000
-                }
-            ],
-            "system_pipes" : 3
-        },
-        {
-            "type": "execution",
-            "name": "Run checker on abc1b",
-            "exclusive": false,
-            "filesystems": [
-                {
-                    "type": "object",
-                    "handle": "abc1b.in"
-                },
-                {
-                    "type": "object",
-                    "handle": "abc1b.out"
-                },
-                {
-                    "type": "object",
-                    "handle": "abcchk.e"
-                },
-                {
-                    "type": "empty"
-                }
-            ],
-            "hard_time_limit": 2137,
-            "mount_namespaces": [
-                {
-                    "mountpoints": [
-                        {
-                            "source": 0,
-                            "target": "/in",
-                            "writable": false
-                        },
-                        {
-                            "source": 1,
-                            "target": "/wzo_out",
-                            "writable": false
-                        },
-                        {
-                            "source": "output_register_1",
-                            "target": "/out",
-                            "writable": false
-                        },
-                        {
-                            "source": 2,
-                            "target": "/chk",
-                            "writable": false
-                        }
-                    ],
-                    "root": 0
-                }
-            ],
-            "input_register": 4,
-            "output_register": 9,
-            "pid_namespaces": 1,
-            "pipes" : [
-                {
-                "buffer_size" : 1048576,
-                "file_buffer_size" : 1073741824,
-                "limit" : 2147483648
-                }
-            ],
-            "processes" : [
-            {
-                "arguments" : [
-                    "/chk",
-                    "/in",
-                    "/out",
-                    "wzo_out"
-                ],
-                "environment": [],
-                "image" : "/chk",
-                "mount_namespace" : 0,
-                "pid_namespace" : 0,
-                "resource_group" : 0,
-                "working_directory" : "/"
-                }
-            ],
-            "resource_groups" : [
-                {
-                "cpu_usage_limit" : 21.37,
-                "instruction_limit" : 2137000000,
-                "memory_limit" : 2147483648,
-                "oom_terminate_all_tasks" : false,
-                "pid_limit" : 8,
-                "swap_limit" : 4,
-                "time_limit" : 2137000000
-                }
-            ],
-            "system_pipes" : 3
-        },
-        {
-            "type": "execution",
-            "name": "Run checker on abc2a",
-            "exclusive": false,
-            "filesystems": [
-                {
-                    "type": "object",
-                    "handle": "abc2a.in"
-                },
-                {
-                    "type": "object",
-                    "handle": "abc2a.out"
-                },
-                {
-                    "type": "object",
-                    "handle": "abcchk.e"
-                },
-                {
-                    "type": "empty"
-                }
-            ],
-            "hard_time_limit": 2137,
-            "mount_namespaces": [
-                {
-                    "mountpoints": [
-                        {
-                            "source": 0,
-                            "target": "/in",
-                            "writable": false
-                        },
-                        {
-                            "source": 1,
-                            "target": "/wzo_out",
-                            "writable": false
-                        },
-                        {
-                            "source": "output_register_1",
-                            "target": "/out",
-                            "writable": false
-                        },
-                        {
-                            "source": 2,
-                            "target": "/chk",
-                            "writable": false
-                        }
-                    ],
-                    "root": 0
-                }
-            ],
-            "input_register": 5,
-            "output_register": 10,
-            "pid_namespaces": 1,
-            "pipes" : [
-                {
-                "buffer_size" : 1048576,
-                "file_buffer_size" : 1073741824,
-                "limit" : 2147483648
-                }
-            ],
-            "processes" : [
-            {
-                "arguments" : [
-                    "/chk",
-                    "/in",
-                    "/out",
-                    "wzo_out"
-                ],
-                "environment": [],
-                "image" : "/chk",
-                "mount_namespace" : 0,
-                "pid_namespace" : 0,
-                "resource_group" : 0,
-                "working_directory" : "/"
-                }
-            ],
-            "resource_groups" : [
-                {
-                "cpu_usage_limit" : 21.37,
-                "instruction_limit" : 2137000000,
-                "memory_limit" : 2147483648,
-                "oom_terminate_all_tasks" : false,
-                "pid_limit" : 8,
-                "swap_limit" : 4,
-                "time_limit" : 2137000000
-                }
-            ],
-            "system_pipes" : 3
-        },
-        {
-            "type": "script",
-            "name": "Check results for abc0a",
-            "reactive": false,
-            "input_registers": [6],
-            "output_registers": [11],
-            "script": "<PLACEHOLDER>"
-        },
-        {
-            "type": "script",
-            "name": "Check results for abc0b",
-            "reactive": false,
-            "input_registers": [7],
-            "output_registers": [12],
-            "script": "<PLACEHOLDER>"
-        },
-        {
-            "type": "script",
-            "name": "Check results for abc1a",
-            "reactive": false,
-            "input_registers": [8],
-            "output_registers": [13],
-            "script": "<PLACEHOLDER>"
-        },
-        {
-            "type": "script",
-            "name": "Check results for abc1b",
-            "reactive": false,
-            "input_registers": [9],
-            "output_registers": [14],
-            "script": "<PLACEHOLDER>"
-        },
-        {
-            "type": "script",
-            "name": "Check results for abc2a",
-            "reactive": false,
-            "input_registers": [10],
-            "output_registers": [15],
-            "script": "<PLACEHOLDER>"
-        },
-        {
-            "type": "script",
-            "name": "Grade group 0",
-            "reactive": true,
-            "input_registers": [11, 12],
-            "output_registers": [16],
-            "script": "<PLACEHOLDER>"
-        },
-        {
-            "type": "script",
-            "name": "Grade group 1",
-            "reactive": true,
-            "input_registers": [13, 14],
-            "output_registers": [17],
-            "script": "<PLACEHOLDER>"
-        },
-        {
-            "type": "script",
-            "name": "Grade group 2",
-            "reactive": true,
-            "input_registers": [15],
-            "output_registers": [18],
-            "script": "<PLACEHOLDER>"
-        },
-        {
-            "type": "script",
-            "name": "Grade all",
-            "reactive": false,
-            "input_registers": [16, 17, 18],
-            "output_registers": [0],
-            "script": "<PLACEHOLDER>"
+          "type": "object",
+          "handle": "prog/abc.cpp"
         }
-    ]
+      ],
+      "mount_namespaces": [
+        {
+          "mountpoints": [
+            {
+              "source": 0,
+              "target": "/file.cpp",
+              "writable": false
+            }
+          ],
+          "root": 0
+        }
+      ],
+      "pipes": 0,
+      "resource_groups": [
+        {
+          "cpu_usage_limit": 100.0,
+          "instruction_limit": 1000000000.0,
+          "memory_limit": 2147483648,
+          "oom_terminate_all_tasks": false,
+          "pid_limit": 2,
+          "swap_limit": 0,
+          "time_limit": 1000000000.0
+        }
+      ],
+      "processes": [
+        {
+          "arguments": [
+            "g++",
+            "/file.cpp",
+            "-o",
+            "/<OUT>",
+            "-std=c++20",
+            "-O3"
+          ],
+          "environment": [],
+          "image": "compiler:g++",
+          "mount_namespace": 0,
+          "resource_group": 0,
+          "pid_namespace": 0,
+          "working_directory": "/",
+          "descriptors": {
+            "2137": {
+              "type": "object_write",
+              "handle": "executables/abc.cpp.e"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Run solution for test 0",
+      "type": "execution",
+      "channels": [],
+      "exclusive": false,
+      "hard_time_limit": 0,
+      "output_register": 8,
+      "pid_namespaces": 1,
+      "filesystems": [
+        {
+          "type": "object",
+          "handle": "executables/abc.cpp.e"
+        }
+      ],
+      "mount_namespaces": [
+        {
+          "mountpoints": [
+            {
+              "source": 0,
+              "target": "/exe",
+              "writable": false
+            }
+          ],
+          "root": 0
+        }
+      ],
+      "pipes": 0,
+      "resource_groups": [
+        {
+          "cpu_usage_limit": 100.0,
+          "instruction_limit": 1000000000.0,
+          "memory_limit": 2147483648,
+          "oom_terminate_all_tasks": false,
+          "pid_limit": 2,
+          "swap_limit": 0,
+          "time_limit": 1000000000.0
+        }
+      ],
+      "processes": [
+        {
+          "arguments": [
+            "/exe"
+          ],
+          "environment": [],
+          "image": "",
+          "mount_namespace": 0,
+          "resource_group": 0,
+          "pid_namespace": 0,
+          "working_directory": "/",
+          "descriptors": {
+            "0": {
+              "type": "object_read",
+              "handle": "abc/in/abc0.in"
+            },
+            "1": {
+              "type": "object_write",
+              "handle": "user_out_0"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Run checker for test 0",
+      "type": "execution",
+      "channels": [],
+      "exclusive": false,
+      "hard_time_limit": 30000,
+      "output_register": 2,
+      "pid_namespaces": 1,
+      "filesystems": [
+        {
+          "type": "object",
+          "handle": "executables/abcchk.cpp.e"
+        },
+        {
+          "type": "object",
+          "handle": "abc/in/abc0.in"
+        },
+        {
+          "type": "object",
+          "handle": "abc/out/abc0.out"
+        },
+        {
+          "type": "object",
+          "handle": "user_out_0"
+        }
+      ],
+      "mount_namespaces": [
+        {
+          "mountpoints": [
+            {
+              "source": 0,
+              "target": "/chk",
+              "writable": false
+            },
+            {
+              "source": 1,
+              "target": "/in",
+              "writable": false
+            },
+            {
+              "source": 2,
+              "target": "/out",
+              "writable": false
+            },
+            {
+              "source": 3,
+              "target": "/user_out",
+              "writable": false
+            }
+          ],
+          "root": 0
+        }
+      ],
+      "pipes": 0,
+      "resource_groups": [
+        {
+          "cpu_usage_limit": 100.0,
+          "instruction_limit": 1000000000.0,
+          "memory_limit": 2147483648,
+          "oom_terminate_all_tasks": false,
+          "pid_limit": 2,
+          "swap_limit": 0,
+          "time_limit": 1000000000.0
+        }
+      ],
+      "processes": [
+        {
+          "arguments": [
+            "/chk",
+            "/in",
+            "/out",
+            "/user_out"
+          ],
+          "environment": [],
+          "image": "",
+          "mount_namespace": 0,
+          "resource_group": 0,
+          "pid_namespace": 0,
+          "working_directory": "/",
+          "descriptors": {
+            "1": {
+              "type": "object_write",
+              "handle": "chk_out_0"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Grade test 0",
+      "type": "script",
+      "reactive": true,
+      "input_registers": [
+        8,
+        2
+      ],
+      "output_registers": [
+        4
+      ],
+      "script": "--[[\n\nThis script checks and grades a user's solution on a test. It gets two registers,\nchecker status and solution status, as well as an object, which is the checkers output.\n\n]]--\n\nlocal solution_status = get_register(0)\nlocal checker_status = get_register(1)\nlocal checker_out_obj = get_object(0)\nlocal checker_out = checker_out_obj:get_value()\n\nprint(\"checker_out: \" .. checker_out)\n",
+      "objects": [
+        "user_out_0"
+      ]
+    },
+    {
+      "name": "Grade group 0",
+      "type": "script",
+      "reactive": true,
+      "input_registers": [
+        4
+      ],
+      "output_registers": [
+        6
+      ],
+      "script": "--[[\nThe template bellow contains a mapping of the test ID to the register name.\nExample:\n{\n    [\"0\"] = \"grade_res_0\",\n    [\"1a\"] = \"grade_res_1a\",\n    [\"1b\"] = \"grade_res_1b\",\n}\n\n]]--\nlocal test_grading = {\"0\" = \"4\"}\n\nfor reg, test_id in pairs(outgens) do\n    -- do some epic grading stuff\n    print(\"ok\")\nend\n"
+    },
+    {
+      "name": "Run solution for test 1a",
+      "type": "execution",
+      "channels": [],
+      "exclusive": false,
+      "hard_time_limit": 0,
+      "output_register": 9,
+      "pid_namespaces": 1,
+      "filesystems": [
+        {
+          "type": "object",
+          "handle": "executables/abc.cpp.e"
+        }
+      ],
+      "mount_namespaces": [
+        {
+          "mountpoints": [
+            {
+              "source": 0,
+              "target": "/exe",
+              "writable": false
+            }
+          ],
+          "root": 0
+        }
+      ],
+      "pipes": 0,
+      "resource_groups": [
+        {
+          "cpu_usage_limit": 100.0,
+          "instruction_limit": 1000000000.0,
+          "memory_limit": 2147483648,
+          "oom_terminate_all_tasks": false,
+          "pid_limit": 2,
+          "swap_limit": 0,
+          "time_limit": 1000000000.0
+        }
+      ],
+      "processes": [
+        {
+          "arguments": [
+            "/exe"
+          ],
+          "environment": [],
+          "image": "",
+          "mount_namespace": 0,
+          "resource_group": 0,
+          "pid_namespace": 0,
+          "working_directory": "/",
+          "descriptors": {
+            "0": {
+              "type": "object_read",
+              "handle": "abc/in/abc1a.in"
+            },
+            "1": {
+              "type": "object_write",
+              "handle": "user_out_1a"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Run checker for test 1a",
+      "type": "execution",
+      "channels": [],
+      "exclusive": false,
+      "hard_time_limit": 30000,
+      "output_register": 3,
+      "pid_namespaces": 1,
+      "filesystems": [
+        {
+          "type": "object",
+          "handle": "executables/abcchk.cpp.e"
+        },
+        {
+          "type": "object",
+          "handle": "abc/in/abc1a.in"
+        },
+        {
+          "type": "object",
+          "handle": "abc/out/abc1a.out"
+        },
+        {
+          "type": "object",
+          "handle": "user_out_1a"
+        }
+      ],
+      "mount_namespaces": [
+        {
+          "mountpoints": [
+            {
+              "source": 0,
+              "target": "/chk",
+              "writable": false
+            },
+            {
+              "source": 1,
+              "target": "/in",
+              "writable": false
+            },
+            {
+              "source": 2,
+              "target": "/out",
+              "writable": false
+            },
+            {
+              "source": 3,
+              "target": "/user_out",
+              "writable": false
+            }
+          ],
+          "root": 0
+        }
+      ],
+      "pipes": 0,
+      "resource_groups": [
+        {
+          "cpu_usage_limit": 100.0,
+          "instruction_limit": 1000000000.0,
+          "memory_limit": 2147483648,
+          "oom_terminate_all_tasks": false,
+          "pid_limit": 2,
+          "swap_limit": 0,
+          "time_limit": 1000000000.0
+        }
+      ],
+      "processes": [
+        {
+          "arguments": [
+            "/chk",
+            "/in",
+            "/out",
+            "/user_out"
+          ],
+          "environment": [],
+          "image": "",
+          "mount_namespace": 0,
+          "resource_group": 0,
+          "pid_namespace": 0,
+          "working_directory": "/",
+          "descriptors": {
+            "1": {
+              "type": "object_write",
+              "handle": "chk_out_1a"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Grade test 1a",
+      "type": "script",
+      "reactive": true,
+      "input_registers": [
+        9,
+        3
+      ],
+      "output_registers": [
+        5
+      ],
+      "script": "--[[\n\nThis script checks and grades a user's solution on a test. It gets two registers,\nchecker status and solution status, as well as an object, which is the checkers output.\n\n]]--\n\nlocal solution_status = get_register(0)\nlocal checker_status = get_register(1)\nlocal checker_out_obj = get_object(0)\nlocal checker_out = checker_out_obj:get_value()\n\nprint(\"checker_out: \" .. checker_out)\n",
+      "objects": [
+        "user_out_1a"
+      ]
+    },
+    {
+      "name": "Grade group 1",
+      "type": "script",
+      "reactive": true,
+      "input_registers": [
+        5
+      ],
+      "output_registers": [
+        7
+      ],
+      "script": "--[[\nThe template bellow contains a mapping of the test ID to the register name.\nExample:\n{\n    [\"0\"] = \"grade_res_0\",\n    [\"1a\"] = \"grade_res_1a\",\n    [\"1b\"] = \"grade_res_1b\",\n}\n\n]]--\nlocal test_grading = {\"1a\" = \"5\"}\n\nfor reg, test_id in pairs(outgens) do\n    -- do some epic grading stuff\n    print(\"ok\")\nend\n"
+    },
+    {
+      "name": "Grade run",
+      "type": "script",
+      "reactive": true,
+      "input_registers": [
+        6,
+        7
+      ],
+      "output_registers": [
+        1
+      ],
+      "script": "--[[\nThe template bellow contains a mapping of the test ID to the register name.\nExample:\n{\n    [\"0\"] = \"group_grade_res_0\",\n    [\"1a\"] = \"group_grade_res_1a\",\n    [\"1b\"] = \"group_grade_res_1b\",\n}\n\n]]--\nlocal test_grading = {\"0\" = \"6\", \"1\" = \"7\"}\n\nfor reg, test_id in pairs(outgens) do\n    -- do some epic grading stuff\n    print(\"ok\")\nend\n"
+    }
+  ],
+  "registers": 10
 }

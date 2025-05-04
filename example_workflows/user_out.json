@@ -1,0 +1,139 @@
+{
+  "name": "Generate user out for test",
+  "external_objects": [
+    "prog/abc.cpp",
+    "in/abc1a.in"
+  ],
+  "observable_objects": [
+    "user_out_1a"
+  ],
+  "observable_registers": 2,
+  "tasks": [
+    {
+      "name": "Compile prog/abc.cpp using g++",
+      "type": "execution",
+      "channels": [],
+      "exclusive": false,
+      "hard_time_limit": 60000,
+      "output_register": 0,
+      "pid_namespaces": 1,
+      "filesystems": [
+        {
+          "type": "object",
+          "handle": "prog/abc.cpp"
+        }
+      ],
+      "mount_namespaces": [
+        {
+          "mountpoints": [
+            {
+              "source": 0,
+              "target": "/file.cpp",
+              "writable": false
+            }
+          ],
+          "root": 0
+        }
+      ],
+      "pipes": 0,
+      "resource_groups": [
+        {
+          "cpu_usage_limit": 100.0,
+          "instruction_limit": 1000000000.0,
+          "memory_limit": 2147483648,
+          "oom_terminate_all_tasks": false,
+          "pid_limit": 2,
+          "swap_limit": 0,
+          "time_limit": 1000000000.0
+        }
+      ],
+      "processes": [
+        {
+          "arguments": [
+            "g++",
+            "/file.cpp",
+            "-o",
+            "/<OUT>",
+            "-std=c++20",
+            "-O3"
+          ],
+          "environment": [],
+          "image": "compiler:g++",
+          "mount_namespace": 0,
+          "resource_group": 0,
+          "pid_namespace": 0,
+          "working_directory": "/",
+          "descriptors": {
+            "2137": {
+              "type": "object_write",
+              "handle": "executables/abc.cpp.e"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Run solution for test 1a",
+      "type": "execution",
+      "channels": [],
+      "exclusive": false,
+      "hard_time_limit": 0,
+      "output_register": 1,
+      "pid_namespaces": 1,
+      "filesystems": [
+        {
+          "type": "object",
+          "handle": "executables/abc.cpp.e"
+        }
+      ],
+      "mount_namespaces": [
+        {
+          "mountpoints": [
+            {
+              "source": 0,
+              "target": "/exe",
+              "writable": false
+            }
+          ],
+          "root": 0
+        }
+      ],
+      "pipes": 0,
+      "resource_groups": [
+        {
+          "cpu_usage_limit": 100.0,
+          "instruction_limit": 1000000000.0,
+          "memory_limit": 2147483648,
+          "oom_terminate_all_tasks": false,
+          "pid_limit": 2,
+          "swap_limit": 0,
+          "time_limit": 1000000000.0
+        }
+      ],
+      "processes": [
+        {
+          "arguments": [
+            "/exe"
+          ],
+          "environment": [],
+          "image": "",
+          "mount_namespace": 0,
+          "resource_group": 0,
+          "pid_namespace": 0,
+          "working_directory": "/",
+          "descriptors": {
+            "0": {
+              "type": "object_read",
+              "handle": "in/abc1a.in"
+            },
+            "1": {
+              "type": "object_write",
+              "handle": "user_out_1a"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "registers": 2
+}

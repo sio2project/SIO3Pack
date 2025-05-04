@@ -164,6 +164,20 @@ def main():
                             "background-color": "#ff4136",
                         },
                     },
+                    {
+                        "selector": "#input_storage",
+                        "style": {
+                            "shape": "rectangle",
+                            "background-color": "#2ECC40",
+                        },
+                    },
+                    {
+                        "selector": "#output_storage",
+                        "style": {
+                            "shape": "rectangle",
+                            "background-color": "#FF851B",
+                        },
+                    },
                 ],
             )
             return (

@@ -8,10 +8,18 @@ class Filesystem:
     :param int id: The id of the filesystem in the task.
     """
 
-    def __init__(self, id: int):
+    def __init__(self, id: int = None):
         """
         Represent a filesystem.
         :param id: The id of the filesystem.
+        """
+        self.id = id
+
+    def _set_id(self, id: int):
+        """
+        Set the id of the filesystem. Should only be used by the FilesystemManager.
+
+        :param int id: The id of the filesystem.
         """
         self.id = id
 
@@ -34,6 +42,14 @@ class Filesystem:
         """
         return NotImplementedError()
 
+    def replace_templates(self, replacements: dict[str, str]):
+        """
+        Replace strings in the task with the given replacements.
+
+        :param replacements: The replacements to make.
+        """
+        pass
+
 
 class ImageFilesystem(Filesystem):
     """
@@ -45,11 +61,10 @@ class ImageFilesystem(Filesystem):
     :param str path: The path to the image. If None, the path is "".
     """
 
-    def __init__(self, id: int, image: str, path: str = None):
+    def __init__(self, image: str, path: str = None, id: int = None):
         """
         Represent an image filesystem.
 
-        :param id: The id of the image filesystem.
         :param image: The image to use.
         :param path: The path to the image. If None, the path is ""
         """
@@ -69,7 +84,7 @@ class ImageFilesystem(Filesystem):
         :param id id: The id of the image filesystem.
         :param Workflow workflow: The workflow the image filesystem belongs to.
         """
-        return cls(id, data["image"], data["path"])
+        return cls(data["image"], data["path"], id)
 
     def to_json(self) -> dict:
         """
@@ -81,7 +96,7 @@ class ImageFilesystem(Filesystem):
 
 
 class EmptyFilesystem(Filesystem):
-    def __init__(self, id: int):
+    def __init__(self, id: int = None):
         """
         Represent an empty filesystem. Can be used as tmpfs.
         :param id: The id of the empty filesystem.
@@ -109,10 +124,9 @@ class EmptyFilesystem(Filesystem):
 
 
 class ObjectFilesystem(Filesystem):
-    def __init__(self, id: int, object: Object, workflow: "Workflow"):
+    def __init__(self, object: Object, id: int = None):
         """
         Represent an object filesystem.
-        :param id: The id of the object filesystem.
         :param object: The object to use.
         :param workflow: The workflow the object belongs to.
         """
@@ -130,7 +144,7 @@ class ObjectFilesystem(Filesystem):
         :param id: The id of the object filesystem.
         :param workflow: The workflow the object filesystem belongs to.
         """
-        return cls(id, workflow.objects_manager.get_or_create_object(data["handle"]), workflow)
+        return cls(workflow.objects_manager.get_or_create_object(data["handle"]), id)
 
     def to_json(self) -> dict:
         """
@@ -141,12 +155,28 @@ class ObjectFilesystem(Filesystem):
             "handle": self.object.handle,
         }
 
+    def replace_templates(self, replacements: dict[str, str]):
+        """
+        Replace strings in the task with the given replacements.
+
+        :param replacements: The replacements to make.
+        """
+        self.object.replace_templates(replacements)
+
 
 class FilesystemManager:
+    """
+    A class to manage filesystems.
+
+    :param Task task: The task the filesystem manager belongs to.
+    :param list[Filesystem] filesystems: The list of filesystems.
+    """
+
     def __init__(self, task: "Task"):
         """
         Create a new filesystem manager.
-        :param task: The task the filesystem manager belongs to.
+
+        :param Task task: The task the filesystem manager belongs to.
         """
         self.filesystems: list[Filesystem] = []
         self.id = 0
@@ -155,8 +185,9 @@ class FilesystemManager:
     def from_json(self, data: list[dict], workflow: "Workflow"):
         """
         Create filesystems from a list of dictionaries.
-        :param data: The list of dictionaries to create the filesystems from.
-        :param workflow: The workflow the filesystems belong to.
+
+        :param list[dict] data: The list of dictionaries to create the filesystems from.
+        :param Workflow workflow: The workflow the filesystems belong to.
         """
         for fs in data:
             if fs["type"] == "image":
@@ -185,5 +216,15 @@ class FilesystemManager:
         Add a filesystem to the manager.
         :param filesystem: The filesystem to add.
         """
+        filesystem._set_id(self.id)
         self.filesystems.append(filesystem)
         self.id += 1
+
+    def replace_templates(self, replacements: dict[str, str]):
+        """
+        Replace strings in the task with the given replacements.
+
+        :param replacements: The replacements to make.
+        """
+        for fs in self.filesystems:
+            fs.replace_templates(replacements)

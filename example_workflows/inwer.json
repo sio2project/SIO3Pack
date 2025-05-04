@@ -1,0 +1,207 @@
+{
+  "name": "Inwer",
+  "external_objects": [
+    "abc/prog/abcinwer.cpp",
+    "abc/in/abc0.in",
+    "abc/in/abc1a.in"
+  ],
+  "observable_objects": [],
+  "observable_registers": 2,
+  "tasks": [
+    {
+      "name": "Compile abc/prog/abcinwer.cpp using g++",
+      "type": "execution",
+      "channels": [],
+      "exclusive": false,
+      "hard_time_limit": 60000,
+      "output_register": 0,
+      "pid_namespaces": 1,
+      "filesystems": [
+        {
+          "type": "object",
+          "handle": "abc/prog/abcinwer.cpp"
+        }
+      ],
+      "mount_namespaces": [
+        {
+          "mountpoints": [
+            {
+              "source": 0,
+              "target": "/file.cpp",
+              "writable": false
+            }
+          ],
+          "root": 0
+        }
+      ],
+      "pipes": 0,
+      "resource_groups": [
+        {
+          "cpu_usage_limit": 100.0,
+          "instruction_limit": 1000000000.0,
+          "memory_limit": 2147483648,
+          "oom_terminate_all_tasks": false,
+          "pid_limit": 2,
+          "swap_limit": 0,
+          "time_limit": 1000000000.0
+        }
+      ],
+      "processes": [
+        {
+          "arguments": [
+            "g++",
+            "/file.cpp",
+            "-o",
+            "/<OUT>",
+            "-std=c++20",
+            "-O3"
+          ],
+          "environment": [],
+          "image": "compiler:g++",
+          "mount_namespace": 0,
+          "resource_group": 0,
+          "pid_namespace": 0,
+          "working_directory": "/",
+          "descriptors": {
+            "2137": {
+              "type": "object_write",
+              "handle": "executables/abcinwer.cpp.e"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Run inwer on test 0",
+      "type": "execution",
+      "channels": [],
+      "exclusive": false,
+      "hard_time_limit": 10000,
+      "output_register": 2,
+      "pid_namespaces": 1,
+      "filesystems": [
+        {
+          "type": "object",
+          "handle": "executables/abcinwer.cpp.e"
+        }
+      ],
+      "mount_namespaces": [
+        {
+          "mountpoints": [
+            {
+              "source": 0,
+              "target": "/inwer",
+              "writable": false
+            }
+          ],
+          "root": 0
+        }
+      ],
+      "pipes": 0,
+      "resource_groups": [
+        {
+          "cpu_usage_limit": 100.0,
+          "instruction_limit": 1000000000.0,
+          "memory_limit": 2147483648,
+          "oom_terminate_all_tasks": false,
+          "pid_limit": 2,
+          "swap_limit": 0,
+          "time_limit": 1000000000.0
+        }
+      ],
+      "processes": [
+        {
+          "arguments": [
+            "/inwer",
+            "0"
+          ],
+          "environment": [],
+          "image": "",
+          "mount_namespace": 0,
+          "resource_group": 0,
+          "pid_namespace": 0,
+          "working_directory": "/",
+          "descriptors": {
+            "0": {
+              "type": "object_read",
+              "handle": "abc/in/abc0.in"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Run inwer on test 1a",
+      "type": "execution",
+      "channels": [],
+      "exclusive": false,
+      "hard_time_limit": 10000,
+      "output_register": 3,
+      "pid_namespaces": 1,
+      "filesystems": [
+        {
+          "type": "object",
+          "handle": "executables/abcinwer.cpp.e"
+        }
+      ],
+      "mount_namespaces": [
+        {
+          "mountpoints": [
+            {
+              "source": 0,
+              "target": "/inwer",
+              "writable": false
+            }
+          ],
+          "root": 0
+        }
+      ],
+      "pipes": 0,
+      "resource_groups": [
+        {
+          "cpu_usage_limit": 100.0,
+          "instruction_limit": 1000000000.0,
+          "memory_limit": 2147483648,
+          "oom_terminate_all_tasks": false,
+          "pid_limit": 2,
+          "swap_limit": 0,
+          "time_limit": 1000000000.0
+        }
+      ],
+      "processes": [
+        {
+          "arguments": [
+            "/inwer",
+            "1a"
+          ],
+          "environment": [],
+          "image": "",
+          "mount_namespace": 0,
+          "resource_group": 0,
+          "pid_namespace": 0,
+          "working_directory": "/",
+          "descriptors": {
+            "0": {
+              "type": "object_read",
+              "handle": "abc/in/abc1a.in"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Verify inwer",
+      "type": "script",
+      "reactive": false,
+      "input_registers": [
+        2,
+        3
+      ],
+      "output_registers": [
+        1
+      ],
+      "script": "--[[\nThe template bellow contains a mapping of the test ID to the register name.\nExample:\n{\n    [\"0\"] = \"outgen_res_0\",\n    [\"1a\"] = \"outgen_res_1a\",\n    [\"1b\"] = \"outgen_res_1b\",\n}\n\n]]--\nlocal outgens = {\"0\" = \"2\", \"1a\" = \"3\"}\n\nfor reg, test_id in pairs(outgens) do\n    -- do some epic inwer stuff\n    print(\"ok\")\nend\n"
+    }
+  ],
+  "registers": 4
+}

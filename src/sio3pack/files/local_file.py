@@ -25,13 +25,15 @@ class LocalFile(File):
                 return cls(path)
         raise FileNotFoundError
 
-    def __init__(self, path: str):
+    def __init__(self, path: str, exists=True):
         """
         Initialize the file.
+
         :param str path: The path to the file.
+        :param bool exists: If True, check if the file exists.
         :raises FileNotFoundError: If the file doesn't exist.
         """
-        if not os.path.exists(path):
+        if not os.path.exists(path) and exists:
             raise FileNotFoundError
         super().__init__(path)
         self.filename = os.path.basename(path)
