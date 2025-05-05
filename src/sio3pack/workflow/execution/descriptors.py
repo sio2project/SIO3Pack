@@ -55,3 +55,28 @@ class DescriptorManager:
         :return: A view of the descriptor manager's items.
         """
         return self.descriptors.items()
+
+    def all(self) -> dict[int, Stream]:
+        """
+        Get all the streams in the descriptor manager.
+
+        :return: A dictionary of all the streams in the descriptor manager.
+        """
+        return self.descriptors
+
+    def get(self, fd: int) -> Stream:
+        """
+        Get a stream by its file descriptor.
+
+        :param int fd: The file descriptor.
+        :return: The stream associated with the file descriptor.
+        """
+        return self.descriptors.get(fd)
+
+    def size(self) -> int:
+        """
+        Get the number of streams in the descriptor manager.
+
+        :return: The number of streams in the descriptor manager.
+        """
+        return len(self.descriptors)
