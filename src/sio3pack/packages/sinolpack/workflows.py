@@ -624,7 +624,7 @@ class SinolpackWorkflowManager(WorkflowManager):
             reactive=True,
             input_registers=["r:run_test_res_<TEST_ID>", "r:checker_res_<TEST_ID>"],
             output_registers=["r:grade_res_<TEST_ID>"],
-            objects=[user_out_obj],
+            objects=[chk_out_obj],
             script=lua.get_script("grade_test"),
         )
         wf.add_task(grade)

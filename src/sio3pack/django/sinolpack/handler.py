@@ -46,7 +46,9 @@ class SinolpackDjangoHandler(DjangoHandler):
         )
 
     def _save_model_solutions(self):
-        for order, (kind, solution) in enumerate(self.package.model_solutions):
+        for order, ms in enumerate(self.package.model_solutions):
+            kind = ms["kind"]
+            solution = ms["file"]
             instance = SinolpackModelSolution(
                 package=self.db_package,
                 name=solution.filename,

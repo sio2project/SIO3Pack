@@ -1,6 +1,7 @@
 import os
 import re
 import tempfile
+from typing import Any
 
 import yaml
 
@@ -27,8 +28,8 @@ class Sinolpack(Package):
     :param dict[str, File] lang_statements: A dictionary of problem
         statements, where keys are language codes and values are files.
     :param dict[str, Any] config: Configuration of the problem.
-    :param list[tuple[ModelSolutionKind, File]] model_solutions: A list
-        of model solutions, where each element is a tuple containing
+    :param list[dict[str, Any]] model_solutions: A list
+        of model solutions, where each element is a dict containing
         a model solution kind and a file.
     :param list[File] additional_files: A list of additional files for
         the problem.
@@ -253,9 +254,9 @@ class Sinolpack(Package):
         extensions = self.get_submittable_extensions()
         return rf"^{self.short_name}\.({'|'.join(extensions)})"
 
-    def _get_model_solutions(self) -> list[tuple[ModelSolutionKind, File]]:
+    def _get_model_solutions(self) -> list[dict[str, Any]]:
         """
-        Returns a list of model solutions, where each element is a tuple of model solution kind and filename.
+        Returns a list of model solutions, where each element is a dict of model solution kind and filename.
         """
         if not os.path.exists(self.get_prog_dir()):
             return []
@@ -268,7 +269,7 @@ class Sinolpack(Package):
             match = re.match(regex, file)
             if match and os.path.isfile(os.path.join(self.get_prog_dir(), file)):
                 file = LocalFile(os.path.join(self.get_prog_dir(), file))
-                model_solutions.append((ModelSolutionKind.from_regex(match.group(1)), file))
+                model_solutions.append({"file": file, "kind": ModelSolutionKind.from_regex(match.group(1))})
                 if re.match(main_regex, file.filename):
                     main_solution = file
 
@@ -276,14 +277,15 @@ class Sinolpack(Package):
         return model_solutions
 
     def sort_model_solutions(
-        self, model_solutions: list[tuple[ModelSolutionKind, File]]
-    ) -> list[tuple[ModelSolutionKind, File]]:
+        self, model_solutions: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
         """
         Sorts model solutions by kind.
         """
 
         def sort_key(model_solution):
-            kind, file = model_solution
+            kind: ModelSolutionKind = model_solution['kind']
+            file: LocalFile = model_solution['file']
             return kind.value, naturalsort_key(file.filename[: file.filename.index(".")])
 
         return list(sorted(model_solutions, key=sort_key))

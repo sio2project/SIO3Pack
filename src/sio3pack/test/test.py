@@ -3,7 +3,6 @@ from sio3pack.files import File
 
 class Test:
     """
-    Represents an input or output test.
     Represents an input and output test.
     """
 
@@ -12,5 +11,3 @@ class Test:
         self.in_file = in_file
         self.out_file = out_file
         self.group = group
-
-    pass

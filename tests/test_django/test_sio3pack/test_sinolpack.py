@@ -55,7 +55,9 @@ def test_model_solutions(get_archived_package):
     model_solutions = package.model_solutions
     db_model_solutions = SinolpackModelSolution.objects.filter(package=db_package)
     assert len(model_solutions) == db_model_solutions.count()
-    for order, (kind, solution) in enumerate(model_solutions):
+    for order, msdict in enumerate(model_solutions):
+        kind = msdict["kind"]
+        solution = msdict["file"]
         ms = db_model_solutions.get(order_key=order)
         assert ms.name == solution.filename
         assert ms.kind == kind
