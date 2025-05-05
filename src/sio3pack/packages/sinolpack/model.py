@@ -282,16 +282,14 @@ class Sinolpack(Package):
         self.main_model_solution = main_solution
         return model_solutions
 
-    def sort_model_solutions(
-        self, model_solutions: list[dict[str, Any]]
-    ) -> list[dict[str, Any]]:
+    def sort_model_solutions(self, model_solutions: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """
         Sorts model solutions by kind.
         """
 
         def sort_key(model_solution):
-            kind: ModelSolutionKind = model_solution['kind']
-            file: LocalFile = model_solution['file']
+            kind: ModelSolutionKind = model_solution["kind"]
+            file: LocalFile = model_solution["file"]
             return kind.value, naturalsort_key(file.filename[: file.filename.index(".")])
 
         return list(sorted(model_solutions, key=sort_key))
