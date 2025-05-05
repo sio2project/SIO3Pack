@@ -1,9 +1,12 @@
+import json
 import os
 
 from django.conf import settings
 from django.db import models
 from django.utils.text import get_valid_filename
 from django.utils.translation import gettext_lazy as _
+
+from sio3pack.workflow import Workflow
 
 try:
     from oioioi.filetracker.fields import FileField
@@ -113,3 +116,28 @@ class SIO3PackTest(models.Model):
     group = models.CharField(max_length=255, verbose_name=_("group"))
     input_file = FileField(upload_to=make_problem_filename, verbose_name=_("input file"), blank=True, null=True)
     output_file = FileField(upload_to=make_problem_filename, verbose_name=_("output file"), blank=True, null=True)
+
+    def __str__(self):
+        return f"<SIO3PackTest {self.name}>"
+
+    class Meta(object):
+        verbose_name = _("test")
+        verbose_name_plural = _("tests")
+        unique_together = ("package", "name", "test_id", "group")
+
+
+class SIO3PackWorkflow(models.Model):
+    package = models.ForeignKey(SIO3Package, on_delete=models.CASCADE, related_name="workflows")
+    name = models.CharField(max_length=255, verbose_name=_("name"))
+    workflow_raw = models.TextField(verbose_name=_("workflow"))
+
+    def __str__(self):
+        return f"<SIO3PackWorkflow {self.name}>"
+
+    @property
+    def workflow(self) -> Workflow:
+        return Workflow.from_json(json.loads(self.workflow_raw))
+
+    class Meta(object):
+        verbose_name = _("workflow")
+        verbose_name_plural = _("workflows")

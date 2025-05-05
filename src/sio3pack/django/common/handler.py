@@ -1,14 +1,16 @@
-from typing import Any, Type
+import json
+from typing import Any
 
 from django.core.files import File
 from django.db import transaction
 
 import sio3pack
 from sio3pack.django.common.models import SIO3Package, SIO3PackModelSolution, SIO3PackNameTranslation, \
-    SIO3PackStatement, SIO3PackMainModelSolution, SIO3PackTest
+    SIO3PackStatement, SIO3PackMainModelSolution, SIO3PackTest, SIO3PackWorkflow
 from sio3pack.files import LocalFile, RemoteFile
-from sio3pack.packages.exceptions import ImproperlyConfigured, PackageAlreadyExists
+from sio3pack.packages.exceptions import PackageAlreadyExists
 from sio3pack.test import Test
+from sio3pack.workflow import Workflow
 
 
 class DjangoHandler:
@@ -106,6 +108,14 @@ class DjangoHandler:
                 instance.output_file.save(test.out_file.filename, File(open(test.out_file.path, "rb")))
             instance.save()
 
+    def _save_workflows(self):
+        for name, wf in self.package.workflow_manager.all().items():
+            instance = SIO3PackWorkflow(
+                package=self.db_package,
+                name=name,
+                workflow_raw=json.dumps(wf.to_json()),
+            )
+
     @property
     def short_name(self) -> str:
         """
@@ -165,3 +175,13 @@ class DjangoHandler:
             )
             for t in self.db_package.tests.all()
         ]
+
+    @property
+    def workflows(self) -> dict[str, Workflow]:
+        """
+        A dictionary of workflows, where keys are workflow names and values are :class:`sio3pack.Workflow` objects.
+        """
+        return {
+            w.name: w.workflow
+            for w in self.db_package.workflows.all()
+        }

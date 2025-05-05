@@ -2,7 +2,7 @@ import json
 import os
 import re
 import tempfile
-from typing import Any
+from typing import Any, Type
 
 import yaml
 
@@ -40,6 +40,11 @@ class Sinolpack(Package):
     :param dict[str, File | None] special_files: A dictionary of special files,
         where keys are file names and values are booleans indicating
         whether the file exists or not.
+    :param list[Test] tests: A list of tests, where each element is a
+        :class:`sio3pack.Test` object.
+    :param bool is_from_db: A flag indicating whether the package
+        is loaded from the database or not.
+    :param SinolpackWorkflowManager workflow_manager: A workflow manager for the problem.
     """
 
     django_handler = "sio3pack.django.sinolpack.handler.SinolpackDjangoHandler"
@@ -123,11 +128,13 @@ class Sinolpack(Package):
     def _from_db(self, problem_id: int):
         super()._from_db(problem_id)
         super()._setup_django_handler(problem_id)
+        # TODO: Workflows probably should be fetched only if they are needed, since this can be slow
+        super()._setup_workflows_from_db()
         if not self.django_enabled:
             raise ImproperlyConfigured("sio3pack is not installed with Django support.")
 
-    def _default_workflow_manager(self) -> WorkflowManager:
-        return SinolpackWorkflowManager(self, {})
+    def _workflow_manager_class(self) -> Type[WorkflowManager]:
+        return SinolpackWorkflowManager
 
     def _get_from_django_settings(self, key: str, default=None):
         if self.configuration.django_settings is None:

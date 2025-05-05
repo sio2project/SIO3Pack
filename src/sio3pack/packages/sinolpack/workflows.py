@@ -1,6 +1,6 @@
 import os
 from enum import Enum
-from typing import Tuple
+from typing import Tuple, Any
 
 from sio3pack import lua
 from sio3pack.exceptions import WorkflowCreationError
@@ -22,7 +22,7 @@ class UnpackStage(Enum):
 
 
 class SinolpackWorkflowManager(WorkflowManager):
-    def __init__(self, package: "Sinolpack", workflows: dict[str, Workflow]):
+    def __init__(self, package: "Sinolpack", workflows: dict[str, Any]):
         super().__init__(package, workflows)
         self._has_ingen = False
         self._has_outgen = False

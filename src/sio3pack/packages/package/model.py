@@ -1,16 +1,16 @@
 import importlib
 import os
-from typing import Any
+from typing import Any, Type
 
 from sio3pack.exceptions import SIO3PackException
 from sio3pack.files import File, LocalFile
-from sio3pack.packages.exceptions import UnknownPackageType
+from sio3pack.packages.exceptions import UnknownPackageType, ImproperlyConfigured
 from sio3pack.packages.package.configuration import SIO3PackConfig
 from sio3pack.packages.package.handler import NoDjangoHandler
 from sio3pack.test import Test
 from sio3pack.utils.archive import Archive
 from sio3pack.utils.classinit import RegisteredSubclassesBase
-from sio3pack.workflow import WorkflowOperation
+from sio3pack.workflow import WorkflowOperation, WorkflowManager
 
 
 def wrap_exceptions(func):
@@ -132,6 +132,23 @@ class Package(RegisteredSubclassesBase):
         except ImportError:
             self.django_enabled = False
             self.django = NoDjangoHandler()
+
+    def _setup_workflows_from_db(self):
+        """
+        Set up the workflows from the database. If sio3pack isn't installed with Django
+        support, it should raise an ImproperlyConfigured exception.
+        """
+        if not self.django_enabled:
+            raise ImproperlyConfigured("Django is not enabled.")
+        cls = self._workflow_manager_class()
+        self.workflow_manager = cls(self, self.django.workflows)
+
+    def _workflow_manager_class(self) -> Type[WorkflowManager]:
+        return WorkflowManager
+
+    def _default_workflow_manager(self) -> WorkflowManager:
+        cls = self._workflow_manager_class()
+        return cls(self, {})
 
     def __getattr__(self, name: str) -> Any:
         try:
