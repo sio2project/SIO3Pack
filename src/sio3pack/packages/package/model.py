@@ -4,13 +4,13 @@ from typing import Any, Type
 
 from sio3pack.exceptions import SIO3PackException
 from sio3pack.files import File, LocalFile
-from sio3pack.packages.exceptions import UnknownPackageType, ImproperlyConfigured
+from sio3pack.packages.exceptions import ImproperlyConfigured, UnknownPackageType
 from sio3pack.packages.package.configuration import SIO3PackConfig
 from sio3pack.packages.package.handler import NoDjangoHandler
 from sio3pack.test import Test
 from sio3pack.utils.archive import Archive
 from sio3pack.utils.classinit import RegisteredSubclassesBase
-from sio3pack.workflow import WorkflowOperation, WorkflowManager
+from sio3pack.workflow import WorkflowManager, WorkflowOperation
 
 
 def wrap_exceptions(func):

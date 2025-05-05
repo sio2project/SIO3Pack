@@ -9,10 +9,10 @@ from sio3pack.django.sinolpack.models import (
     SinolpackAdditionalFile,
     SinolpackAttachment,
     SinolpackConfig,
-    SinolpackModelSolution, SinolpackSpecialFile,
+    SinolpackModelSolution,
+    SinolpackSpecialFile,
 )
 from sio3pack.files import RemoteFile
-from sio3pack.packages.sinolpack.enums import ModelSolutionKind
 
 
 class SinolpackDjangoHandler(DjangoHandler):

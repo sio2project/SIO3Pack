@@ -5,8 +5,15 @@ from django.core.files import File
 from django.db import transaction
 
 import sio3pack
-from sio3pack.django.common.models import SIO3Package, SIO3PackModelSolution, SIO3PackNameTranslation, \
-    SIO3PackStatement, SIO3PackMainModelSolution, SIO3PackTest, SIO3PackWorkflow
+from sio3pack.django.common.models import (
+    SIO3Package,
+    SIO3PackMainModelSolution,
+    SIO3PackModelSolution,
+    SIO3PackNameTranslation,
+    SIO3PackStatement,
+    SIO3PackTest,
+    SIO3PackWorkflow,
+)
 from sio3pack.files import LocalFile, RemoteFile
 from sio3pack.packages.exceptions import PackageAlreadyExists
 from sio3pack.test import Test
@@ -78,7 +85,9 @@ class DjangoHandler:
             package=self.db_package,
             name=self.package.main_model_solution.filename,
         )
-        main.source_file.save(self.package.main_model_solution.filename, File(open(self.package.main_model_solution.path, "rb")))
+        main.source_file.save(
+            self.package.main_model_solution.filename, File(open(self.package.main_model_solution.path, "rb"))
+        )
         main.save()
 
     def _save_problem_statements(self):
@@ -181,7 +190,4 @@ class DjangoHandler:
         """
         A dictionary of workflows, where keys are workflow names and values are :class:`sio3pack.Workflow` objects.
         """
-        return {
-            w.name: w.workflow
-            for w in self.db_package.workflows.all()
-        }
+        return {w.name: w.workflow for w in self.db_package.workflows.all()}

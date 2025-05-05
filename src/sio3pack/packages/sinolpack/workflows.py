@@ -1,6 +1,6 @@
 import os
 from enum import Enum
-from typing import Tuple, Any
+from typing import Any, Tuple
 
 from sio3pack import lua
 from sio3pack.exceptions import WorkflowCreationError
