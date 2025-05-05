@@ -4,9 +4,11 @@ from django.core.files import File
 from django.db import transaction
 
 import sio3pack
-from sio3pack.django.common.models import SIO3Package, SIO3PackModelSolution, SIO3PackNameTranslation, SIO3PackStatement
+from sio3pack.django.common.models import SIO3Package, SIO3PackModelSolution, SIO3PackNameTranslation, \
+    SIO3PackStatement, SIO3PackMainModelSolution, SIO3PackTest
 from sio3pack.files import LocalFile, RemoteFile
 from sio3pack.packages.exceptions import ImproperlyConfigured, PackageAlreadyExists
+from sio3pack.test import Test
 
 
 class DjangoHandler:
@@ -48,6 +50,7 @@ class DjangoHandler:
         self._save_translated_titles()
         self._save_model_solutions()
         self._save_problem_statements()
+        self._save_tests()
 
     def _save_translated_titles(self):
         """
@@ -68,6 +71,13 @@ class DjangoHandler:
                 order_key=order,
             )
             instance.source_file.save(solution.filename, File(open(solution.path, "rb")))
+            instance.save()
+        main = SIO3PackMainModelSolution(
+            package=self.db_package,
+            name=self.package.main_model_solution.filename,
+        )
+        main.source_file.save(self.package.main_model_solution.filename, File(open(self.package.main_model_solution.path, "rb")))
+        main.save()
 
     def _save_problem_statements(self):
         def _add_statement(language: str, statement: LocalFile):
@@ -81,6 +91,20 @@ class DjangoHandler:
             _add_statement("", self.package.get_statement())
         for lang, statement in self.package.lang_statements.items():
             _add_statement(lang, statement)
+
+    def _save_tests(self):
+        for test in self.package.tests:
+            instance = SIO3PackTest(
+                package=self.db_package,
+                name=test.test_name,
+                test_id=test.test_id,
+                group=test.group,
+            )
+            if test.in_file:
+                instance.input_file.save(test.in_file.filename, File(open(test.in_file.path, "rb")))
+            if test.out_file:
+                instance.output_file.save(test.out_file.filename, File(open(test.out_file.path, "rb")))
+            instance.save()
 
     @property
     def short_name(self) -> str:
@@ -113,8 +137,31 @@ class DjangoHandler:
         return [{"file": RemoteFile(s.source_file.path)} for s in self.db_package.model_solutions.all()]
 
     @property
+    def main_model_solution(self) -> RemoteFile:
+        """
+        The main model solution as a :class:`sio3pack.RemoteFile`.
+        """
+        return RemoteFile(self.db_package.main_model_solution.source_file.path)
+
+    @property
     def lang_statements(self) -> dict[str, RemoteFile]:
         """
         A dictionary of problem statements, where keys are language codes and values are files.
         """
         return {s.language: RemoteFile(s.content.path) for s in self.db_package.statements.all()}
+
+    @property
+    def tests(self) -> list[Test]:
+        """
+        A list of tests, where each element is a dictionary containing
+        """
+        return [
+            Test(
+                test_id=t.test_id,
+                test_name=t.name,
+                group=t.group,
+                in_file=RemoteFile(t.input_file.path) if t.input_file else None,
+                out_file=RemoteFile(t.output_file.path) if t.output_file else None,
+            )
+            for t in self.db_package.tests.all()
+        ]

@@ -24,14 +24,6 @@ class UnpackStage(Enum):
 
 
 class WorkflowManager:
-    @classmethod
-    def from_file(cls, file: File):
-        workflows = {}
-        content = json.loads(file.read())
-        for name, graph in content.items():
-            workflows[name] = Workflow.from_json(graph)
-        return cls(workflows)
-
     def __init__(self, package: "Package", workflows: dict[str, Workflow]):
         self.package = package
         self.workflows = workflows

@@ -683,7 +683,7 @@ class SinolpackWorkflowManager(WorkflowManager):
 
     def _get_run_workflow(self, data: dict, program: File, tests: list[Test] | None = None) -> Tuple[Workflow, bool]:
         if tests is None:
-            tests = self.package.get_tests()
+            tests = self.package.tests
 
         workflow = Workflow(
             name="Run solution",

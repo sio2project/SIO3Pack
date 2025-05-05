@@ -67,6 +67,18 @@ class SIO3PackModelSolution(models.Model):
         return self.name.rsplit(".", 1)[0]
 
 
+class SIO3PackMainModelSolution(models.Model):
+    package = models.ForeignKey(SIO3Package, on_delete=models.CASCADE, related_name="main_model_solution")
+    source_file = FileField(upload_to=make_problem_filename, verbose_name=_("source file"))
+
+    def __str__(self):
+        return f"<SIO3PackMainModelSolution {self.package.short_name}>"
+
+    @property
+    def short_name(self):
+        return self.source_file.name.rsplit(".", 1)[0]
+
+
 class SIO3PackStatement(models.Model):
     package = models.ForeignKey(SIO3Package, on_delete=models.CASCADE, related_name="statements")
     language = models.CharField(
@@ -92,3 +104,12 @@ class SIO3PackStatement(models.Model):
     class Meta(object):
         verbose_name = _("problem statement")
         verbose_name_plural = _("problem statements")
+
+
+class SIO3PackTest(models.Model):
+    package = models.ForeignKey(SIO3Package, on_delete=models.CASCADE, related_name="tests")
+    name = models.CharField(max_length=255, verbose_name=_("name"))
+    test_id = models.CharField(max_length=255, verbose_name=_("id"))
+    group = models.CharField(max_length=255, verbose_name=_("group"))
+    input_file = FileField(upload_to=make_problem_filename, verbose_name=_("input file"), blank=True, null=True)
+    output_file = FileField(upload_to=make_problem_filename, verbose_name=_("output file"), blank=True, null=True)
