@@ -1,7 +1,7 @@
 import pytest
 
 import sio3pack
-from packages.sinolpack.utils import common_checks
+from tests.packages.sinolpack.utils import common_checks
 from tests.fixtures import Compression, PackageInfo, get_archived_package, get_package
 
 
