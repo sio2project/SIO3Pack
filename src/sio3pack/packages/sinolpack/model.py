@@ -390,13 +390,31 @@ class Sinolpack(Package):
             if os.path.isfile(os.path.join(attachments_dir, attachment))
         ]
 
+    def _get_test_regex(self) -> str:
+        return rf'^{self.short_name}(([0-9]+)([a-z]?[a-z0-9]*)).(in|out)$'
+
+    def match_test_regex(self, filename: str) -> re.Match | None:
+        """
+        Returns match object if the filename matches the test regex.
+        """
+        return re.match(self._get_test_regex(), filename)
+
     def get_test_id_from_filename(self, filename: str) -> str:
         """
         Returns the test ID from the filename.
         """
-        match = re.match(rf"^{self.short_name}([a-zA-Z0-9]+)\.in$", filename)
+        match = self.match_test_regex(filename)
         if match:
             return match.group(1)
+        raise ValueError(f"Invalid filename format: {filename}")
+
+    def get_group_from_filename(self, filename: str) -> str:
+        """
+        Returns the group from the filename.
+        """
+        match = self.match_test_regex(filename)
+        if match:
+            return match.group(2)
         raise ValueError(f"Invalid filename format: {filename}")
 
     def _process_existing_tests(self):
@@ -407,22 +425,17 @@ class Sinolpack(Package):
         test_ids = set()
         for ext in ("in", "out"):
             for file in os.listdir(os.path.join(self.rootdir, ext)):
-                try:
+                match = self.match_test_regex(os.path.basename(file))
+                if match:
                     test_name = os.path.splitext(os.path.basename(file))[0]
-                    test_ids.add((self.get_test_id_from_filename(file), test_name))
-                except ValueError:
-                    # Ignore files that don't match the pattern
-                    continue
+                    test_id = match.group(1)
+                    group = match.group(2)
+                    test_ids.add((test_id, group, test_name))
         # TODO: Sort this properly
         test_ids = sorted(test_ids)
         self.tests = []
 
-        for test_id, test_name in test_ids:
-            gr_match = re.match(r"^\d+", test_id)
-            if gr_match:
-                group = gr_match.group(0)
-            else:
-                group = None
+        for test_id, group, test_name in test_ids:
             if os.path.exists(os.path.join(self.rootdir, "in", self.short_name + test_id + ".in")):
                 in_file = LocalFile(os.path.join(self.rootdir, "in", self.short_name + test_id + ".in"))
             else:
@@ -458,6 +471,7 @@ class Sinolpack(Package):
         """
         Returns the corresponding output test for the given input test.
         """
+        # TODO: Better
         return in_test.replace(".in", ".out")
 
     def get_outgen_path(self) -> str | None:
