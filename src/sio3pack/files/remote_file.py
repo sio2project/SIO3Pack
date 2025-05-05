@@ -1,3 +1,5 @@
+import os.path
+
 from sio3pack.files.file import File
 
 
@@ -8,5 +10,4 @@ class RemoteFile(File):
 
     def __init__(self, path: str):
         super().__init__(path)
-        # TODO: should raise FileNotFoundError if file is not tracked
-        raise NotImplementedError()
+        self.filename = os.path.basename(path)

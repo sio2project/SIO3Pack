@@ -58,6 +58,7 @@ class DjangoHandler:
 
         self._save_translated_titles()
         self._save_model_solutions()
+        self._save_main_model_solution()
         self._save_problem_statements()
         self._save_tests()
 
@@ -72,6 +73,16 @@ class DjangoHandler:
                 name=title,
             )
 
+    def _save_main_model_solution(self):
+        """
+        Save the main model solution to the database.
+        """
+        instance = SIO3PackMainModelSolution(
+            package=self.db_package,
+        )
+        instance.source_file.save(self.package.main_model_solution.filename, File(open(self.package.main_model_solution.path, "rb")))
+        instance.save()
+
     def _save_model_solutions(self):
         for order, solution in enumerate(self.package.model_solutions):
             instance = SIO3PackModelSolution(
@@ -81,14 +92,6 @@ class DjangoHandler:
             )
             instance.source_file.save(solution.filename, File(open(solution.path, "rb")))
             instance.save()
-        main = SIO3PackMainModelSolution(
-            package=self.db_package,
-            name=self.package.main_model_solution.filename,
-        )
-        main.source_file.save(
-            self.package.main_model_solution.filename, File(open(self.package.main_model_solution.path, "rb"))
-        )
-        main.save()
 
     def _save_problem_statements(self):
         def _add_statement(language: str, statement: LocalFile):

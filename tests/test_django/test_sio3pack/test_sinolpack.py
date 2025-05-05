@@ -1,7 +1,7 @@
 import pytest
 
 import sio3pack
-from sio3pack.django.common.models import SIO3Package
+from sio3pack.django.common.models import SIO3Package, SIO3PackMainModelSolution
 from sio3pack.django.sinolpack.models import SinolpackAdditionalFile, SinolpackConfig, SinolpackModelSolution
 from sio3pack.packages import Sinolpack
 from tests.fixtures import Compression, PackageInfo, get_archived_package
@@ -63,6 +63,11 @@ def test_model_solutions(get_archived_package):
         assert ms.kind == kind
         assert_contents_equal(ms.source_file.read().decode("utf-8"), solution.read())
 
+    main_ms = package.main_model_solution
+    assert main_ms is not None
+    db_main_ms = SIO3PackMainModelSolution.objects.get(package=db_package)
+    assert_contents_equal(db_main_ms.source_file.read().decode("utf-8"), main_ms.read())
+
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("get_archived_package", [("simple", c) for c in Compression], indirect=True)
@@ -95,3 +100,7 @@ def test_from_db(get_archived_package):
     with pytest.raises(AttributeError):
         assert not hasattr(package_from_db, "non_existent_attribute")
         package_from_db.non_existent_attribute
+
+    assert package_from_db.main_model_solution is not None
+    assert_contents_equal(package_from_db.main_model_solution.read().decode("utf-8"), package.main_model_solution.read())
+    assert False
