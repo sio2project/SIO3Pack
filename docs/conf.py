@@ -20,6 +20,7 @@ extensions = [
     'autoapi.extension',
     'sphinx.ext.autodoc',  # Also required by AutoAPI.
     'sphinx.ext.viewcode',
+    'sphinx.ext.intersphinx',
 ]
 
 templates_path = ['_templates']
@@ -40,6 +41,9 @@ autoapi_include = [
 ]
 autodoc_typehints = 'description'
 
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+}
 def should_skip_submodule(app, what, name, obj, skip, options):
     if what == "module":
         skip = True
