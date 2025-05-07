@@ -153,7 +153,7 @@ class Sinolpack(Package):
         """
         return os.path.join(self.rootdir, "prog")
 
-    def get_in_prog_dir(self, filename: str) -> File:
+    def get_in_prog_dir(self, filename: str) -> LocalFile:
         """
         Returns the path to the input file in the program directory.
         """
@@ -288,6 +288,12 @@ class Sinolpack(Package):
 
         return list(sorted(model_solutions, key=sort_key))
 
+    def _get_all_files_from_list(self, filenames: list[str]) -> list[LocalFile]:
+        files = []
+        for filename in filenames:
+            files.append(self.get_in_prog_dir(filename))
+        return files
+
     def _process_prog_files(self):
         """
         Process all files in the problem's program directory that are used.
@@ -303,10 +309,11 @@ class Sinolpack(Package):
         if self.has_custom_graph:
             self.additional_files = self.workflow_manager.get_prog_files()
         else:
+            extensions = self.get_submittable_extensions() + ["sh"]
             self.additional_files = []
-            self.additional_files.extend(self.config.get("extra_compilation_files", []))
-            self.additional_files.extend(self.config.get("extra_execution_files", []))
-            extensions = self.get_submittable_extensions()
+            self.additional_files.extend(self._get_all_files_from_list(self.config.get("extra_compilation_files", [])))
+            for extra_files in self.config.get("extra_execution_files", {}).values():
+                self.additional_files.extend(self._get_all_files_from_list(extra_files))
             self.special_files: dict[str, bool] = {}
             for file in ("ingen", "inwer", "soc", "chk"):
                 try:
@@ -386,7 +393,7 @@ class Sinolpack(Package):
         """
         Returns the test ID from the filename.
         """
-        match = re.match(rf"^{self.short_name}([a-zA-Z0-9]+)\.in$", filename)
+        match = re.match(rf"^{self.short_name}([a-zA-Z0-9]+)\.(in|out)$", filename)
         if match:
             return match.group(1)
         raise ValueError(f"Invalid filename format: {filename}")
@@ -423,6 +430,12 @@ class Sinolpack(Package):
             else:
                 out_file = None
             self.tests.append(Test(self.short_name + test_id, test_id, in_file, out_file, group))
+
+    def reload_tests(self):
+        """
+        Updates `self.tests` variable with existing tests.
+        """
+        self._process_existing_tests()
 
     def get_tests(self) -> list[Test]:
         """

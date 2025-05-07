@@ -67,7 +67,7 @@ class WorkflowManager:
             return self._get_compile_python_workflow()
         return None
 
-    def get_prog_files(self) -> list[str]:
+    def get_prog_files(self) -> list[File]:
         """
         Get all program files used in all graphs.
         """

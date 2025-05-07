@@ -147,6 +147,9 @@ class Package(RegisteredSubclassesBase):
     def get_statement(self, lang: str | None = None) -> File | None:
         pass
 
+    def reload_tests(self):
+        pass
+
     @wrap_exceptions
     def get_tests(self) -> list[Test]:
         pass

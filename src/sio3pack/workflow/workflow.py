@@ -1,3 +1,4 @@
+from sio3pack.files.file import File
 from sio3pack.workflow import ExecutionTask, Object, ScriptTask
 from sio3pack.workflow.object import ObjectList, ObjectsManager
 from sio3pack.workflow.tasks import Task
@@ -161,7 +162,7 @@ class Workflow:
         """
         self.tasks.append(task)
 
-    def get_prog_files(self) -> list[str]:
+    def get_prog_files(self) -> list[File]:
         """
         Get all program files in the workflow.
 

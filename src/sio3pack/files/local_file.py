@@ -38,6 +38,9 @@ class LocalFile(File):
         super().__init__(path)
         self.filename = os.path.basename(path)
 
+    def __repr__(self):
+        return f"<LocalFile {self.path}>"
+
     def read(self) -> str:
         with open(self.path, "r") as f:
             return f.read()
