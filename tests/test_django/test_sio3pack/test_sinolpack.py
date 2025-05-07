@@ -1,10 +1,12 @@
 import pytest
 
 import sio3pack
+from sio3pack import LocalFile
 from sio3pack.django.common.models import SIO3Package, SIO3PackMainModelSolution
-from sio3pack.django.sinolpack.models import SinolpackAdditionalFile, SinolpackConfig, SinolpackModelSolution
+from sio3pack.django.sinolpack.models import SinolpackAdditionalFile, SinolpackConfig, SinolpackModelSolution, \
+    SinolpackSpecialFile
 from sio3pack.packages import Sinolpack
-from tests.fixtures import Compression, PackageInfo, get_archived_package
+from tests.fixtures import Compression, PackageInfo, get_archived_package, get_package
 from tests.utils import assert_contents_equal
 
 
@@ -103,4 +105,79 @@ def test_from_db(get_archived_package):
 
     assert package_from_db.main_model_solution is not None
     assert_contents_equal(package_from_db.main_model_solution.read().decode("utf-8"), package.main_model_solution.read())
-    assert False
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("get_package", ["simple"], indirect=True)
+def test_model_solutions_from_db(get_package):
+    package_info: PackageInfo = get_package()
+    package, _ = _save_and_test_simple(package_info)
+    from_db: Sinolpack = sio3pack.from_db(1)
+
+    model_solutions = {}
+    for ms in package.model_solutions:
+        model_solutions[ms["file"].filename] = ms
+
+    for ms in from_db.model_solutions:
+        filename = ms["file"].filename
+        assert filename in model_solutions
+        assert_contents_equal(ms["file"].read().decode("utf-8"), model_solutions[filename]["file"].read())
+        assert ms["kind"] == model_solutions[filename]["kind"]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("get_package", ["simple"], indirect=True)
+def test_config_from_db(get_package):
+    package_info: PackageInfo = get_package()
+    package, _ = _save_and_test_simple(package_info)
+    from_db: Sinolpack = sio3pack.from_db(1)
+
+    assert package.config == from_db.config
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("get_package", ["simple"], indirect=True)
+def test_additional_files_from_db(get_package):
+    package_info: PackageInfo = get_package()
+    package, _ = _save_and_test_simple(package_info)
+    from_db: Sinolpack = sio3pack.from_db(1)
+
+    additional_files: list[LocalFile] = package.additional_files
+    assert type(additional_files[0]) == LocalFile
+    db_additional_files = SinolpackAdditionalFile.objects.filter(package=from_db.db_package)
+    assert len(additional_files) == db_additional_files.count()
+
+    for file in additional_files:
+        print(file.filename)
+        af = db_additional_files.get(name=file.filename)
+        print(af)
+        assert_contents_equal(af.file.read().decode("utf-8"), file.read())
+        assert af.name == file.filename
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("get_package", ["simple"], indirect=True)
+def test_special_files_from_db(get_package):
+    package_info: PackageInfo = get_package()
+    package, _ = _save_and_test_simple(package_info)
+    from_db: Sinolpack = sio3pack.from_db(1)
+
+    special_files = package.special_files
+    db_special_files = from_db.special_files
+    assert set(db_special_files.keys()) == set(special_files.keys())
+
+    for type, file in special_files.items():
+        if file is not None:
+            assert type in db_special_files
+
+            assert SinolpackSpecialFile.objects.filter(
+                package=from_db.db_package,
+                type=type,
+            ).exists()
+
+            additional_file = SinolpackAdditionalFile.objects.get(
+                package=from_db.db_package,
+                name=file.filename,
+            )
+            assert_contents_equal(file.read(), additional_file.file.read())
+        else:
+            assert db_special_files[type] is None

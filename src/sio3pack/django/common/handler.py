@@ -156,21 +156,21 @@ class DjangoHandler:
         A list of model solutions, where each element is a dictionary containing
         a :class:`sio3pack.RemoteFile` object.
         """
-        return [{"file": RemoteFile(s.source_file.path)} for s in self.db_package.model_solutions.all()]
+        return [{"file": RemoteFile(s.source_file)} for s in self.db_package.model_solutions.all()]
 
     @property
     def main_model_solution(self) -> RemoteFile:
         """
         The main model solution as a :class:`sio3pack.RemoteFile`.
         """
-        return RemoteFile(self.db_package.main_model_solution.source_file.path)
+        return RemoteFile(self.db_package.main_model_solution.source_file)
 
     @property
     def lang_statements(self) -> dict[str, RemoteFile]:
         """
         A dictionary of problem statements, where keys are language codes and values are files.
         """
-        return {s.language: RemoteFile(s.content.path) for s in self.db_package.statements.all()}
+        return {s.language: RemoteFile(s.content) for s in self.db_package.statements.all()}
 
     @property
     def tests(self) -> list[Test]:
@@ -182,8 +182,8 @@ class DjangoHandler:
                 test_id=t.test_id,
                 test_name=t.name,
                 group=t.group,
-                in_file=RemoteFile(t.input_file.path) if t.input_file else None,
-                out_file=RemoteFile(t.output_file.path) if t.output_file else None,
+                in_file=RemoteFile(t.input_file) if t.input_file else None,
+                out_file=RemoteFile(t.output_file) if t.output_file else None,
             )
             for t in self.db_package.tests.all()
         ]

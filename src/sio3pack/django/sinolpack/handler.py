@@ -102,14 +102,14 @@ class SinolpackDjangoHandler(DjangoHandler):
         and the :class:`sio3pack.packages.sinolpack.enums.ModelSolutionKind` kind.
         """
         solutions = SinolpackModelSolution.objects.filter(package=self.db_package)
-        return [{"file": RemoteFile(s.source_file.path), "kind": s.kind} for s in solutions]
+        return [{"file": RemoteFile(s.source_file), "kind": s.kind} for s in solutions]
 
     @property
     def additional_files(self) -> list[RemoteFile]:
         """
         A list of additional files (as :class:`sio3pack.RemoteFile`) for the problem.
         """
-        return [RemoteFile(f.file.path) for f in self.db_package.additional_files.all()]
+        return [RemoteFile(f.file) for f in self.db_package.additional_files.all()]
 
     @property
     def special_files(self) -> dict[str, RemoteFile]:
@@ -121,7 +121,7 @@ class SinolpackDjangoHandler(DjangoHandler):
         for type in self.package.special_file_types():
             special_file = SinolpackSpecialFile.objects.filter(package=self.db_package, type=type)
             if special_file.exists():
-                res[type] = RemoteFile(special_file.first().additional_file.file.path)
+                res[type] = RemoteFile(special_file.first().additional_file.file)
             else:
                 res[type] = None
         return res
@@ -132,7 +132,7 @@ class SinolpackDjangoHandler(DjangoHandler):
         A list of extra execution files (as :class:`sio3pack.RemoteFile`) specified in the config file.
         """
         files = self.config.get("extra_execution_files", [])
-        return [RemoteFile(f.file.path) for f in self.db_package.additional_files.filter(name__in=files)]
+        return [RemoteFile(f.file) for f in self.db_package.additional_files.filter(name__in=files)]
 
     @property
     def extra_compilation_files(self) -> list[RemoteFile]:
@@ -140,11 +140,11 @@ class SinolpackDjangoHandler(DjangoHandler):
         A list of extra compilation files (as :class:`sio3pack.RemoteFile`) specified in the config file.
         """
         files = self.config.get("extra_compilation_files", [])
-        return [RemoteFile(f.file.path) for f in self.db_package.additional_files.filter(name__in=files)]
+        return [RemoteFile(f.file) for f in self.db_package.additional_files.filter(name__in=files)]
 
     @property
     def attachments(self) -> list[RemoteFile]:
         """
         A list of attachments (as :class:`sio3pack.RemoteFile`) related to the problem.
         """
-        return [RemoteFile(f.content.path) for f in self.db_package.attachments.all()]
+        return [RemoteFile(f.content) for f in self.db_package.attachments.all()]
