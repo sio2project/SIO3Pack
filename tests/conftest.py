@@ -25,12 +25,9 @@ if __django_installed:
         """
         Clean the media root before each test.
         """
-        if __django_installed:
-            import shutil
-            import tempfile
+        import shutil
+        import tempfile
 
-            settings.MEDIA_ROOT = tempfile.mkdtemp()
-            yield
-            shutil.rmtree(settings.MEDIA_ROOT)
-        else:
-            yield
+        settings.MEDIA_ROOT = tempfile.mkdtemp()
+        yield
+        shutil.rmtree(settings.MEDIA_ROOT)
