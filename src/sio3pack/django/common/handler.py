@@ -14,7 +14,8 @@ from sio3pack.django.common.models import (
     SIO3PackTest,
     SIO3PackWorkflow,
 )
-from sio3pack.files import LocalFile, RemoteFile
+from sio3pack.files import LocalFile
+from sio3pack.files.remote_file import RemoteFile
 from sio3pack.packages.exceptions import PackageAlreadyExists
 from sio3pack.test import Test
 from sio3pack.workflow import Workflow

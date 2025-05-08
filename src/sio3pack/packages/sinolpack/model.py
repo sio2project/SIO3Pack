@@ -7,7 +7,7 @@ from typing import Any, Type
 import yaml
 
 from sio3pack.packages.package.configuration import SIO3PackConfig
-from sio3pack.files import File, LocalFile, RemoteFile
+from sio3pack.files import File, LocalFile
 from sio3pack.packages.exceptions import ImproperlyConfigured
 from sio3pack.packages.package import Package
 from sio3pack.packages.sinolpack import constants

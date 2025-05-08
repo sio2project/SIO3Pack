@@ -19,17 +19,18 @@ def pytest_ignore_collect(collection_path, config):
     if not __django_installed:
         return "test_django" in str(collection_path)
 
-@pytest.fixture(autouse=True)
-def clean_media_root(settings):
-    """
-    Clean the media root before each test.
-    """
-    if __django_installed:
-        import shutil
-        import tempfile
+if __django_installed:
+    @pytest.fixture(autouse=True)
+    def clean_media_root(settings):
+        """
+        Clean the media root before each test.
+        """
+        if __django_installed:
+            import shutil
+            import tempfile
 
-        settings.MEDIA_ROOT = tempfile.mkdtemp()
-        yield
-        shutil.rmtree(settings.MEDIA_ROOT)
-    else:
-        yield
+            settings.MEDIA_ROOT = tempfile.mkdtemp()
+            yield
+            shutil.rmtree(settings.MEDIA_ROOT)
+        else:
+            yield

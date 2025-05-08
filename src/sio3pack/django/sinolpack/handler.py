@@ -12,7 +12,7 @@ from sio3pack.django.sinolpack.models import (
     SinolpackModelSolution,
     SinolpackSpecialFile,
 )
-from sio3pack.files import RemoteFile
+from sio3pack.files.remote_file import RemoteFile
 
 
 class SinolpackDjangoHandler(DjangoHandler):
