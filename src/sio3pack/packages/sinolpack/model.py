@@ -6,10 +6,10 @@ from typing import Any, Type
 
 import yaml
 
-from sio3pack.packages.package.configuration import SIO3PackConfig
 from sio3pack.files import File, LocalFile
 from sio3pack.packages.exceptions import ImproperlyConfigured
 from sio3pack.packages.package import Package
+from sio3pack.packages.package.configuration import SIO3PackConfig
 from sio3pack.packages.sinolpack import constants
 from sio3pack.packages.sinolpack.enums import ModelSolutionKind
 from sio3pack.packages.sinolpack.workflows import SinolpackWorkflowManager
@@ -387,7 +387,7 @@ class Sinolpack(Package):
         ]
 
     def _get_test_regex(self) -> str:
-        return rf'^{self.short_name}(([0-9]+)([a-z]?[a-z0-9]*)).(in|out)$'
+        return rf"^{self.short_name}(([0-9]+)([a-z]?[a-z0-9]*)).(in|out)$"
 
     def match_test_regex(self, filename: str) -> re.Match | None:
         """

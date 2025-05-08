@@ -7,8 +7,8 @@ from sio3pack import LocalFile
 from sio3pack.packages.package.configuration import SIO3PackConfig
 from sio3pack.workflow import ExecutionTask, ScriptTask, Workflow
 from sio3pack.workflow.execution import ObjectReadStream, ObjectWriteStream
-from tests.packages.sinolpack.utils import common_checks
 from tests.fixtures import PackageInfo, get_package
+from tests.packages.sinolpack.utils import common_checks
 
 
 @pytest.mark.parametrize("get_package", ["simple", "inwer"], indirect=True)
@@ -72,7 +72,9 @@ def test_run_workflow(get_package):
             elif task.name.startswith("Run checker for test"):
                 num_runs_checker += 1
                 assert len(task.processes) == 1, "Checker task should have one process"
-                assert task.filesystem_manager.len() == 4, "Checker task should have 4 filesystems: checker, in, out and user_out"
+                assert (
+                    task.filesystem_manager.len() == 4
+                ), "Checker task should have 4 filesystems: checker, in, out and user_out"
                 proc = task.processes[0]
                 assert proc.descriptor_manager.size() == 1, "Checker task should have one descriptor"
                 stdout_fd = proc.descriptor_manager.get(1)
@@ -82,17 +84,27 @@ def test_run_workflow(get_package):
         elif isinstance(task, ScriptTask):
             if task.name.startswith("Grade test"):
                 num_grade_tests += 1
-                assert len(task.input_registers) == 2, "Grade test task should have 2 input registers: checker result and user result"
+                assert (
+                    len(task.input_registers) == 2
+                ), "Grade test task should have 2 input registers: checker result and user result"
                 assert len(task.objects) == 1, "Grade test task should have one object: user_out"
-                assert len(task.output_registers) == 1, "Grade test task should have one output register: grading result"
+                assert (
+                    len(task.output_registers) == 1
+                ), "Grade test task should have one output register: grading result"
             elif task.name.startswith("Grade group"):
                 num_grade_group += 1
                 # In this task, there is only one test in each group
-                assert len(task.input_registers) == 1, "Grade group task should have one input register: grading result of the test"
-                assert len(task.output_registers) == 1, "Grade group task should have one output register: grading result"
+                assert (
+                    len(task.input_registers) == 1
+                ), "Grade group task should have one input register: grading result of the test"
+                assert (
+                    len(task.output_registers) == 1
+                ), "Grade group task should have one output register: grading result"
             elif task.name == "Grade run":
                 num_grade_all += 1
-                assert len(task.input_registers) == 3, "Grade run task should have three input registers: grading result of the groups"
+                assert (
+                    len(task.input_registers) == 3
+                ), "Grade run task should have three input registers: grading result of the groups"
                 assert len(task.output_registers) == 1, "Grade run task should have one output register: grading result"
             else:
                 raise ValueError(f"Unknown task name: {task.name}")
@@ -128,20 +140,28 @@ def test_custom_workflow(get_package):
             assert len(task.processes) == 2, "Custom task should have two processes"
             stream1 = task.processes[0].descriptor_manager.get(1)
             assert isinstance(stream1, ObjectWriteStream), "fd 1 of the first process should be a write stream"
-            assert stream1.object.handle.startswith("intermediate_out_"), "fd 1 of the first process should be an intermediate_out stream"
+            assert stream1.object.handle.startswith(
+                "intermediate_out_"
+            ), "fd 1 of the first process should be an intermediate_out stream"
 
             stream2 = task.processes[1].descriptor_manager.get(0)
             print(stream2)
             assert isinstance(stream2, ObjectReadStream), "fd 0 of the second process should be a read stream"
-            assert stream2.object.handle.startswith("intermediate_out_"), "fd 0 of the second process should be an intermediate_out stream"
-            assert stream1.object.handle == stream2.object.handle, "fd 1 of the first process should be the same as fd 0 of the second process"
+            assert stream2.object.handle.startswith(
+                "intermediate_out_"
+            ), "fd 0 of the second process should be an intermediate_out stream"
+            assert (
+                stream1.object.handle == stream2.object.handle
+            ), "fd 1 of the first process should be the same as fd 0 of the second process"
         if task.name.startswith("Custom grade result for "):
             assert isinstance(task, ScriptTask), "Custom task should be a script task"
             num_custom_scripts += 1
             assert len(task.input_registers) == 1, "Custom task should have one input register"
             assert len(task.output_registers) == 1, "Custom task should have one output register"
             assert len(task.objects) == 2, "Custom task should have two objects"
-            assert task.objects[0].handle.startswith("intermediate_out_"), "Custom task should have an intermediate_out object"
+            assert task.objects[0].handle.startswith(
+                "intermediate_out_"
+            ), "Custom task should have an intermediate_out object"
             assert task.objects[1].handle.startswith("user_out_"), "Custom task should have a user_out object"
 
     assert num_custom == 3, "Should have 3 custom execution tasks"

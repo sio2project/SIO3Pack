@@ -3,8 +3,12 @@ import pytest
 import sio3pack
 from sio3pack import LocalFile, SIO3PackConfig
 from sio3pack.django.common.models import SIO3Package, SIO3PackMainModelSolution
-from sio3pack.django.sinolpack.models import SinolpackAdditionalFile, SinolpackConfig, SinolpackModelSolution, \
-    SinolpackSpecialFile
+from sio3pack.django.sinolpack.models import (
+    SinolpackAdditionalFile,
+    SinolpackConfig,
+    SinolpackModelSolution,
+    SinolpackSpecialFile,
+)
 from sio3pack.packages import Sinolpack
 from tests.fixtures import Compression, PackageInfo, get_archived_package, get_package
 from tests.utils import assert_contents_equal
@@ -104,7 +108,10 @@ def test_from_db(get_archived_package):
         package_from_db.non_existent_attribute
 
     assert package_from_db.main_model_solution is not None
-    assert_contents_equal(package_from_db.main_model_solution.read().decode("utf-8"), package.main_model_solution.read())
+    assert_contents_equal(
+        package_from_db.main_model_solution.read().decode("utf-8"), package.main_model_solution.read()
+    )
+
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("get_package", ["simple"], indirect=True)
@@ -193,7 +200,7 @@ def test_titles_from_db(get_package):
 
     assert package.short_name == from_db.short_name
     assert package.full_name == from_db.full_name
-    assert 'pl' in package.lang_titles
+    assert "pl" in package.lang_titles
     assert package.lang_titles == from_db.lang_titles
 
 

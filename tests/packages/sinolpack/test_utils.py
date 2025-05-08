@@ -6,6 +6,7 @@ from sio3pack.packages.sinolpack import constants
 from sio3pack.test import Test
 from tests.fixtures import PackageInfo, get_package
 
+
 @pytest.mark.parametrize("get_package", ["simple"], indirect=True)
 def test_get_test_id(get_package):
     package_info: PackageInfo = get_package()
@@ -80,9 +81,9 @@ def test_get_limits(get_package):
                 "memory_limits": {
                     "2": 4096,
                     "2a": 5120,
-                }
+                },
             }
-        }
+        },
     }
 
     def get_for_test(type: str, test_name: str, lang: str = "cpp"):

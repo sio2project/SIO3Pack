@@ -1,6 +1,6 @@
-from tests.fixtures import PackageInfo
 from sio3pack import Package
 from sio3pack.packages import Sinolpack
+from tests.fixtures import PackageInfo
 
 
 def common_checks(package_info: PackageInfo, package: Package):

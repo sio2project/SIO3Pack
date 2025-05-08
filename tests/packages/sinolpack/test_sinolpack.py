@@ -1,8 +1,8 @@
 import pytest
 
 import sio3pack
-from tests.packages.sinolpack.utils import common_checks
 from tests.fixtures import Compression, PackageInfo, get_archived_package, get_package
+from tests.packages.sinolpack.utils import common_checks
 
 
 @pytest.mark.parametrize("get_archived_package", [("simple", c) for c in Compression], indirect=True)
