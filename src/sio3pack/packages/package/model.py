@@ -97,7 +97,7 @@ class Package(RegisteredSubclassesBase):
 
     @classmethod
     @wrap_exceptions
-    def from_db(cls, problem_id: int):
+    def from_db(cls, problem_id: int, configuration: SIO3PackConfig = None):
         """
         Create a package from the database. If sio3pack isn't installed with Django
         support, it should raise an ImproperlyConfigured exception. If there is no
@@ -107,11 +107,11 @@ class Package(RegisteredSubclassesBase):
         for subclass in cls.subclasses:
             if subclass.identify_db(problem_id):
                 package = subclass()
-                package._from_db(problem_id)
+                package._from_db(problem_id, configuration)
                 return package
         raise UnknownPackageType(problem_id)
 
-    def _from_db(self, problem_id: int):
+    def _from_db(self, problem_id: int, configuration: SIO3PackConfig = None):
         """
         Internal method to setup the package from the database. If sio3pack
         isn't installed with Django support, it should raise an ImproperlyConfigured
@@ -119,6 +119,14 @@ class Package(RegisteredSubclassesBase):
         """
         self.is_from_db = True
         self.problem_id = problem_id
+        self.configuration = configuration or SIO3PackConfig()
+
+    def _get_from_django_settings(self, key: str, default=None):
+        if self.configuration.django_settings is None:
+            return default
+        if isinstance(self.configuration.django_settings, dict):
+            return self.configuration.django_settings.get(key, default)
+        return getattr(self.configuration.django_settings, key, default)
 
     def _setup_django_handler(self, problem_id: int):
         try:

@@ -5,7 +5,7 @@ import pytest
 import sio3pack
 from sio3pack import LocalFile
 from sio3pack.packages.package.configuration import SIO3PackConfig
-from sio3pack.workflow import ExecutionTask, ScriptTask
+from sio3pack.workflow import ExecutionTask, ScriptTask, Workflow
 from sio3pack.workflow.execution import ObjectReadStream, ObjectWriteStream
 from tests.packages.sinolpack.utils import common_checks
 from tests.fixtures import PackageInfo, get_package
@@ -21,7 +21,6 @@ def test_unpack_workflows(get_package):
     assert op is not None
     workflows = []
     for wf in op.get_workflow():
-        print(wf.name)
         workflows.append(wf)
 
     if package_info.task_id == "abc":
@@ -81,10 +80,8 @@ def test_run_workflow(get_package):
             else:
                 raise ValueError(f"Unknown task name: {task.name}")
         elif isinstance(task, ScriptTask):
-            print(task.name)
             if task.name.startswith("Grade test"):
                 num_grade_tests += 1
-                print(task.to_json())
                 assert len(task.input_registers) == 2, "Grade test task should have 2 input registers: checker result and user result"
                 assert len(task.objects) == 1, "Grade test task should have one object: user_out"
                 assert len(task.output_registers) == 1, "Grade test task should have one output register: grading result"
@@ -106,3 +103,46 @@ def test_run_workflow(get_package):
     assert num_runs == num_runs_checker == num_grade_tests == 3, "Should have 3 runs"
     assert num_grade_group == 3, "Should have 3 groups"
     assert num_grade_all == 1, "Should have one grade run"
+
+
+@pytest.mark.parametrize("get_package", ["custom_workflows"], indirect=True)
+def test_custom_workflow(get_package):
+    package_info: PackageInfo = get_package()
+    package = sio3pack.from_file(package_info.path, SIO3PackConfig.detect())
+    common_checks(package_info, package)
+
+    program = LocalFile(os.path.join(package.rootdir, "prog", "wfs.cpp"))
+    op = package.get_run_operation(program)
+    workflows = [wf for wf in op.get_workflow()]
+    assert len(workflows) == 1
+
+    assert workflows[0].name == "Run solution"
+    workflow: Workflow = workflows[0]
+
+    num_custom = 0
+    num_custom_scripts = 0
+    for task in workflow.tasks:
+        if task.name == "Run test two times":
+            assert isinstance(task, ExecutionTask), "Custom task should be an execution task"
+            num_custom += 1
+            assert len(task.processes) == 2, "Custom task should have two processes"
+            stream1 = task.processes[0].descriptor_manager.get(1)
+            assert isinstance(stream1, ObjectWriteStream), "fd 1 of the first process should be a write stream"
+            assert stream1.object.handle.startswith("intermediate_out_"), "fd 1 of the first process should be an intermediate_out stream"
+
+            stream2 = task.processes[1].descriptor_manager.get(0)
+            print(stream2)
+            assert isinstance(stream2, ObjectReadStream), "fd 0 of the second process should be a read stream"
+            assert stream2.object.handle.startswith("intermediate_out_"), "fd 0 of the second process should be an intermediate_out stream"
+            assert stream1.object.handle == stream2.object.handle, "fd 1 of the first process should be the same as fd 0 of the second process"
+        if task.name.startswith("Custom grade result for "):
+            assert isinstance(task, ScriptTask), "Custom task should be a script task"
+            num_custom_scripts += 1
+            assert len(task.input_registers) == 1, "Custom task should have one input register"
+            assert len(task.output_registers) == 1, "Custom task should have one output register"
+            assert len(task.objects) == 2, "Custom task should have two objects"
+            assert task.objects[0].handle.startswith("intermediate_out_"), "Custom task should have an intermediate_out object"
+            assert task.objects[1].handle.startswith("user_out_"), "Custom task should have a user_out object"
+
+    assert num_custom == 3, "Should have 3 custom execution tasks"
+    assert num_custom_scripts == 3, "Should have 3 custom script tasks"

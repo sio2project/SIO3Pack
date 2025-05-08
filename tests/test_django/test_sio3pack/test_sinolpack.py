@@ -1,7 +1,7 @@
 import pytest
 
 import sio3pack
-from sio3pack import LocalFile
+from sio3pack import LocalFile, SIO3PackConfig
 from sio3pack.django.common.models import SIO3Package, SIO3PackMainModelSolution
 from sio3pack.django.sinolpack.models import SinolpackAdditionalFile, SinolpackConfig, SinolpackModelSolution, \
     SinolpackSpecialFile
@@ -10,9 +10,9 @@ from tests.fixtures import Compression, PackageInfo, get_archived_package, get_p
 from tests.utils import assert_contents_equal
 
 
-def _save_and_test_simple(package_info: PackageInfo) -> tuple[Sinolpack, SIO3Package]:
+def _save_and_test_simple(package_info: PackageInfo, config: SIO3PackConfig = None) -> tuple[Sinolpack, SIO3Package]:
     assert package_info.type == "sinolpack"
-    package = sio3pack.from_file(package_info.path)
+    package = sio3pack.from_file(package_info.path, config)
     assert isinstance(package, Sinolpack)
     package.save_to_db(1)
     assert SIO3Package.objects.filter(problem_id=1).exists()
@@ -181,3 +181,66 @@ def test_special_files_from_db(get_package):
             assert_contents_equal(file.read(), additional_file.file.read())
         else:
             assert db_special_files[type] is None
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("get_package", ["simple"], indirect=True)
+def test_titles_from_db(get_package):
+    config = SIO3PackConfig(django_settings={"LANGUAGES": [("en", "English"), ("pl", "Polski")]})
+    package_info: PackageInfo = get_package()
+    package, _ = _save_and_test_simple(package_info, config)
+    from_db: Sinolpack = sio3pack.from_db(1, config)
+
+    assert package.short_name == from_db.short_name
+    assert package.full_name == from_db.full_name
+    assert 'pl' in package.lang_titles
+    assert package.lang_titles == from_db.lang_titles
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("get_package", ["simple"], indirect=True)
+def test_statements_from_db(get_package):
+    config = SIO3PackConfig(django_settings={"LANGUAGES": [("en", "English"), ("pl", "Polski")]})
+    package_info: PackageInfo = get_package()
+    package, _ = _save_and_test_simple(package_info, config)
+    from_db: Sinolpack = sio3pack.from_db(1, config)
+
+    assert set(package.lang_statements.keys()) == set(from_db.lang_statements.keys())
+    for lang, statement in package.lang_statements.items():
+        assert lang in from_db.lang_statements
+        assert_contents_equal(statement.read(), from_db.lang_statements[lang].read())
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("get_package", ["simple", "run", "inwer"], indirect=True)
+def test_tests_from_db(get_package):
+    package_info: PackageInfo = get_package()
+    package, _ = _save_and_test_simple(package_info)
+    from_db: Sinolpack = sio3pack.from_db(1)
+
+    tests = package.tests
+    db_tests = from_db.tests
+
+    assert len(tests) > 0
+    assert len(tests) == len(db_tests)
+    db_tests_dict = {}
+    for test in db_tests:
+        db_tests_dict[test.test_id] = test
+
+    for test in tests:
+        test_id = test.test_id
+        assert test_id in db_tests_dict
+        db_test = db_tests_dict[test_id]
+        assert test.test_name == db_test.test_name
+        assert test.group == db_test.group
+        if test.in_file is None:
+            assert db_test.in_file is None
+        else:
+            assert db_test.in_file is not None
+            assert_contents_equal(test.in_file.read(), db_test.in_file.read())
+
+        if test.out_file is None:
+            assert db_test.out_file is None
+        else:
+            assert db_test.out_file is not None
+            assert_contents_equal(test.out_file.read(), db_test.out_file.read())

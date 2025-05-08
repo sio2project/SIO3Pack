@@ -6,6 +6,7 @@ from typing import Any, Type
 
 import yaml
 
+from sio3pack.packages.package.configuration import SIO3PackConfig
 from sio3pack.files import File, LocalFile, RemoteFile
 from sio3pack.packages.exceptions import ImproperlyConfigured
 from sio3pack.packages.package import Package
@@ -100,7 +101,7 @@ class Sinolpack(Package):
     def __init__(self):
         super().__init__()
 
-    def _from_file(self, file: LocalFile, configuration=None):
+    def _from_file(self, file: LocalFile, configuration: SIO3PackConfig = None):
         super()._from_file(file, configuration)
         if self.is_archive:
             archive = Archive(file.path)
@@ -125,8 +126,8 @@ class Sinolpack(Package):
 
         self._process_package()
 
-    def _from_db(self, problem_id: int):
-        super()._from_db(problem_id)
+    def _from_db(self, problem_id: int, configuration: SIO3PackConfig = None):
+        super()._from_db(problem_id, configuration)
         super()._setup_django_handler(problem_id)
         # TODO: Workflows probably should be fetched only if they are needed, since this can be slow
         super()._setup_workflows_from_db()
@@ -135,11 +136,6 @@ class Sinolpack(Package):
 
     def _workflow_manager_class(self) -> Type[WorkflowManager]:
         return SinolpackWorkflowManager
-
-    def _get_from_django_settings(self, key: str, default=None):
-        if self.configuration.django_settings is None:
-            return default
-        return getattr(self.configuration.django_settings, key, default)
 
     def get_doc_dir(self) -> str:
         """

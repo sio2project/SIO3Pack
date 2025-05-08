@@ -606,7 +606,7 @@ class SinolpackWorkflowManager(WorkflowManager):
             working_directory="/",
         )
 
-        # Link stdout of the checker to a object stream.
+        # Link stdout of the checker to an object stream.
         chk_out_obj = wf.objects_manager.get_or_create_object("chk_out_<TEST_ID>")
         chk_out_stream = ObjectWriteStream(chk_out_obj)
         chk_proc.descriptor_manager.add(1, chk_out_stream)
