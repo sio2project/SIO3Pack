@@ -1,5 +1,6 @@
-import json
+import copy
 from enum import Enum
+from typing import Any
 
 from sio3pack.files import File
 from sio3pack.test import Test
@@ -24,15 +25,11 @@ class UnpackStage(Enum):
 
 
 class WorkflowManager:
-    @classmethod
-    def from_file(cls, file: File):
-        workflows = {}
-        content = json.loads(file.read())
-        for name, graph in content.items():
-            workflows[name] = Workflow.from_json(graph)
-        return cls(workflows)
+    def __init__(self, package: "Package", workflows: dict[str, Any]):
+        for name, wf in workflows.items():
+            wf = Workflow.from_json(wf)
+            workflows[name] = wf
 
-    def __init__(self, package: "Package", workflows: dict[str, Workflow]):
         self.package = package
         self.workflows = workflows
         self._has_test_gen = False
@@ -50,7 +47,16 @@ class WorkflowManager:
         """
         if name not in self.workflows:
             return self.get_default(name)
-        return self.workflows[name]
+        wf = self.workflows[name]
+        return copy.deepcopy(wf)
+
+    def all(self) -> dict[str, Workflow]:
+        """
+        Get all workflows.
+
+        :return: A dictionary of all workflows.
+        """
+        return self.workflows
 
     def get_default(self, name: str) -> Workflow:
         """

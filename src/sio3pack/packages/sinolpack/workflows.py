@@ -1,6 +1,6 @@
 import os
 from enum import Enum
-from typing import Tuple
+from typing import Any, Tuple
 
 from sio3pack import lua
 from sio3pack.exceptions import WorkflowCreationError
@@ -22,7 +22,7 @@ class UnpackStage(Enum):
 
 
 class SinolpackWorkflowManager(WorkflowManager):
-    def __init__(self, package: "Sinolpack", workflows: dict[str, Workflow]):
+    def __init__(self, package: "Sinolpack", workflows: dict[str, Any]):
         super().__init__(package, workflows)
         self._has_ingen = False
         self._has_outgen = False
@@ -606,7 +606,7 @@ class SinolpackWorkflowManager(WorkflowManager):
             working_directory="/",
         )
 
-        # Link stdout of the checker to a object stream.
+        # Link stdout of the checker to an object stream.
         chk_out_obj = wf.objects_manager.get_or_create_object("chk_out_<TEST_ID>")
         chk_out_stream = ObjectWriteStream(chk_out_obj)
         chk_proc.descriptor_manager.add(1, chk_out_stream)
@@ -683,7 +683,7 @@ class SinolpackWorkflowManager(WorkflowManager):
 
     def _get_run_workflow(self, data: dict, program: File, tests: list[Test] | None = None) -> Tuple[Workflow, bool]:
         if tests is None:
-            tests = self.package.get_tests()
+            tests = self.package.tests
 
         workflow = Workflow(
             name="Run solution",

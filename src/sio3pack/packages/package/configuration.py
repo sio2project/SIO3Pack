@@ -5,6 +5,17 @@ class CompilerConfig:
         self.path = path
         self.flags = flags
 
+    @classmethod
+    def detect(cls) -> dict[str, "CompilerConfig"]:
+        """
+        Detect the installed compilers and return them as the configuration.
+        """
+        # TODO: implement this properly
+        return {
+            "cpp": cls("g++", "g++-12.2", "g++", ["-std=c++20", "-O3"]),
+            "py": cls("python", "python3.10", "python", []),
+        }
+
 
 class SIO3PackConfig:
     """
@@ -38,3 +49,18 @@ class SIO3PackConfig:
             }
         else:
             self.extensions_config = extensions_config
+
+    @classmethod
+    def detect(cls) -> "SIO3PackConfig":
+        """
+        Detect the installed compilers and return them as the configuration.
+        """
+        compilers_config = CompilerConfig.detect()
+        extensions_config = {
+            ".cpp": "cpp",
+            ".cxx": "cpp",
+            ".h": "cpp",
+            ".hpp": "cpp",
+            ".py": "python",
+        }
+        return cls(compilers_config=compilers_config, extensions_config=extensions_config)

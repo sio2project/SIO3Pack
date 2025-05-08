@@ -1,13 +1,15 @@
+import json
 import os
 import re
 import tempfile
-from typing import Any
+from typing import Any, Type
 
 import yaml
 
-from sio3pack.files import File, LocalFile, RemoteFile
+from sio3pack.files import File, LocalFile
 from sio3pack.packages.exceptions import ImproperlyConfigured
 from sio3pack.packages.package import Package
+from sio3pack.packages.package.configuration import SIO3PackConfig
 from sio3pack.packages.sinolpack import constants
 from sio3pack.packages.sinolpack.enums import ModelSolutionKind
 from sio3pack.packages.sinolpack.workflows import SinolpackWorkflowManager
@@ -36,9 +38,14 @@ class Sinolpack(Package):
     :param list[File] attachments: A list of attachments related to the problem.
     :param WorkflowManager workflow_manager: A workflow manager for the problem.
     :param File | None main_model_solution: The main model solution file.
-    :param dict[str, bool] special_files: A dictionary of special files,
+    :param dict[str, File | None] special_files: A dictionary of special files,
         where keys are file names and values are booleans indicating
         whether the file exists or not.
+    :param list[Test] tests: A list of tests, where each element is a
+        :class:`sio3pack.Test` object.
+    :param bool is_from_db: A flag indicating whether the package
+        is loaded from the database or not.
+    :param SinolpackWorkflowManager workflow_manager: A workflow manager for the problem.
     """
 
     django_handler = "sio3pack.django.sinolpack.handler.SinolpackDjangoHandler"
@@ -94,7 +101,7 @@ class Sinolpack(Package):
     def __init__(self):
         super().__init__()
 
-    def _from_file(self, file: LocalFile, configuration=None):
+    def _from_file(self, file: LocalFile, configuration: SIO3PackConfig = None):
         super()._from_file(file, configuration)
         if self.is_archive:
             archive = Archive(file.path)
@@ -107,27 +114,28 @@ class Sinolpack(Package):
             self.short_name = os.path.basename(os.path.abspath(file.path))
             self.rootdir = os.path.abspath(file.path)
 
-        try:
-            graph_file = self.get_in_root("workflow.json")
-            self.workflow_manager = SinolpackWorkflowManager.from_file(graph_file)
-        except FileNotFoundError:
-            self.has_custom_graph = False
+        if os.path.exists(os.path.join(self.rootdir, "workflows.json")):
+            try:
+                with open(os.path.join(self.rootdir, "workflows.json"), "r") as f:
+                    workflows = json.load(f)
+                self.workflow_manager = SinolpackWorkflowManager(self, workflows)
+            except json.JSONDecodeError as e:
+                raise ValueError(f"Invalid JSON in workflows.json: {e}")
+        else:
+            self.workflow_manager = self._default_workflow_manager()
 
         self._process_package()
 
-    def _from_db(self, problem_id: int):
-        super()._from_db(problem_id)
+    def _from_db(self, problem_id: int, configuration: SIO3PackConfig = None):
+        super()._from_db(problem_id, configuration)
         super()._setup_django_handler(problem_id)
+        # TODO: Workflows probably should be fetched only if they are needed, since this can be slow
+        super()._setup_workflows_from_db()
         if not self.django_enabled:
             raise ImproperlyConfigured("sio3pack is not installed with Django support.")
 
-    def _default_workflow_manager(self) -> WorkflowManager:
-        return SinolpackWorkflowManager(self, {})
-
-    def _get_from_django_settings(self, key: str, default=None):
-        if self.configuration.django_settings is None:
-            return default
-        return getattr(self.configuration.django_settings, key, default)
+    def _workflow_manager_class(self) -> Type[WorkflowManager]:
+        return SinolpackWorkflowManager
 
     def get_doc_dir(self) -> str:
         """
@@ -173,12 +181,6 @@ class Sinolpack(Package):
         self._process_statements()
         self._process_attachments()
         self._process_existing_tests()
-
-        if not self.has_custom_graph:
-            # Create the workflow with processed files.
-            # TODO: Uncomment this line when Graph will work.
-            self.workflow_manager = self._default_workflow_manager()
-            pass
 
     def _process_config_yml(self):
         """
@@ -276,19 +278,23 @@ class Sinolpack(Package):
         self.main_model_solution = main_solution
         return model_solutions
 
-    def sort_model_solutions(
-        self, model_solutions: list[dict[str, Any]]
-    ) -> list[dict[str, Any]]:
+    def sort_model_solutions(self, model_solutions: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """
         Sorts model solutions by kind.
         """
 
         def sort_key(model_solution):
-            kind: ModelSolutionKind = model_solution['kind']
-            file: LocalFile = model_solution['file']
+            kind: ModelSolutionKind = model_solution["kind"]
+            file: LocalFile = model_solution["file"]
             return kind.value, naturalsort_key(file.filename[: file.filename.index(".")])
 
         return list(sorted(model_solutions, key=sort_key))
+
+    def special_file_types(self) -> list[str]:
+        """
+        Returns the list of special file types.
+        """
+        return ["ingen", "inwer", "soc", "chk"]
 
     def _process_prog_files(self):
         """
@@ -302,22 +308,18 @@ class Sinolpack(Package):
         # Process model solutions.
         self.model_solutions = self.sort_model_solutions(self._get_model_solutions())
 
-        if self.has_custom_graph:
-            self.additional_files = self.workflow_manager.get_prog_files()
-        else:
-            self.additional_files = []
-            self.additional_files.extend(self.config.get("extra_compilation_files", []))
-            self.additional_files.extend(self.config.get("extra_execution_files", []))
-            extensions = self.get_submittable_extensions()
-            self.special_files: dict[str, bool] = {}
-            for file in ("ingen", "inwer", "soc", "chk"):
-                try:
-                    self.additional_files.append(
-                        LocalFile.get_file_matching_extension(self.get_prog_dir(), self.short_name + file, extensions)
-                    )
-                    self.special_files[file] = True
-                except FileNotFoundError:
-                    self.special_files[file] = False
+        self.additional_files = []
+        self.additional_files.extend(self.config.get("extra_compilation_files", []))
+        self.additional_files.extend(self.config.get("extra_execution_files", []))
+        extensions = self.get_submittable_extensions()
+        self.special_files: dict[str, File | None] = {}
+        for file in self.special_file_types():
+            try:
+                lf = LocalFile.get_file_matching_extension(self.get_prog_dir(), self.short_name + file, extensions)
+                self.additional_files.append(lf)
+                self.special_files[file] = lf
+            except FileNotFoundError:
+                self.special_files[file] = None
 
     def get_statement(self, lang: str | None = None) -> File | None:
         """
@@ -384,13 +386,31 @@ class Sinolpack(Package):
             if os.path.isfile(os.path.join(attachments_dir, attachment))
         ]
 
+    def _get_test_regex(self) -> str:
+        return rf"^{self.short_name}(([0-9]+)([a-z]?[a-z0-9]*)).(in|out)$"
+
+    def match_test_regex(self, filename: str) -> re.Match | None:
+        """
+        Returns match object if the filename matches the test regex.
+        """
+        return re.match(self._get_test_regex(), filename)
+
     def get_test_id_from_filename(self, filename: str) -> str:
         """
         Returns the test ID from the filename.
         """
-        match = re.match(rf"^{self.short_name}([a-zA-Z0-9]+)\.in$", filename)
+        match = self.match_test_regex(filename)
         if match:
             return match.group(1)
+        raise ValueError(f"Invalid filename format: {filename}")
+
+    def get_group_from_filename(self, filename: str) -> str:
+        """
+        Returns the group from the filename.
+        """
+        match = self.match_test_regex(filename)
+        if match:
+            return match.group(2)
         raise ValueError(f"Invalid filename format: {filename}")
 
     def _process_existing_tests(self):
@@ -401,21 +421,17 @@ class Sinolpack(Package):
         test_ids = set()
         for ext in ("in", "out"):
             for file in os.listdir(os.path.join(self.rootdir, ext)):
-                try:
-                    test_ids.add(self.get_test_id_from_filename(file))
-                except ValueError:
-                    # Ignore files that don't match the pattern
-                    continue
+                match = self.match_test_regex(os.path.basename(file))
+                if match:
+                    test_name = os.path.splitext(os.path.basename(file))[0]
+                    test_id = match.group(1)
+                    group = match.group(2)
+                    test_ids.add((test_id, group, test_name))
         # TODO: Sort this properly
         test_ids = sorted(test_ids)
         self.tests = []
 
-        for test_id in test_ids:
-            gr_match = re.match(r"^\d+", test_id)
-            if gr_match:
-                group = gr_match.group(0)
-            else:
-                group = None
+        for test_id, group, test_name in test_ids:
             if os.path.exists(os.path.join(self.rootdir, "in", self.short_name + test_id + ".in")):
                 in_file = LocalFile(os.path.join(self.rootdir, "in", self.short_name + test_id + ".in"))
             else:
@@ -424,13 +440,7 @@ class Sinolpack(Package):
                 out_file = LocalFile(os.path.join(self.rootdir, "out", self.short_name + test_id + ".out"))
             else:
                 out_file = None
-            self.tests.append(Test(test_id, in_file, out_file, group))
-
-    def get_tests(self) -> list[Test]:
-        """
-        Returns the list of tests.
-        """
-        return self.tests
+            self.tests.append(Test(test_name, test_id, in_file, out_file, group))
 
     def get_input_tests(self) -> list[Test]:
         """
@@ -457,6 +467,7 @@ class Sinolpack(Package):
         """
         Returns the corresponding output test for the given input test.
         """
+        # TODO: Better
         return in_test.replace(".in", ".out")
 
     def get_outgen_path(self) -> str | None:
@@ -468,9 +479,7 @@ class Sinolpack(Package):
         """
         # TODO: This should be faster
         if self.special_files[file_type]:
-            for af in self.additional_files:
-                if os.path.splitext(os.path.basename(af.path))[0] == self.short_name + file_type:
-                    return af.path
+            return self.special_files[file_type].path
         return None
 
     def get_inwer_path(self) -> str | None:
@@ -480,21 +489,15 @@ class Sinolpack(Package):
         """
         Returns the checker file.
         """
-        path = self.get_checker_path()
-        if path:
-            if self.is_from_db:
-                return RemoteFile(path)
-            else:
-                return LocalFile(path)
-        return None
+        return self.special_files["chk"]
 
     def get_checker_path(self) -> str | None:
         return self._get_special_file_path("chk")
 
     def get_unpack_operation(self, return_func: callable = None) -> WorkflowOperation | None:
-        has_ingen = self.special_files["ingen"]
+        has_ingen = self.special_files["ingen"] is not None
         has_outgen = self.main_model_solution is not None
-        has_inwer = self.special_files["inwer"]
+        has_inwer = self.special_files["inwer"] is not None
         return self.workflow_manager.get_unpack_operation(has_ingen, has_outgen, has_inwer, return_func)
 
     def _unpack_return_data(self, data: dict):
