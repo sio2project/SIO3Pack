@@ -14,7 +14,8 @@ from sio3pack.django.common.models import (
     SIO3PackTest,
     SIO3PackWorkflow,
 )
-from sio3pack.files import LocalFile, RemoteFile
+from sio3pack.files import LocalFile
+from sio3pack.files.remote_file import RemoteFile
 from sio3pack.packages.exceptions import PackageAlreadyExists
 from sio3pack.test import Test
 from sio3pack.workflow import Workflow
@@ -58,6 +59,7 @@ class DjangoHandler:
 
         self._save_translated_titles()
         self._save_model_solutions()
+        self._save_main_model_solution()
         self._save_problem_statements()
         self._save_tests()
 
@@ -72,6 +74,18 @@ class DjangoHandler:
                 name=title,
             )
 
+    def _save_main_model_solution(self):
+        """
+        Save the main model solution to the database.
+        """
+        instance = SIO3PackMainModelSolution(
+            package=self.db_package,
+        )
+        instance.source_file.save(
+            self.package.main_model_solution.filename, File(open(self.package.main_model_solution.path, "rb"))
+        )
+        instance.save()
+
     def _save_model_solutions(self):
         for order, solution in enumerate(self.package.model_solutions):
             instance = SIO3PackModelSolution(
@@ -81,14 +95,6 @@ class DjangoHandler:
             )
             instance.source_file.save(solution.filename, File(open(solution.path, "rb")))
             instance.save()
-        main = SIO3PackMainModelSolution(
-            package=self.db_package,
-            name=self.package.main_model_solution.filename,
-        )
-        main.source_file.save(
-            self.package.main_model_solution.filename, File(open(self.package.main_model_solution.path, "rb"))
-        )
-        main.save()
 
     def _save_problem_statements(self):
         def _add_statement(language: str, statement: LocalFile):
@@ -153,21 +159,21 @@ class DjangoHandler:
         A list of model solutions, where each element is a dictionary containing
         a :class:`sio3pack.RemoteFile` object.
         """
-        return [{"file": RemoteFile(s.source_file.path)} for s in self.db_package.model_solutions.all()]
+        return [{"file": RemoteFile(s.source_file)} for s in self.db_package.model_solutions.all()]
 
     @property
     def main_model_solution(self) -> RemoteFile:
         """
         The main model solution as a :class:`sio3pack.RemoteFile`.
         """
-        return RemoteFile(self.db_package.main_model_solution.source_file.path)
+        return RemoteFile(self.db_package.main_model_solution.source_file)
 
     @property
     def lang_statements(self) -> dict[str, RemoteFile]:
         """
         A dictionary of problem statements, where keys are language codes and values are files.
         """
-        return {s.language: RemoteFile(s.content.path) for s in self.db_package.statements.all()}
+        return {s.language: RemoteFile(s.content) for s in self.db_package.statements.all()}
 
     @property
     def tests(self) -> list[Test]:
@@ -179,8 +185,8 @@ class DjangoHandler:
                 test_id=t.test_id,
                 test_name=t.name,
                 group=t.group,
-                in_file=RemoteFile(t.input_file.path) if t.input_file else None,
-                out_file=RemoteFile(t.output_file.path) if t.output_file else None,
+                in_file=RemoteFile(t.input_file) if t.input_file else None,
+                out_file=RemoteFile(t.output_file) if t.output_file else None,
             )
             for t in self.db_package.tests.all()
         ]

@@ -1,0 +1,107 @@
+{
+  "run_test": {
+    "name": "Custom run test",
+    "external_objects": [],
+    "observable_objects": [],
+    "observable_registers": 0,
+    "registers": 2,
+    "tasks": [
+      {
+        "name": "Run test two times",
+        "type": "execution",
+        "channels": [],
+        "exclusive": true,
+        "hard_time_limit": 60000,
+        "output_register": "r:run_test_res_<TEST_ID>",
+        "pid_namespaces": 1,
+        "filesystems": [
+          {
+            "type": "object",
+            "handle": "<SOL_PATH>"
+          }
+        ],
+        "mount_namespaces": [
+          {
+            "mountpoints": [
+              {
+                "source": 0,
+                "target": "/exe",
+                "writable": false
+              }
+            ],
+            "root": 0
+          }
+        ],
+        "pipes": 0,
+        "resource_groups": [
+          {
+            "cpu_usage_limit": 100.0,
+            "instruction_limit": 1000000000.0,
+            "memory_limit": 2147483648,
+            "oom_terminate_all_tasks": false,
+            "pid_limit": 2,
+            "swap_limit": 0,
+            "time_limit": 1000000000.0
+          }
+        ],
+        "processes": [
+          {
+            "arguments": [
+              "/exe"
+            ],
+            "environment": [],
+            "image": "",
+            "mount_namespace": 0,
+            "resource_group": 0,
+            "pid_namespace":0,
+            "working_directory": "/",
+            "descriptors": {
+              "0": {
+                "type": "object_read",
+                "handle": "<IN_TEST_PATH>"
+              },
+              "1": {
+                "type": "object_write",
+                "handle": "intermediate_out_<TEST_ID>"
+              }
+            }
+          },
+          {
+            "arguments": [
+              "/exe"
+            ],
+            "environment": [],
+            "image": "",
+            "mount_namespace": 0,
+            "resource_group": 0,
+            "pid_namespace": 0,
+            "working_directory": "/",
+            "descriptors": {
+              "0": {
+                "type": "object_read",
+                "handle": "intermediate_out_<TEST_ID>"
+              },
+              "1": {
+                "type": "object_write",
+                "handle": "user_out_<TEST_ID>"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "Custom grade result for <TEST_ID>",
+        "type": "script",
+        "reactive": false,
+        "input_registers": [
+          "r:run_test_res_<TEST_ID>"
+        ],
+        "output_registers": [
+          "r:grade_res_<TEST_ID>"
+        ],
+        "objects": ["intermediate_out_<TEST_ID>", "user_out_<TEST_ID>"],
+        "script": "Very epic grading script"
+      }
+    ]
+  }
+}

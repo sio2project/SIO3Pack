@@ -71,7 +71,7 @@ class SIO3PackModelSolution(models.Model):
 
 
 class SIO3PackMainModelSolution(models.Model):
-    package = models.ForeignKey(SIO3Package, on_delete=models.CASCADE, related_name="main_model_solution")
+    package = models.OneToOneField(SIO3Package, on_delete=models.CASCADE, related_name="main_model_solution")
     source_file = FileField(upload_to=make_problem_filename, verbose_name=_("source file"))
 
     def __str__(self):

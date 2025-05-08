@@ -1,3 +1,4 @@
+import copy
 from enum import Enum
 from typing import Any
 
@@ -46,7 +47,8 @@ class WorkflowManager:
         """
         if name not in self.workflows:
             return self.get_default(name)
-        return self.workflows[name]
+        wf = self.workflows[name]
+        return copy.deepcopy(wf)
 
     def all(self) -> dict[str, Workflow]:
         """

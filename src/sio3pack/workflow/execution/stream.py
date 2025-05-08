@@ -175,8 +175,8 @@ class ObjectStream(Stream):
 
         :param dict data: The JSON-serializable dictionary to create the object stream from.
         """
-        return cls(
-            StreamType(data.get("type")),
+        cl = ObjectReadStream if StreamType(data.get("type")) == StreamType.OBJECT_READ else ObjectWriteStream
+        return cl(
             objects_manager.get_or_create_object(data.get("handle")),
         )
 
@@ -259,7 +259,8 @@ class PipeStream(Stream):
 
         :param dict data: The JSON-serializable dictionary to create the pipe stream from.
         """
-        return cls(StreamType(data.get("type")), data.get("pipe"))
+        cl = PipeReadStream if StreamType(data.get("type")) == StreamType.PIPE_READ else PipeWriteStream
+        return cl(data.get("pipe"))
 
     def to_json(self) -> dict:
         """

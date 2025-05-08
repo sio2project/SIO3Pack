@@ -1,0 +1,629 @@
+{
+  "name": "Run solution",
+  "external_objects": [
+    "prog/run.cpp",
+    "run/in/run0.in",
+    "run/out/run0.out",
+    "run/in/run1a.in",
+    "run/out/run1a.out",
+    "run/in/run2a.in",
+    "run/out/run2a.out",
+    ".cache/executables/runchk.cpp.e"
+  ],
+  "observable_objects": [],
+  "registers": 26,
+  "observable_registers": 0,
+  "tasks": [
+    {
+      "name": "Compile prog/run.cpp using g++",
+      "type": "execution",
+      "channels": [],
+      "exclusive": false,
+      "hard_time_limit": 60000,
+      "output_register": "obsreg:compilation_result",
+      "pid_namespaces": 1,
+      "filesystems": [
+        {
+          "type": "object",
+          "handle": "prog/run.cpp"
+        }
+      ],
+      "mount_namespaces": [
+        {
+          "mountpoints": [
+            {
+              "source": 0,
+              "target": "/file.cpp",
+              "writable": false
+            }
+          ],
+          "root": 0
+        }
+      ],
+      "pipes": 0,
+      "resource_groups": [
+        {
+          "cpu_usage_limit": 100.0,
+          "instruction_limit": 1000000000.0,
+          "memory_limit": 2147483648,
+          "oom_terminate_all_tasks": false,
+          "pid_limit": 2,
+          "swap_limit": 0,
+          "time_limit": 1000000000.0
+        }
+      ],
+      "processes": [
+        {
+          "arguments": [
+            "g++",
+            "/file.cpp",
+            "-o",
+            "/<OUT>",
+            "-std=c++20",
+            "-O3"
+          ],
+          "environment": [],
+          "image": "compiler:g++",
+          "mount_namespace": 0,
+          "resource_group": 0,
+          "pid_namespace": 0,
+          "working_directory": "/",
+          "descriptors": {
+            "2137": {
+              "type": "object_write",
+              "handle": ".cache/executables/run.cpp.e"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Run solution for test 0",
+      "type": "execution",
+      "channels": [],
+      "exclusive": false,
+      "hard_time_limit": 0,
+      "output_register": "r:run_test_res_0",
+      "pid_namespaces": 1,
+      "filesystems": [
+        {
+          "type": "object",
+          "handle": ".cache/executables/run.cpp.e"
+        }
+      ],
+      "mount_namespaces": [
+        {
+          "mountpoints": [
+            {
+              "source": 0,
+              "target": "/exe",
+              "writable": false
+            }
+          ],
+          "root": 0
+        }
+      ],
+      "pipes": 0,
+      "resource_groups": [
+        {
+          "cpu_usage_limit": 100,
+          "instruction_limit": 30000000000000.0,
+          "memory_limit": 104857600,
+          "oom_terminate_all_tasks": false,
+          "pid_limit": 2,
+          "swap_limit": 0,
+          "time_limit": 30000
+        }
+      ],
+      "processes": [
+        {
+          "arguments": [
+            "/exe"
+          ],
+          "environment": [],
+          "image": "",
+          "mount_namespace": 0,
+          "resource_group": 0,
+          "pid_namespace": 0,
+          "working_directory": "/",
+          "descriptors": {
+            "0": {
+              "type": "object_read",
+              "handle": "run/in/run0.in"
+            },
+            "1": {
+              "type": "object_write",
+              "handle": "user_out_0"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Run checker for test 0",
+      "type": "execution",
+      "channels": [],
+      "exclusive": false,
+      "hard_time_limit": 30000,
+      "output_register": "r:checker_res_0",
+      "pid_namespaces": 1,
+      "filesystems": [
+        {
+          "type": "object",
+          "handle": ".cache/executables/runchk.cpp.e"
+        },
+        {
+          "type": "object",
+          "handle": "run/in/run0.in"
+        },
+        {
+          "type": "object",
+          "handle": "run/out/run0.out"
+        },
+        {
+          "type": "object",
+          "handle": "user_out_0"
+        }
+      ],
+      "mount_namespaces": [
+        {
+          "mountpoints": [
+            {
+              "source": 0,
+              "target": "/chk",
+              "writable": false
+            },
+            {
+              "source": 1,
+              "target": "/in",
+              "writable": false
+            },
+            {
+              "source": 2,
+              "target": "/out",
+              "writable": false
+            },
+            {
+              "source": 3,
+              "target": "/user_out",
+              "writable": false
+            }
+          ],
+          "root": 0
+        }
+      ],
+      "pipes": 0,
+      "resource_groups": [
+        {
+          "cpu_usage_limit": 100.0,
+          "instruction_limit": 1000000000.0,
+          "memory_limit": 2147483648,
+          "oom_terminate_all_tasks": false,
+          "pid_limit": 2,
+          "swap_limit": 0,
+          "time_limit": 1000000000.0
+        }
+      ],
+      "processes": [
+        {
+          "arguments": [
+            "/chk",
+            "/in",
+            "/out",
+            "/user_out"
+          ],
+          "environment": [],
+          "image": "",
+          "mount_namespace": 0,
+          "resource_group": 0,
+          "pid_namespace": 0,
+          "working_directory": "/",
+          "descriptors": {
+            "1": {
+              "type": "object_write",
+              "handle": "chk_out_0"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Grade test 0",
+      "type": "script",
+      "reactive": true,
+      "input_registers": [
+        "r:run_test_res_0",
+        "r:checker_res_0"
+      ],
+      "output_registers": [
+        "r:grade_res_0"
+      ],
+      "script": "--[[\n\nThis script checks and grades a user's solution on a test. It gets two registers,\nchecker status and solution status, as well as an object, which is the checkers output.\n\n]]--\n\nlocal solution_status = get_register(0)\nlocal checker_status = get_register(1)\nlocal checker_out_obj = get_object(0)\nlocal checker_out = checker_out_obj:get_value()\n\nprint(\"checker_out: \" .. checker_out)\n",
+      "objects": [
+        "chk_out_0"
+      ]
+    },
+    {
+      "name": "Grade group 0",
+      "type": "script",
+      "reactive": true,
+      "input_registers": [
+        "r:grade_res_0"
+      ],
+      "output_registers": [
+        "r:group_grade_res_0"
+      ],
+      "script": "--[[\nThe template bellow contains a mapping of the test ID to the register name.\nExample:\n{\n    [\"0\"] = \"grade_res_0\",\n    [\"1a\"] = \"grade_res_1a\",\n    [\"1b\"] = \"grade_res_1b\",\n}\n\n]]--\nlocal test_grading = {\"0\" = \"<r:grade_res_0>\"}\n\nfor reg, test_id in pairs(outgens) do\n    -- do some epic grading stuff\n    print(\"ok\")\nend\n"
+    },
+    {
+      "name": "Run solution for test 1a",
+      "type": "execution",
+      "channels": [],
+      "exclusive": false,
+      "hard_time_limit": 0,
+      "output_register": "r:run_test_res_1a",
+      "pid_namespaces": 1,
+      "filesystems": [
+        {
+          "type": "object",
+          "handle": ".cache/executables/run.cpp.e"
+        }
+      ],
+      "mount_namespaces": [
+        {
+          "mountpoints": [
+            {
+              "source": 0,
+              "target": "/exe",
+              "writable": false
+            }
+          ],
+          "root": 0
+        }
+      ],
+      "pipes": 0,
+      "resource_groups": [
+        {
+          "cpu_usage_limit": 100,
+          "instruction_limit": 30000000000000.0,
+          "memory_limit": 104857600,
+          "oom_terminate_all_tasks": false,
+          "pid_limit": 2,
+          "swap_limit": 0,
+          "time_limit": 30000
+        }
+      ],
+      "processes": [
+        {
+          "arguments": [
+            "/exe"
+          ],
+          "environment": [],
+          "image": "",
+          "mount_namespace": 0,
+          "resource_group": 0,
+          "pid_namespace": 0,
+          "working_directory": "/",
+          "descriptors": {
+            "0": {
+              "type": "object_read",
+              "handle": "run/in/run1a.in"
+            },
+            "1": {
+              "type": "object_write",
+              "handle": "user_out_1a"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Run checker for test 1a",
+      "type": "execution",
+      "channels": [],
+      "exclusive": false,
+      "hard_time_limit": 30000,
+      "output_register": "r:checker_res_1a",
+      "pid_namespaces": 1,
+      "filesystems": [
+        {
+          "type": "object",
+          "handle": ".cache/executables/runchk.cpp.e"
+        },
+        {
+          "type": "object",
+          "handle": "run/in/run1a.in"
+        },
+        {
+          "type": "object",
+          "handle": "run/out/run1a.out"
+        },
+        {
+          "type": "object",
+          "handle": "user_out_1a"
+        }
+      ],
+      "mount_namespaces": [
+        {
+          "mountpoints": [
+            {
+              "source": 0,
+              "target": "/chk",
+              "writable": false
+            },
+            {
+              "source": 1,
+              "target": "/in",
+              "writable": false
+            },
+            {
+              "source": 2,
+              "target": "/out",
+              "writable": false
+            },
+            {
+              "source": 3,
+              "target": "/user_out",
+              "writable": false
+            }
+          ],
+          "root": 0
+        }
+      ],
+      "pipes": 0,
+      "resource_groups": [
+        {
+          "cpu_usage_limit": 100.0,
+          "instruction_limit": 1000000000.0,
+          "memory_limit": 2147483648,
+          "oom_terminate_all_tasks": false,
+          "pid_limit": 2,
+          "swap_limit": 0,
+          "time_limit": 1000000000.0
+        }
+      ],
+      "processes": [
+        {
+          "arguments": [
+            "/chk",
+            "/in",
+            "/out",
+            "/user_out"
+          ],
+          "environment": [],
+          "image": "",
+          "mount_namespace": 0,
+          "resource_group": 0,
+          "pid_namespace": 0,
+          "working_directory": "/",
+          "descriptors": {
+            "1": {
+              "type": "object_write",
+              "handle": "chk_out_1a"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Grade test 1a",
+      "type": "script",
+      "reactive": true,
+      "input_registers": [
+        "r:run_test_res_1a",
+        "r:checker_res_1a"
+      ],
+      "output_registers": [
+        "r:grade_res_1a"
+      ],
+      "script": "--[[\n\nThis script checks and grades a user's solution on a test. It gets two registers,\nchecker status and solution status, as well as an object, which is the checkers output.\n\n]]--\n\nlocal solution_status = get_register(0)\nlocal checker_status = get_register(1)\nlocal checker_out_obj = get_object(0)\nlocal checker_out = checker_out_obj:get_value()\n\nprint(\"checker_out: \" .. checker_out)\n",
+      "objects": [
+        "chk_out_1a"
+      ]
+    },
+    {
+      "name": "Grade group 1",
+      "type": "script",
+      "reactive": true,
+      "input_registers": [
+        "r:grade_res_1a"
+      ],
+      "output_registers": [
+        "r:group_grade_res_1"
+      ],
+      "script": "--[[\nThe template bellow contains a mapping of the test ID to the register name.\nExample:\n{\n    [\"0\"] = \"grade_res_0\",\n    [\"1a\"] = \"grade_res_1a\",\n    [\"1b\"] = \"grade_res_1b\",\n}\n\n]]--\nlocal test_grading = {\"1a\" = \"<r:grade_res_1a>\"}\n\nfor reg, test_id in pairs(outgens) do\n    -- do some epic grading stuff\n    print(\"ok\")\nend\n"
+    },
+    {
+      "name": "Run solution for test 2a",
+      "type": "execution",
+      "channels": [],
+      "exclusive": false,
+      "hard_time_limit": 0,
+      "output_register": "r:run_test_res_2a",
+      "pid_namespaces": 1,
+      "filesystems": [
+        {
+          "type": "object",
+          "handle": ".cache/executables/run.cpp.e"
+        }
+      ],
+      "mount_namespaces": [
+        {
+          "mountpoints": [
+            {
+              "source": 0,
+              "target": "/exe",
+              "writable": false
+            }
+          ],
+          "root": 0
+        }
+      ],
+      "pipes": 0,
+      "resource_groups": [
+        {
+          "cpu_usage_limit": 100,
+          "instruction_limit": 30000000000000.0,
+          "memory_limit": 104857600,
+          "oom_terminate_all_tasks": false,
+          "pid_limit": 2,
+          "swap_limit": 0,
+          "time_limit": 30000
+        }
+      ],
+      "processes": [
+        {
+          "arguments": [
+            "/exe"
+          ],
+          "environment": [],
+          "image": "",
+          "mount_namespace": 0,
+          "resource_group": 0,
+          "pid_namespace": 0,
+          "working_directory": "/",
+          "descriptors": {
+            "0": {
+              "type": "object_read",
+              "handle": "run/in/run2a.in"
+            },
+            "1": {
+              "type": "object_write",
+              "handle": "user_out_2a"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Run checker for test 2a",
+      "type": "execution",
+      "channels": [],
+      "exclusive": false,
+      "hard_time_limit": 30000,
+      "output_register": "r:checker_res_2a",
+      "pid_namespaces": 1,
+      "filesystems": [
+        {
+          "type": "object",
+          "handle": ".cache/executables/runchk.cpp.e"
+        },
+        {
+          "type": "object",
+          "handle": "run/in/run2a.in"
+        },
+        {
+          "type": "object",
+          "handle": "run/out/run2a.out"
+        },
+        {
+          "type": "object",
+          "handle": "user_out_2a"
+        }
+      ],
+      "mount_namespaces": [
+        {
+          "mountpoints": [
+            {
+              "source": 0,
+              "target": "/chk",
+              "writable": false
+            },
+            {
+              "source": 1,
+              "target": "/in",
+              "writable": false
+            },
+            {
+              "source": 2,
+              "target": "/out",
+              "writable": false
+            },
+            {
+              "source": 3,
+              "target": "/user_out",
+              "writable": false
+            }
+          ],
+          "root": 0
+        }
+      ],
+      "pipes": 0,
+      "resource_groups": [
+        {
+          "cpu_usage_limit": 100.0,
+          "instruction_limit": 1000000000.0,
+          "memory_limit": 2147483648,
+          "oom_terminate_all_tasks": false,
+          "pid_limit": 2,
+          "swap_limit": 0,
+          "time_limit": 1000000000.0
+        }
+      ],
+      "processes": [
+        {
+          "arguments": [
+            "/chk",
+            "/in",
+            "/out",
+            "/user_out"
+          ],
+          "environment": [],
+          "image": "",
+          "mount_namespace": 0,
+          "resource_group": 0,
+          "pid_namespace": 0,
+          "working_directory": "/",
+          "descriptors": {
+            "1": {
+              "type": "object_write",
+              "handle": "chk_out_2a"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Grade test 2a",
+      "type": "script",
+      "reactive": true,
+      "input_registers": [
+        "r:run_test_res_2a",
+        "r:checker_res_2a"
+      ],
+      "output_registers": [
+        "r:grade_res_2a"
+      ],
+      "script": "--[[\n\nThis script checks and grades a user's solution on a test. It gets two registers,\nchecker status and solution status, as well as an object, which is the checkers output.\n\n]]--\n\nlocal solution_status = get_register(0)\nlocal checker_status = get_register(1)\nlocal checker_out_obj = get_object(0)\nlocal checker_out = checker_out_obj:get_value()\n\nprint(\"checker_out: \" .. checker_out)\n",
+      "objects": [
+        "chk_out_2a"
+      ]
+    },
+    {
+      "name": "Grade group 2",
+      "type": "script",
+      "reactive": true,
+      "input_registers": [
+        "r:grade_res_2a"
+      ],
+      "output_registers": [
+        "r:group_grade_res_2"
+      ],
+      "script": "--[[\nThe template bellow contains a mapping of the test ID to the register name.\nExample:\n{\n    [\"0\"] = \"grade_res_0\",\n    [\"1a\"] = \"grade_res_1a\",\n    [\"1b\"] = \"grade_res_1b\",\n}\n\n]]--\nlocal test_grading = {\"2a\" = \"<r:grade_res_2a>\"}\n\nfor reg, test_id in pairs(outgens) do\n    -- do some epic grading stuff\n    print(\"ok\")\nend\n"
+    },
+    {
+      "name": "Grade run",
+      "type": "script",
+      "reactive": true,
+      "input_registers": [
+        "r:group_grade_res_0",
+        "r:group_grade_res_1",
+        "r:group_grade_res_2"
+      ],
+      "output_registers": [
+        "obsreg:result"
+      ],
+      "script": "--[[\nThe template bellow contains a mapping of the test ID to the register name.\nExample:\n{\n    [\"0\"] = \"group_grade_res_0\",\n    [\"1a\"] = \"group_grade_res_1a\",\n    [\"1b\"] = \"group_grade_res_1b\",\n}\n\n]]--\nlocal test_grading = {\"0\" = \"<r:group_grade_res_0>\", \"1\" = \"<r:group_grade_res_1>\", \"2\" = \"<r:group_grade_res_2>\"}\n\nfor reg, test_id in pairs(outgens) do\n    -- do some epic grading stuff\n    print(\"ok\")\nend\n"
+    }
+  ]
+}

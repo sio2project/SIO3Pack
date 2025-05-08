@@ -22,18 +22,21 @@ def from_file(file: str | LocalFile, configuration: SIO3PackConfig = None) -> Pa
     return Package.from_file(file, configuration=configuration)
 
 
-def from_db(problem_id: int) -> Package:
+def from_db(problem_id: int, configuration: SIO3PackConfig = None) -> Package:
     """
     Initialize a package object from the database.
     If sio3pack isn't installed with Django support, it should raise an ImproperlyConfigured exception.
     If there is no package with the given problem_id, it should raise an UnknownPackageType exception.
 
     :param problem_id: The problem id.
+    :param configuration: Configuration of the package.
     :return: The package object.
     """
     try:
-        import django
+        from django.conf import settings
 
-        return Package.from_db(problem_id)
+        configuration = configuration or SIO3PackConfig()
+        configuration.django_settings = settings
+        return Package.from_db(problem_id, configuration)
     except ImportError:
         raise ImproperlyConfigured("sio3pack is not installed with Django support.")

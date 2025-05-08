@@ -6,9 +6,10 @@ from typing import Any, Type
 
 import yaml
 
-from sio3pack.files import File, LocalFile, RemoteFile
+from sio3pack.files import File, LocalFile
 from sio3pack.packages.exceptions import ImproperlyConfigured
 from sio3pack.packages.package import Package
+from sio3pack.packages.package.configuration import SIO3PackConfig
 from sio3pack.packages.sinolpack import constants
 from sio3pack.packages.sinolpack.enums import ModelSolutionKind
 from sio3pack.packages.sinolpack.workflows import SinolpackWorkflowManager
@@ -100,7 +101,7 @@ class Sinolpack(Package):
     def __init__(self):
         super().__init__()
 
-    def _from_file(self, file: LocalFile, configuration=None):
+    def _from_file(self, file: LocalFile, configuration: SIO3PackConfig = None):
         super()._from_file(file, configuration)
         if self.is_archive:
             archive = Archive(file.path)
@@ -125,8 +126,8 @@ class Sinolpack(Package):
 
         self._process_package()
 
-    def _from_db(self, problem_id: int):
-        super()._from_db(problem_id)
+    def _from_db(self, problem_id: int, configuration: SIO3PackConfig = None):
+        super()._from_db(problem_id, configuration)
         super()._setup_django_handler(problem_id)
         # TODO: Workflows probably should be fetched only if they are needed, since this can be slow
         super()._setup_workflows_from_db()
@@ -135,11 +136,6 @@ class Sinolpack(Package):
 
     def _workflow_manager_class(self) -> Type[WorkflowManager]:
         return SinolpackWorkflowManager
-
-    def _get_from_django_settings(self, key: str, default=None):
-        if self.configuration.django_settings is None:
-            return default
-        return getattr(self.configuration.django_settings, key, default)
 
     def get_doc_dir(self) -> str:
         """
@@ -390,13 +386,31 @@ class Sinolpack(Package):
             if os.path.isfile(os.path.join(attachments_dir, attachment))
         ]
 
+    def _get_test_regex(self) -> str:
+        return rf"^{self.short_name}(([0-9]+)([a-z]?[a-z0-9]*)).(in|out)$"
+
+    def match_test_regex(self, filename: str) -> re.Match | None:
+        """
+        Returns match object if the filename matches the test regex.
+        """
+        return re.match(self._get_test_regex(), filename)
+
     def get_test_id_from_filename(self, filename: str) -> str:
         """
         Returns the test ID from the filename.
         """
-        match = re.match(rf"^{self.short_name}([a-zA-Z0-9]+)\.in$", filename)
+        match = self.match_test_regex(filename)
         if match:
             return match.group(1)
+        raise ValueError(f"Invalid filename format: {filename}")
+
+    def get_group_from_filename(self, filename: str) -> str:
+        """
+        Returns the group from the filename.
+        """
+        match = self.match_test_regex(filename)
+        if match:
+            return match.group(2)
         raise ValueError(f"Invalid filename format: {filename}")
 
     def _process_existing_tests(self):
@@ -407,22 +421,17 @@ class Sinolpack(Package):
         test_ids = set()
         for ext in ("in", "out"):
             for file in os.listdir(os.path.join(self.rootdir, ext)):
-                try:
+                match = self.match_test_regex(os.path.basename(file))
+                if match:
                     test_name = os.path.splitext(os.path.basename(file))[0]
-                    test_ids.add((self.get_test_id_from_filename(file), test_name))
-                except ValueError:
-                    # Ignore files that don't match the pattern
-                    continue
+                    test_id = match.group(1)
+                    group = match.group(2)
+                    test_ids.add((test_id, group, test_name))
         # TODO: Sort this properly
         test_ids = sorted(test_ids)
         self.tests = []
 
-        for test_id, test_name in test_ids:
-            gr_match = re.match(r"^\d+", test_id)
-            if gr_match:
-                group = gr_match.group(0)
-            else:
-                group = None
+        for test_id, group, test_name in test_ids:
             if os.path.exists(os.path.join(self.rootdir, "in", self.short_name + test_id + ".in")):
                 in_file = LocalFile(os.path.join(self.rootdir, "in", self.short_name + test_id + ".in"))
             else:
@@ -458,6 +467,7 @@ class Sinolpack(Package):
         """
         Returns the corresponding output test for the given input test.
         """
+        # TODO: Better
         return in_test.replace(".in", ".out")
 
     def get_outgen_path(self) -> str | None:
