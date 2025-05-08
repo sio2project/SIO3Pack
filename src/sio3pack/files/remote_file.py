@@ -12,6 +12,7 @@ class RemoteFile(File):
         from oioioi.filetracker.fields import FileField
     except ImportError:
         from django.db import models
+
         FileField = models.FileField
 
     def __init__(self, file: FileField):

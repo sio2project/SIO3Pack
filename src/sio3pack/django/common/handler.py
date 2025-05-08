@@ -81,7 +81,9 @@ class DjangoHandler:
         instance = SIO3PackMainModelSolution(
             package=self.db_package,
         )
-        instance.source_file.save(self.package.main_model_solution.filename, File(open(self.package.main_model_solution.path, "rb")))
+        instance.source_file.save(
+            self.package.main_model_solution.filename, File(open(self.package.main_model_solution.path, "rb"))
+        )
         instance.save()
 
     def _save_model_solutions(self):

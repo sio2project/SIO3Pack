@@ -19,7 +19,9 @@ def pytest_ignore_collect(collection_path, config):
     if not __django_installed:
         return "test_django" in str(collection_path)
 
+
 if __django_installed:
+
     @pytest.fixture(autouse=True)
     def clean_media_root(settings):
         """
