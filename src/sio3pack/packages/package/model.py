@@ -173,10 +173,6 @@ class Package(RegisteredSubclassesBase):
         pass
 
     @wrap_exceptions
-    def get_tests(self) -> list[Test]:
-        pass
-
-    @wrap_exceptions
     def get_test(self, test_id: str) -> Test:
         pass
 

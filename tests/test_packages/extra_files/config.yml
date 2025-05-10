@@ -1,0 +1,6 @@
+title: Package with extra files
+extra_compilation_files: ['extlib.h']
+extra_compilation_args:
+  cpp:
+    - 'extlib.h'
+extra_execution_files: ['extlib.py']

@@ -17,6 +17,9 @@ class Object:
     def __str__(self):
         return f"<Object {self.handle}>"
 
+    def __repr__(self):
+        return f"<Object {self.handle}>"
+
     def replace_templates(self, replacements: dict[str, str]):
         """
         Replace strings in the object with the given replacements.
@@ -113,7 +116,7 @@ class ObjectList:
 
         :return: The string representation of the list.
         """
-        return f"<ObjectList {len(self.objects)} objects>"
+        return f"<ObjectList {self.objects}>"
 
     def union(self, other: "ObjectList"):
         """

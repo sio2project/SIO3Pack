@@ -482,6 +482,9 @@ class Sinolpack(Package):
             return self.special_files[file_type].path
         return None
 
+    def get_ingen_path(self) -> str | None:
+        return self._get_special_file_path("ingen")
+
     def get_inwer_path(self) -> str | None:
         return self._get_special_file_path("inwer")
 
@@ -543,7 +546,7 @@ class Sinolpack(Package):
             return [
                 LocalFile(os.path.join(self.rootdir, "prog", f))
                 for f in self.config.get("extra_execution_files", [])
-                if os.path.isfile(os.path.join(self.rootdir, f))
+                if os.path.isfile(os.path.join(self.rootdir, "prog", f))
             ]
 
     def get_extra_compilation_files(self) -> list[File]:
@@ -559,7 +562,7 @@ class Sinolpack(Package):
             return [
                 LocalFile(os.path.join(self.rootdir, "prog", f))
                 for f in self.config.get("extra_compilation_files", [])
-                if os.path.isfile(os.path.join(self.rootdir, f))
+                if os.path.isfile(os.path.join(self.rootdir, "prog", f))
             ]
 
     def _get_limit(self, test: Test, language: str, type: str) -> int:
