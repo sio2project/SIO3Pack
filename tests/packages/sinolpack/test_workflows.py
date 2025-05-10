@@ -7,6 +7,7 @@ from sio3pack import LocalFile
 from sio3pack.packages.package.configuration import SIO3PackConfig
 from sio3pack.workflow import ExecutionTask, ScriptTask, Workflow
 from sio3pack.workflow.execution import ObjectReadStream, ObjectWriteStream
+from sio3pack.workflow.execution.filesystems import ObjectFilesystem
 from tests.fixtures import PackageInfo, get_package
 from tests.packages.sinolpack.utils import common_checks
 
@@ -25,9 +26,10 @@ def test_unpack_workflows(get_package):
 
     if package_info.task_id == "abc":
         # We expect 2 workflows: compile checker and outgen
-        assert len(workflows) == 2
+        assert len(workflows) == 3
         assert workflows[0].name == "Compile checker"
-        assert workflows[1].name == "Outgen tests"
+        assert workflows[1].name == "Run ingen"
+        assert workflows[2].name == "Outgen tests"
     elif package_info.task_id == "wer":
         # We expect 3 workflows: compile checker, outgen and inwer
         assert len(workflows) == 3
@@ -166,3 +168,141 @@ def test_custom_workflow(get_package):
 
     assert num_custom == 3, "Should have 3 custom execution tasks"
     assert num_custom_scripts == 3, "Should have 3 custom script tasks"
+
+
+@pytest.mark.parametrize("get_package", ["simple"], indirect=True)
+def test_user_out_workflow(get_package):
+    package_info: PackageInfo = get_package()
+    package = sio3pack.from_file(package_info.path, SIO3PackConfig.detect())
+    common_checks(package_info, package)
+
+    program = LocalFile(os.path.join(package.rootdir, "prog", "abc.cpp"))
+    test = package.tests[0]
+
+    op = package.get_user_out_operation(program, test)
+    workflows = [wf for wf in op.get_workflow()]
+    assert len(workflows) == 1
+    workflow = workflows[0]
+
+    assert len(workflow.observable_objects) == 1, "Should have just user out object"
+    assert workflow.observable_objects[0].handle.startswith("user_out_"), "User out object should be user_out_"
+
+    num_compiles = 0
+    num_runs = 0
+    for task in workflow.tasks:
+        if task.name == f"Compile {program.path} using g++-12.2":
+            assert len(task.processes) == 1, "Compile task should have one process"
+            assert task.processes[0].image == "compiler:g++-12.2", "Compile task should use g++-12.2 image"
+            num_compiles += 1
+        elif task.name.startswith("Run solution for test"):
+            num_runs += 1
+            assert len(task.processes) == 1, "Run task should have one process"
+            proc = task.processes[0]
+            stdin_fd = proc.descriptor_manager.get(0)
+            assert isinstance(stdin_fd, ObjectReadStream), "Run task should have stdin stream"
+            stdout_fd = proc.descriptor_manager.get(1)
+            assert isinstance(stdout_fd, ObjectWriteStream), "Run task should have stdout stream"
+            assert stdout_fd.object.handle.startswith("user_out"), "Run task should have user_out stream"
+
+    assert num_compiles == 1, "Should have one compile task"
+    assert num_runs == 1, "Should have one run task"
+
+
+@pytest.mark.parametrize("get_package", ["simple"], indirect=True)
+def test_test_run_workflow(get_package):
+    package_info: PackageInfo = get_package()
+    package = sio3pack.from_file(package_info.path, SIO3PackConfig.detect())
+    common_checks(package_info, package)
+
+    program = LocalFile(os.path.join(package.rootdir, "prog", "abc.cpp"))
+    test = LocalFile(os.path.join(package.rootdir, "in", "abc0.in"))
+
+    op = package.get_test_run_operation(program, test)
+    workflows = [wf for wf in op.get_workflow()]
+    assert len(workflows) == 1
+    workflow = workflows[0]
+
+    assert len(workflow.observable_objects) == 1, "Should have just user out object"
+    out_obj = workflow.observable_objects[0]
+    assert out_obj.handle == f"test_run_{program.filename}", "User out object should be user_out_<filename>"
+
+    assert len(workflow.tasks) == 2, "Should have two tasks"
+    assert workflow.tasks[0].name == f"Compile {program.path} using g++-12.2", "First task should be compile"
+    assert workflow.tasks[1].name == f"Run solution for test", "Second task should be run"
+    exec_task = workflow.tasks[1]
+    assert isinstance(exec_task, ExecutionTask), "Second task should be an execution task"
+    assert len(exec_task.processes) == 1, "Run task should have one process"
+    proc = exec_task.processes[0]
+    stdin_fd = proc.descriptor_manager.get(0)
+    assert isinstance(stdin_fd, ObjectReadStream), "Run task should have stdin stream"
+    assert stdin_fd.object.handle == test.path, "Run task should have stdin stream"
+    stdout_fd = proc.descriptor_manager.get(1)
+    assert isinstance(stdout_fd, ObjectWriteStream), "Run task should have stdout stream"
+    assert stdout_fd.object.handle == out_obj.handle, "Run task should have stdout stream"
+
+
+@pytest.mark.parametrize("get_package", ["extra_files"], indirect=True)
+def test_extra_files(get_package):
+    package_info: PackageInfo = get_package()
+    package = sio3pack.from_file(package_info.path, SIO3PackConfig.detect())
+    common_checks(package_info, package)
+
+    program = LocalFile(os.path.join(package.rootdir, "prog", "ext.cpp"))
+
+    op = package.get_run_operation(program)
+    workflows = [wf for wf in op.get_workflow()]
+    assert len(workflows) == 1
+    workflow = workflows[0]
+
+    assert len(workflow.external_objects) == 5
+    extlib_h = None
+    extlib_py = None
+    for obj in workflow.external_objects:
+        if obj.handle.endswith("extlib.h"):
+            extlib_h = obj
+        elif obj.handle.endswith("extlib.py"):
+            extlib_py = obj
+    assert extlib_h is not None, "Should have extlib.h as external object"
+    assert extlib_py is not None, "Should have extlib.py as external object"
+
+    for task in workflow.tasks:
+        if isinstance(task, ExecutionTask):
+            if task.name == f"Compile {program.path} using g++-12.2":
+                assert task.filesystem_manager.len() == 2
+                ext_fs = task.filesystem_manager.get_by_id(1)
+                assert isinstance(ext_fs, ObjectFilesystem), "Should have object filesystem with external file"
+                assert ext_fs.object.handle == extlib_h.handle, "Should have extlib.h as external file"
+
+                assert task.mountnamespace_manager.len() == 1, "Should have one mount namespace"
+                assert len(task.mountnamespace_manager.get_by_id(0).mountpoints) == 2, "Should have two mount points"
+
+                proc = task.processes[0]
+                assert "extlib.h" in proc.arguments, "Should have extlib.h in arguments"
+            elif task.name.startswith("Run solution for test"):
+                assert task.filesystem_manager.len() == 2
+                ext_fs = task.filesystem_manager.get_by_id(1)
+                assert isinstance(ext_fs, ObjectFilesystem), "Should have object filesystem with external file"
+                assert ext_fs.object.handle == extlib_py.handle, "Should have extlib.py as external file"
+
+                assert task.mountnamespace_manager.len() == 1, "Should have one mount namespace"
+                assert len(task.mountnamespace_manager.get_by_id(0).mountpoints) == 2, "Should have two mount points"
+
+    # Check that python compilation doesnt have extlib.h in compilation args.
+    program = LocalFile(os.path.join(package.rootdir, "prog", "ext.py"))
+    op = package.get_run_operation(program)
+    workflows = [wf for wf in op.get_workflow()]
+    assert len(workflows) == 1
+
+    for task in workflows[0].tasks:
+        if isinstance(task, ExecutionTask):
+            if task.name == f"Compile {program.path} using python":
+                assert task.filesystem_manager.len() == 2
+                ext_fs = task.filesystem_manager.get_by_id(1)
+                assert isinstance(ext_fs, ObjectFilesystem), "Should have object filesystem with external file"
+                assert ext_fs.object.handle == extlib_py.handle, "Should have extlib.py as external file"
+
+                assert task.mountnamespace_manager.len() == 1, "Should have one mount namespace"
+                assert len(task.mountnamespace_manager.get_by_id(0).mountpoints) == 2, "Should have two mount points"
+
+                proc = task.processes[0]
+                assert "extlib.h" not in proc.arguments, "Should not have extlib.h in arguments"

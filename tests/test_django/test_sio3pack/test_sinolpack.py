@@ -82,7 +82,7 @@ def test_additional_files(get_archived_package):
     package, db_package = _save_and_test_simple(package_info)
     additional_files = package.additional_files
     db_additional_files = SinolpackAdditionalFile.objects.filter(package=db_package)
-    assert db_additional_files.count() == 1
+    assert db_additional_files.count() == 2
     assert len(additional_files) == db_additional_files.count()
 
     for file in additional_files:
