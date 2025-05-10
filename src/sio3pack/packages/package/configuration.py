@@ -13,7 +13,7 @@ class CompilerConfig:
         # TODO: implement this properly
         return {
             "cpp": cls("g++", "g++-12.2", "g++", ["-std=c++20", "-O3"]),
-            "py": cls("python", "python3.10", "python", []),
+            "python": cls("python", "python3.10", "python", []),
         }
 
 

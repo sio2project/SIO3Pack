@@ -52,7 +52,7 @@ class SinolpackWorkflowManager(WorkflowManager):
 
     def _get_ingen_workflow(self) -> Workflow:
         workflow = Workflow(
-            "ingen",
+            "Run ingen",
             observable_registers=1,
         )
         ingen_path = self.package.get_ingen_path()
