@@ -103,7 +103,6 @@ class Sinolpack(Package):
             archive.extract(to_path=self.tmpdir.name)
             self.rootdir = os.path.join(self.tmpdir.name, self.short_name)
         else:
-            # FIXME: Won't work in sinol-make.
             self.short_name = os.path.basename(os.path.abspath(file.path))
             self.rootdir = os.path.abspath(file.path)
 
@@ -187,6 +186,7 @@ class Sinolpack(Package):
         try:
             config = self.get_in_root("config.yml")
             self.config = yaml.safe_load(config.read())
+            self.short_name = self.config.get("sinol_task_id", self.short_name)
         except FileNotFoundError:
             self.config = {}
 
