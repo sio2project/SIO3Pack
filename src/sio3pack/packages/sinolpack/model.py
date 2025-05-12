@@ -190,6 +190,12 @@ class Sinolpack(Package):
         except FileNotFoundError:
             self.config = {}
 
+    def reload_config(self):
+        """
+        Process the config.yml file again in case it was modified.
+        """
+        self._process_config_yml()
+
     def _detect_full_name(self):
         """
         Sets the problem's full name from the ``config.yml`` (key ``title``)

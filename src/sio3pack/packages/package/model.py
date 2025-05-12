@@ -139,6 +139,9 @@ class Package(RegisteredSubclassesBase):
         except AttributeError:
             raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
 
+    def reload_config(self):
+        pass
+
     @wrap_exceptions
     def get_title(self, lang: str | None = None) -> str:
         pass
