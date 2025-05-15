@@ -16,6 +16,7 @@ from tests.packages.sinolpack.utils import common_checks
 def _get_run_types() -> list[str]:
     try:
         import django
+
         return ["file", "db"]
     except ImportError:
         return ["file"]
@@ -27,6 +28,7 @@ def _get_package(package_info: PackageInfo, type: str, config: SIO3PackConfig = 
         return sio3pack.from_file(package_info.path, config)
     elif type == "db":
         from sio3pack.django.common.models import SIO3Package
+
         package = sio3pack.from_file(package_info.path, config)
         id = SIO3Package.objects.all().count() + 1
         package.save_to_db(id)
@@ -134,7 +136,9 @@ def test_run_workflow(get_package):
                     assert (
                         len(task.input_registers) == 3
                     ), "Grade run task should have three input registers: grading result of the groups"
-                    assert len(task.output_registers) == 1, "Grade run task should have one output register: grading result"
+                    assert (
+                        len(task.output_registers) == 1
+                    ), "Grade run task should have one output register: grading result"
                 else:
                     raise ValueError(f"Unknown task name: {task.name}")
             else:
@@ -320,7 +324,9 @@ def test_extra_files(get_package):
                         assert ext_fs.object.handle == extlib_h.handle, "Should have extlib.h as external file"
 
                         assert task.mountnamespace_manager.len() == 1, "Should have one mount namespace"
-                        assert len(task.mountnamespace_manager.get_by_id(0).mountpoints) == 2, "Should have two mount points"
+                        assert (
+                            len(task.mountnamespace_manager.get_by_id(0).mountpoints) == 2
+                        ), "Should have two mount points"
 
                         proc = task.processes[0]
                         assert "extlib.h" in proc.arguments, "Should have extlib.h in arguments"
@@ -331,7 +337,9 @@ def test_extra_files(get_package):
                         assert ext_fs.object.handle == extlib_py.handle, "Should have extlib.py as external file"
 
                         assert task.mountnamespace_manager.len() == 1, "Should have one mount namespace"
-                        assert len(task.mountnamespace_manager.get_by_id(0).mountpoints) == 2, "Should have two mount points"
+                        assert (
+                            len(task.mountnamespace_manager.get_by_id(0).mountpoints) == 2
+                        ), "Should have two mount points"
 
             # Check that python compilation doesnt have extlib.h in compilation args.
             program = None
@@ -355,7 +363,9 @@ def test_extra_files(get_package):
                         assert ext_fs.object.handle == extlib_py.handle, "Should have extlib.py as external file"
 
                         assert task.mountnamespace_manager.len() == 1, "Should have one mount namespace"
-                        assert len(task.mountnamespace_manager.get_by_id(0).mountpoints) == 2, "Should have two mount points"
+                        assert (
+                            len(task.mountnamespace_manager.get_by_id(0).mountpoints) == 2
+                        ), "Should have two mount points"
 
                         proc = task.processes[0]
                         assert "extlib.h" not in proc.arguments, "Should not have extlib.h in arguments"
