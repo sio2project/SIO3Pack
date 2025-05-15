@@ -27,7 +27,8 @@ class UnpackStage(Enum):
 class WorkflowManager:
     def __init__(self, package: "Package", workflows: dict[str, Any]):
         for name, wf in workflows.items():
-            wf = Workflow.from_json(wf)
+            if isinstance(wf, dict):
+                wf = Workflow.from_json(wf)
             workflows[name] = wf
 
         self.package = package

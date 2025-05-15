@@ -62,6 +62,7 @@ class DjangoHandler:
         self._save_main_model_solution()
         self._save_problem_statements()
         self._save_tests()
+        self._save_workflows()
 
     def _save_translated_titles(self):
         """
@@ -130,6 +131,18 @@ class DjangoHandler:
                 name=name,
                 workflow_raw=json.dumps(wf.to_json()),
             )
+            instance.save()
+
+    def get_executable_path(self, program: File | str) -> str | None:
+        """
+        Get the executable path for the given program.
+        :param program: The program to get the path for.
+        :return: The executable path or None if not found.
+        """
+        if isinstance(program, File):
+            return program.path + ".e"
+        elif isinstance(program, str):
+            return program + ".e"
 
     @property
     def short_name(self) -> str:

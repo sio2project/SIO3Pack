@@ -166,15 +166,15 @@ class Package(RegisteredSubclassesBase):
 
     @wrap_exceptions
     def get_title(self, lang: str | None = None) -> str:
-        pass
+        raise NotImplementedError("This method should be implemented in subclasses.")
 
     @wrap_exceptions
     def get_statement(self, lang: str | None = None) -> File | None:
-        pass
+        raise NotImplementedError("This method should be implemented in subclasses.")
 
     @wrap_exceptions
     def get_test(self, test_id: str) -> Test:
-        pass
+        raise NotImplementedError("This method should be implemented in subclasses.")
 
     def has_test_gen(self) -> bool:
         """
