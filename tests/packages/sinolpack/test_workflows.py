@@ -1,9 +1,11 @@
+import json
 import os
 
 import pytest
 import yaml
 
 import sio3pack
+from sio3pack.exceptions import WorkflowCreationError
 from sio3pack.packages import Sinolpack
 from sio3pack.packages.package.configuration import SIO3PackConfig
 from sio3pack.workflow import ExecutionTask, ScriptTask, Workflow
@@ -53,13 +55,13 @@ def test_unpack_workflows(get_package):
         if package_info.task_id == "abc":
             # We expect 2 workflows: compile checker and outgen
             assert len(workflows) == 3
-            assert workflows[0].name == "Compile checker"
+            assert workflows[0].name == "Compile files"
             assert workflows[1].name == "Run ingen"
             assert workflows[2].name == "Outgen tests"
         elif package_info.task_id == "wer":
             # We expect 3 workflows: compile checker, outgen and inwer
             assert len(workflows) == 3
-            assert workflows[0].name == "Compile checker"
+            assert workflows[0].name == "Compile files"
             assert workflows[1].name == "Outgen tests"
             assert workflows[2].name == "Inwer"
 
@@ -369,3 +371,101 @@ def test_extra_files(get_package):
 
                         proc = task.processes[0]
                         assert "extlib.h" not in proc.arguments, "Should not have extlib.h in arguments"
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("get_package", ["extra_files"], indirect=True)
+def test_extra_files_in_workflow(get_package):
+    for type in _get_run_types():
+        print(f"From {type}")
+
+        package_info: PackageInfo = get_package()
+        with open(os.path.join(package_info.path, "workflows.json"), "w") as f:
+            f.write(
+                json.dumps(
+                    {
+                        "grade_group": {
+                            "name": "Grade group workflow",
+                            "observable_objects": [],
+                            "external_objects": ["<EXTRA_FILE:dir/some_file.txt>"],
+                            "registers": 0,
+                            "observable_registers": 0,
+                            "tasks": [
+                                {
+                                    "name": "Custom grade group",
+                                    "type": "script",
+                                    "reactive": False,
+                                    "input_registers": [],
+                                    "output_registers": [],
+                                    "objects": ["<EXTRA_FILE:dir/some_file.txt>"],
+                                    "script": "",
+                                }
+                            ],
+                        }
+                    }
+                )
+            )
+
+        package_info: PackageInfo = get_package()
+        package: Sinolpack = _get_package(package_info, type)
+        common_checks(package_info, package)
+
+        program = package.main_model_solution
+        op = package.get_run_operation(program)
+        workflows = [wf for wf in op.get_workflow()]
+        assert len(workflows) == 1
+        workflow = workflows[0]
+
+        found = False
+        for task in workflow.tasks:
+            if isinstance(task, ScriptTask) and task.name == "Custom grade group":
+                found = True
+                assert len(task.objects) == 1, "Should have one object"
+                assert task.objects[0].handle.endswith("some_file.txt"), "Should have some_file.txt as object"
+                assert "EXTRA_FILE" not in task.objects[0].handle, "Should not have EXTRA_FILE in handle"
+
+        assert found, "Should have found the custom grade group workflow"
+
+        found = False
+        for obj in workflow.external_objects:
+            if obj.handle.endswith("some_file.txt"):
+                found = True
+                assert "EXTRA_FILE" not in obj.handle, "Should not have EXTRA_FILE in handle"
+
+        assert found, "The extra file should be an external object"
+
+        # Now, test if workflow creation fails when the file is not in the package
+        with open(os.path.join(package_info.path, "workflows.json"), "w") as f:
+            f.write(
+                json.dumps(
+                    {
+                        "grade_group": {
+                            "name": "Grade group workflow",
+                            "observable_objects": [],
+                            "external_objects": ["<EXTRA_FILE:non_existent>"],
+                            "registers": 0,
+                            "observable_registers": 0,
+                            "tasks": [
+                                {
+                                    "name": "Custom grade group",
+                                    "type": "script",
+                                    "reactive": False,
+                                    "input_registers": [],
+                                    "output_registers": [],
+                                    "objects": ["<EXTRA_FILE:non_existent>"],
+                                    "script": "",
+                                }
+                            ],
+                        }
+                    }
+                )
+            )
+
+        package_info: PackageInfo = get_package()
+        package: Sinolpack = _get_package(package_info, type)
+        common_checks(package_info, package)
+
+        program = package.main_model_solution
+        op = package.get_run_operation(program)
+        with pytest.raises(WorkflowCreationError):
+            _ = [wf for wf in op.get_workflow()]

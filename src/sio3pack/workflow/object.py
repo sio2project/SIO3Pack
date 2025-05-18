@@ -1,3 +1,6 @@
+import re
+
+
 class Object:
     """
     A class to represent an object in a workflow.
@@ -67,6 +70,21 @@ class ObjectsManager:
         if handle not in self.objects:
             return self.create_object(handle)
         return self.get_object(handle)
+
+    def find_by_regex_in_objects(self, regex: str, return_group: int) -> list[str]:
+        """
+        Find all occurrences of a regex in the task.
+
+        :param regex: The regex to search for.
+        :param return_group: The group to return.
+        :return: A list of matches.
+        """
+        res = []
+        for obj in self.objects.values():
+            match = re.search(regex, obj.handle)
+            if match:
+                res.append(match.group(return_group))
+        return res
 
 
 class ObjectList:

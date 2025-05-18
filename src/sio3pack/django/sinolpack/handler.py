@@ -9,6 +9,7 @@ from sio3pack.django.sinolpack.models import (
     SinolpackAdditionalFile,
     SinolpackAttachment,
     SinolpackConfig,
+    SinolpackExtraFile,
     SinolpackModelSolution,
     SinolpackSpecialFile,
 )
@@ -34,6 +35,7 @@ class SinolpackDjangoHandler(DjangoHandler):
         self._save_config()
         self._save_additional_files()
         self._save_special_files()
+        self._save_extra_files()
         self._save_attachments()
 
     def _save_config(self):
@@ -79,6 +81,14 @@ class SinolpackDjangoHandler(DjangoHandler):
                     additional_file=additional_file,
                 )
                 instance.save()
+
+    def _save_extra_files(self):
+        for path, file in self.package.extra_files.items():
+            instance = SinolpackExtraFile(
+                package=self.db_package,
+                package_path=path,
+            )
+            instance.file.save(file.filename, File(open(file.path, "rb")))
 
     def _save_attachments(self):
         for attachment in self.package.attachments:
@@ -148,3 +158,25 @@ class SinolpackDjangoHandler(DjangoHandler):
         A list of attachments (as :class:`sio3pack.RemoteFile`) related to the problem.
         """
         return [RemoteFile(f.content) for f in self.db_package.attachments.all()]
+
+    @property
+    def extra_files(self) -> dict[str, RemoteFile]:
+        """
+        A dictionary of extra files (as :class:`sio3pack.RemoteFile`) for the problem, as
+        specified in the config file. The keys are the paths of the files in the package.
+        """
+        files = self.db_package.extra_files.all()
+        return {f.package_path: RemoteFile(f.file) for f in files}
+
+    def get_extra_file(self, package_path: str) -> RemoteFile | None:
+        """
+        Get an extra file (as :class:`sio3pack.RemoteFile`) for the problem.
+
+        :param package_path: The path of the file in the package.
+        :return: The extra file (as :class:`sio3pack.RemoteFile`) or None if it does not exist.
+        """
+        try:
+            extra_file = self.db_package.extra_files.get(package_path=package_path)
+            return RemoteFile(extra_file.file)
+        except SinolpackExtraFile.DoesNotExist:
+            return None

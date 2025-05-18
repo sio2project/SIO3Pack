@@ -35,6 +35,9 @@ class Sinolpack(Package):
         a model solution kind and a file.
     :param list[File] additional_files: A list of additional files for
         the problem.
+    :param dict[str, File] extra_files: A dictionary of extra files as specified
+        in the config.yml file, where keys are file paths and values are
+        :class:`sio3pack.files.File` objects.
     :param list[File] attachments: A list of attachments related to the problem.
     :param WorkflowManager workflow_manager: A workflow manager for the problem.
     :param File | None main_model_solution: The main model solution file.
@@ -178,6 +181,7 @@ class Sinolpack(Package):
         self._detect_full_name()
         self._detect_full_name_translations()
         self._process_prog_files()
+        self._process_extra_files()
         self._process_statements()
         self._process_attachments()
         self._process_existing_tests()
@@ -324,6 +328,34 @@ class Sinolpack(Package):
                 self.special_files[file] = lf
             except FileNotFoundError:
                 self.special_files[file] = None
+
+    def _process_extra_files(self):
+        """
+        Process extra files from the config.yml file. The files are
+        stored in the `extra_files` attribute.
+        """
+        self.extra_files = {}
+        conf_extra_files = self.config.get("extra_files", [])
+        if isinstance(conf_extra_files, str):
+            conf_extra_files = [conf_extra_files]
+        for file in conf_extra_files:
+            try:
+                lf = LocalFile(os.path.join(self.rootdir, file))
+                self.extra_files[file] = lf
+            except FileNotFoundError:
+                pass
+
+    def get_extra_file(self, package_path: str) -> File | None:
+        """
+        Returns the extra file with the given package path.
+
+        :param package_path: The path to the extra file in the package.
+        :return: The extra file if it exists, otherwise None.
+        """
+        if self.is_from_db:
+            return self.django.get_extra_file(package_path)
+        else:
+            return self.extra_files.get(package_path, None)
 
     def get_statement(self, lang: str | None = None) -> File | None:
         """
