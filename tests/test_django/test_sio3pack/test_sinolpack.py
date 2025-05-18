@@ -258,3 +258,18 @@ def test_tests_from_db(get_package):
         else:
             assert db_test.out_file is not None
             assert_contents_equal(test.out_file.read(), db_test.out_file.read())
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("get_package", ["extra_files"], indirect=True)
+def test_extra_files(get_package):
+    package_info: PackageInfo = get_package()
+    package, _ = _save_and_test_simple(package_info)
+    from_db: Sinolpack = sio3pack.from_db(1)
+
+    extra_files = package.extra_files
+    db_extra_files = from_db.extra_files
+    assert set(db_extra_files.keys()) == set(extra_files.keys())
+    for path, file in extra_files.items():
+        assert path in db_extra_files
+        assert_contents_equal(file.read(), db_extra_files[path].read())

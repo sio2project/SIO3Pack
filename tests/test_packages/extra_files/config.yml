@@ -4,3 +4,4 @@ extra_compilation_args:
   cpp:
     - 'extlib.h'
 extra_execution_files: ['extlib.py']
+extra_files: ['dir/some_file.txt']
