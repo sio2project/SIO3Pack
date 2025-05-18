@@ -73,7 +73,8 @@
               "type": "object_write",
               "handle": ".cache/executables/run.cpp.e"
             }
-          }
+          },
+          "start_after": []
         }
       ]
     },
@@ -135,7 +136,8 @@
               "type": "object_write",
               "handle": "user_out_0"
             }
-          }
+          },
+          "start_after": []
         }
       ]
     },
@@ -223,7 +225,8 @@
               "type": "object_write",
               "handle": "chk_out_0"
             }
-          }
+          },
+          "start_after": []
         }
       ]
     },
@@ -313,7 +316,8 @@
               "type": "object_write",
               "handle": "user_out_1a"
             }
-          }
+          },
+          "start_after": []
         }
       ]
     },
@@ -401,7 +405,8 @@
               "type": "object_write",
               "handle": "chk_out_1a"
             }
-          }
+          },
+          "start_after": []
         }
       ]
     },
@@ -491,7 +496,8 @@
               "type": "object_write",
               "handle": "user_out_2a"
             }
-          }
+          },
+          "start_after": []
         }
       ]
     },
@@ -579,7 +585,8 @@
               "type": "object_write",
               "handle": "chk_out_2a"
             }
-          }
+          },
+          "start_after":  []
         }
       ]
     },
