@@ -191,12 +191,25 @@ class Workflow:
 
         :param dict[str, str] replacements: The replacements to make.
         """
+        # TODO: this function could be faster if we only replaced objects in `self.objects_manager`, not
+        #       looking through all tasks and objects.
         for task in self.tasks:
             task.replace_templates(replacements)
         for obj in self.external_objects:
             obj.replace_templates(replacements)
         for obj in self.observable_objects:
             obj.replace_templates(replacements)
+
+    def find_by_regex_in_objects(self, regex: str, return_group: int) -> list [str]:
+        """
+        Find all occurrences of the given regex in the workflow's objects.
+
+        :param str regex: The regex to search for.
+        :param int return_group: The group to return.
+        :return: A list of occurrences.
+        """
+        res = self.objects_manager.find_by_regex_in_objects(regex, return_group)
+        return res
 
     def union(self, other: "Workflow"):
         """
