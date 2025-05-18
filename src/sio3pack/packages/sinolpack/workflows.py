@@ -207,7 +207,7 @@ class SinolpackWorkflowManager(WorkflowManager):
             extra_file = self.package.get_extra_file(file)
             if extra_file is None:
                 raise WorkflowCreationError(f"Extra file {file} not found in package.")
-            to_replace[f'<EXTRA_FILE:{file}>'] = extra_file.path
+            to_replace[f"<EXTRA_FILE:{file}>"] = extra_file.path
 
         executable_extra = workflow.find_by_regex_in_objects(r"^<EXTRA_EXE:(.+)>$", 1)
         for file in executable_extra:
@@ -217,7 +217,7 @@ class SinolpackWorkflowManager(WorkflowManager):
             extra_file = self.package.get_executable_path(extra_file)
             if extra_file is None:
                 raise WorkflowCreationError(f"Extra file {file} is not executable.")
-            to_replace[f'<EXTRA_EXE:{file}>'] = extra_file
+            to_replace[f"<EXTRA_EXE:{file}>"] = extra_file
         return to_replace
 
     def get_default(self, name: str) -> Workflow:
@@ -244,6 +244,8 @@ class SinolpackWorkflowManager(WorkflowManager):
             return self._get_default_user_out_workflow()
         elif name == "test_run":
             return self._get_default_test_run_workflow()
+        elif name == "compile_extra":
+            return None
         else:
             raise NotImplementedError(f"Default workflow for {name} not implemented.")
 
@@ -316,12 +318,15 @@ class SinolpackWorkflowManager(WorkflowManager):
                 workflow.add_observable_object(out_test_obj)
 
                 outgen_test_wf = self.get("outgen_test")
-                to_replace = self._add_extra_files_to_replace(outgen_test_wf, {
-                    "<IN_TEST_PATH>": in_test,
-                    "<OUT_TEST_PATH>": out_test,
-                    "<TEST_ID>": test_id,
-                    "<COMPILED_OUTGEN_PATH>": outgen_exe_path,
-                })
+                to_replace = self._add_extra_files_to_replace(
+                    outgen_test_wf,
+                    {
+                        "<IN_TEST_PATH>": in_test,
+                        "<OUT_TEST_PATH>": out_test,
+                        "<TEST_ID>": test_id,
+                        "<COMPILED_OUTGEN_PATH>": outgen_exe_path,
+                    },
+                )
                 outgen_test_wf.replace_templates(to_replace)
 
                 script_input_regs.append(f"r:outgen_res_{test_id}")
@@ -330,10 +335,13 @@ class SinolpackWorkflowManager(WorkflowManager):
 
             # Now, get a workflow that checks if all outgens successfully finished.
             verify_wf = self.get("verify_outgen")
-            to_replace = self._add_extra_files_to_replace(verify_wf, {
-                "<LUA_MAP_TEST_ID_REG>": lua.to_lua_map(outgen_output_registers),
-                "<INPUT_REGS>": script_input_regs,
-            })
+            to_replace = self._add_extra_files_to_replace(
+                verify_wf,
+                {
+                    "<LUA_MAP_TEST_ID_REG>": lua.to_lua_map(outgen_output_registers),
+                    "<INPUT_REGS>": script_input_regs,
+                },
+            )
             verify_wf.replace_templates(to_replace)
             workflow.union(verify_wf)
             return workflow, True
@@ -445,11 +453,14 @@ class SinolpackWorkflowManager(WorkflowManager):
         for test in input_tests:
             test_id = test.test_id
             inwer_test_wf = self.get("inwer")
-            to_replace = self._add_extra_files_to_replace(inwer_test_wf, {
-                "<IN_TEST_PATH>": test.in_file.path,
-                "<TEST_ID>": test_id,
-                "<COMPILED_INWER_PATH>": inwer_exe_path,
-            })
+            to_replace = self._add_extra_files_to_replace(
+                inwer_test_wf,
+                {
+                    "<IN_TEST_PATH>": test.in_file.path,
+                    "<TEST_ID>": test_id,
+                    "<COMPILED_INWER_PATH>": inwer_exe_path,
+                },
+            )
             inwer_test_wf.replace_templates(to_replace)
             script_input_regs.append(f"r:inwer_res_{test_id}")
             inwer_output_registers[test_id] = f"<r:inwer_res_{test_id}>"
@@ -457,10 +468,13 @@ class SinolpackWorkflowManager(WorkflowManager):
 
         # Now, get a workflow that checks if all inwer successfully finished.
         verify_wf = self.get("verify_inwer")
-        to_replace = self._add_extra_files_to_replace(verify_wf, {
-            "<LUA_MAP_TEST_ID_REG>": lua.to_lua_map(inwer_output_registers),
-            "<INPUT_REGS>": script_input_regs,
-        })
+        to_replace = self._add_extra_files_to_replace(
+            verify_wf,
+            {
+                "<LUA_MAP_TEST_ID_REG>": lua.to_lua_map(inwer_output_registers),
+                "<INPUT_REGS>": script_input_regs,
+            },
+        )
         verify_wf.replace_templates(to_replace)
         workflow.union(verify_wf)
         return workflow, True
@@ -747,10 +761,13 @@ class SinolpackWorkflowManager(WorkflowManager):
                 run_test_wf = self.get("run_test")
                 group_out_registers.append(f"r:grade_res_{test_id}")
                 group_out_registers_map[test_id] = f"<r:grade_res_{test_id}>"
-                to_replace = self._add_extra_files_to_replace(run_test_wf, {
-                    "<SOL_PATH>": exe_path,
-                    "<TEST_ID>": test_id,
-                })
+                to_replace = self._add_extra_files_to_replace(
+                    run_test_wf,
+                    {
+                        "<SOL_PATH>": exe_path,
+                        "<TEST_ID>": test_id,
+                    },
+                )
                 if test.in_file:
                     to_replace["<IN_TEST_PATH>"] = test.in_file.path
                 if test.out_file:
@@ -769,11 +786,14 @@ class SinolpackWorkflowManager(WorkflowManager):
 
             # Now, run the grading script for the group.
             grade_group_wf = self.get("grade_group")
-            to_replace = self._add_extra_files_to_replace(grade_group_wf, {
-                "<LUA_MAP_TEST_ID_REG>": lua.to_lua_map(group_out_registers_map),
-                "<INPUT_REGS>": group_out_registers,
-                "<GROUP_ID>": group,
-            })
+            to_replace = self._add_extra_files_to_replace(
+                grade_group_wf,
+                {
+                    "<LUA_MAP_TEST_ID_REG>": lua.to_lua_map(group_out_registers_map),
+                    "<INPUT_REGS>": group_out_registers,
+                    "<GROUP_ID>": group,
+                },
+            )
             grade_group_wf.replace_templates(to_replace)
 
             workflow.union(grade_group_wf)
@@ -782,10 +802,13 @@ class SinolpackWorkflowManager(WorkflowManager):
 
         # Finally, add the script that grades the whole solution.
         grade_run_wf = self.get("grade_run")
-        to_replace = self._add_extra_files_to_replace(grade_run_wf, {
-            "<LUA_MAP_TEST_ID_REG>": lua.to_lua_map(output_registers_map),
-            "<INPUT_REGS>": output_registers,
-        })
+        to_replace = self._add_extra_files_to_replace(
+            grade_run_wf,
+            {
+                "<LUA_MAP_TEST_ID_REG>": lua.to_lua_map(output_registers_map),
+                "<INPUT_REGS>": output_registers,
+            },
+        )
         grade_run_wf.replace_templates(to_replace)
         workflow.union(grade_run_wf)
         return workflow, True
@@ -883,11 +906,14 @@ class SinolpackWorkflowManager(WorkflowManager):
         workflow.add_observable_object(user_out_obj)
 
         user_out_wf = self.get("user_out")
-        to_replace = self._add_extra_files_to_replace(user_out_wf, {
-            "<IN_TEST_PATH>": test.in_file.path,
-            "<SOL_PATH>": exe_path,
-            "<TEST_ID>": test.test_id,
-        })
+        to_replace = self._add_extra_files_to_replace(
+            user_out_wf,
+            {
+                "<IN_TEST_PATH>": test.in_file.path,
+                "<SOL_PATH>": exe_path,
+                "<TEST_ID>": test.test_id,
+            },
+        )
         user_out_wf.replace_templates(to_replace)
         workflow.union(user_out_wf)
         return workflow, True
@@ -982,11 +1008,14 @@ class SinolpackWorkflowManager(WorkflowManager):
         workflow.union(compile_wf)
 
         test_run_wf = self.get("test_run")
-        to_replace = self._add_extra_files_to_replace(test_run_wf, {
-            "<IN_TEST_PATH>": test.path,
-            "<SOL_PATH>": exe_path,
-            "<USER_OUT_PATH>": user_out_obj.handle,
-        })
+        to_replace = self._add_extra_files_to_replace(
+            test_run_wf,
+            {
+                "<IN_TEST_PATH>": test.path,
+                "<SOL_PATH>": exe_path,
+                "<USER_OUT_PATH>": user_out_obj.handle,
+            },
+        )
         test_run_wf.replace_templates(to_replace)
         workflow.union(test_run_wf)
         return workflow, True

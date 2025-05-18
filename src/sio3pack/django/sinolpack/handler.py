@@ -9,9 +9,9 @@ from sio3pack.django.sinolpack.models import (
     SinolpackAdditionalFile,
     SinolpackAttachment,
     SinolpackConfig,
+    SinolpackExtraFile,
     SinolpackModelSolution,
     SinolpackSpecialFile,
-    SinolpackExtraFile,
 )
 from sio3pack.files.remote_file import RemoteFile
 

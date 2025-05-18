@@ -12,6 +12,11 @@ def test_workflow_parsing():
     for file in os.listdir(workflows_dir):
         if not os.path.splitext(file)[1] == ".json":
             continue
+
+        # This is an example configuration file, not a workflow file
+        if file.endswith("workflows.json"):
+            continue
+
         print(f"Parsing {file}")
         data = json.load(open(os.path.join(workflows_dir, file)))
         workflow = Workflow.from_json(data)

@@ -1,6 +1,7 @@
-import os
-import pytest
 import json
+import os
+
+import pytest
 import yaml
 
 import sio3pack
@@ -54,13 +55,13 @@ def test_unpack_workflows(get_package):
         if package_info.task_id == "abc":
             # We expect 2 workflows: compile checker and outgen
             assert len(workflows) == 3
-            assert workflows[0].name == "Compile checker"
+            assert workflows[0].name == "Compile files"
             assert workflows[1].name == "Run ingen"
             assert workflows[2].name == "Outgen tests"
         elif package_info.task_id == "wer":
             # We expect 3 workflows: compile checker, outgen and inwer
             assert len(workflows) == 3
-            assert workflows[0].name == "Compile checker"
+            assert workflows[0].name == "Compile files"
             assert workflows[1].name == "Outgen tests"
             assert workflows[2].name == "Inwer"
 
@@ -380,24 +381,30 @@ def test_extra_files_in_workflow(get_package):
 
         package_info: PackageInfo = get_package()
         with open(os.path.join(package_info.path, "workflows.json"), "w") as f:
-            f.write(json.dumps({
-                "grade_group": {
-                    "name": "Grade group workflow",
-                    "observable_objects": [],
-                    "external_objects": ["<EXTRA_FILE:dir/some_file.txt>"],
-                    "registers": 0,
-                    "observable_registers": 0,
-                    "tasks": [{
-                        "name": "Custom grade group",
-                        "type": "script",
-                        "reactive": False,
-                        "input_registers": [],
-                        "output_registers": [],
-                        "objects": ["<EXTRA_FILE:dir/some_file.txt>"],
-                        "script": ""
-                    }]
-                }
-            }))
+            f.write(
+                json.dumps(
+                    {
+                        "grade_group": {
+                            "name": "Grade group workflow",
+                            "observable_objects": [],
+                            "external_objects": ["<EXTRA_FILE:dir/some_file.txt>"],
+                            "registers": 0,
+                            "observable_registers": 0,
+                            "tasks": [
+                                {
+                                    "name": "Custom grade group",
+                                    "type": "script",
+                                    "reactive": False,
+                                    "input_registers": [],
+                                    "output_registers": [],
+                                    "objects": ["<EXTRA_FILE:dir/some_file.txt>"],
+                                    "script": "",
+                                }
+                            ],
+                        }
+                    }
+                )
+            )
 
         package_info: PackageInfo = get_package()
         package: Sinolpack = _get_package(package_info, type)
@@ -429,24 +436,30 @@ def test_extra_files_in_workflow(get_package):
 
         # Now, test if workflow creation fails when the file is not in the package
         with open(os.path.join(package_info.path, "workflows.json"), "w") as f:
-            f.write(json.dumps({
-                "grade_group": {
-                    "name": "Grade group workflow",
-                    "observable_objects": [],
-                    "external_objects": ["<EXTRA_FILE:non_existent>"],
-                    "registers": 0,
-                    "observable_registers": 0,
-                    "tasks": [{
-                        "name": "Custom grade group",
-                        "type": "script",
-                        "reactive": False,
-                        "input_registers": [],
-                        "output_registers": [],
-                        "objects": ["<EXTRA_FILE:non_existent>"],
-                        "script": ""
-                    }]
-                }
-            }))
+            f.write(
+                json.dumps(
+                    {
+                        "grade_group": {
+                            "name": "Grade group workflow",
+                            "observable_objects": [],
+                            "external_objects": ["<EXTRA_FILE:non_existent>"],
+                            "registers": 0,
+                            "observable_registers": 0,
+                            "tasks": [
+                                {
+                                    "name": "Custom grade group",
+                                    "type": "script",
+                                    "reactive": False,
+                                    "input_registers": [],
+                                    "output_registers": [],
+                                    "objects": ["<EXTRA_FILE:non_existent>"],
+                                    "script": "",
+                                }
+                            ],
+                        }
+                    }
+                )
+            )
 
         package_info: PackageInfo = get_package()
         package: Sinolpack = _get_package(package_info, type)

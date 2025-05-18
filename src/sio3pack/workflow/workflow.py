@@ -200,7 +200,7 @@ class Workflow:
         for obj in self.observable_objects:
             obj.replace_templates(replacements)
 
-    def find_by_regex_in_objects(self, regex: str, return_group: int) -> list [str]:
+    def find_by_regex_in_objects(self, regex: str, return_group: int) -> list[str]:
         """
         Find all occurrences of the given regex in the workflow's objects.
 
