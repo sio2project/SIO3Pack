@@ -94,14 +94,18 @@ def test_additional_files(get_archived_package):
 @pytest.mark.django_db
 @pytest.mark.parametrize("get_archived_package", [("simple", c) for c in Compression], indirect=True)
 def test_from_db(get_archived_package):
+    config = SIO3PackConfig(django_settings={"LANGUAGES": [("en", "English"), ("pl", "Polski")]})
     package_info: PackageInfo = get_archived_package()
-    package, _ = _save_and_test_simple(package_info)
+    package, _ = _save_and_test_simple(package_info, config)
     package_from_db: Sinolpack = sio3pack.from_db(1)
 
     assert package.short_name == package_from_db.short_name
     assert package.full_name == package_from_db.full_name
     assert package.lang_titles == package_from_db.lang_titles
     assert package.config == package_from_db.config
+
+    for lang in package.lang_titles.keys():
+        assert package.get_title(lang) == package_from_db.get_title(lang)
 
     with pytest.raises(AttributeError):
         assert not hasattr(package_from_db, "non_existent_attribute")
@@ -216,6 +220,9 @@ def test_statements_from_db(get_package):
     for lang, statement in package.lang_statements.items():
         assert lang in from_db.lang_statements
         assert_contents_equal(statement.read(), from_db.lang_statements[lang].read())
+        st = package.get_statement(lang)
+        st_db = from_db.get_statement(lang)
+        assert_contents_equal(st.read(), st_db.read())
 
 
 @pytest.mark.django_db
