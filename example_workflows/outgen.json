@@ -70,7 +70,8 @@
               "type": "object_write",
               "handle": "executables/abc.cpp.e"
             }
-          }
+          },
+          "start_after": []
         }
       ]
     },
@@ -132,7 +133,8 @@
               "type": "object_write",
               "handle": "abc1a.out"
             }
-          }
+          },
+          "start_after": []
         }
       ]
     },
@@ -194,7 +196,8 @@
               "type": "object_write",
               "handle": "abc0.out"
             }
-          }
+          },
+          "start_after": []
         }
       ]
     },

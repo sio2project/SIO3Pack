@@ -70,7 +70,8 @@
               "type": "object_write",
               "handle": "executables/abc.cpp.e"
             }
-          }
+          },
+          "start_after": []
         }
       ]
     },
@@ -132,7 +133,8 @@
               "type": "object_write",
               "handle": "user_out_0"
             }
-          }
+          },
+          "start_after": []
         }
       ]
     },
@@ -220,7 +222,8 @@
               "type": "object_write",
               "handle": "chk_out_0"
             }
-          }
+          },
+          "start_after": []
         }
       ]
     },
@@ -310,7 +313,8 @@
               "type": "object_write",
               "handle": "user_out_1a"
             }
-          }
+          },
+          "start_after": []
         }
       ]
     },
@@ -398,7 +402,8 @@
               "type": "object_write",
               "handle": "chk_out_1a"
             }
-          }
+          },
+          "start_after": []
         }
       ]
     },

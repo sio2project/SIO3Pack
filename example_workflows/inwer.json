@@ -67,7 +67,8 @@
               "type": "object_write",
               "handle": "executables/abcinwer.cpp.e"
             }
-          }
+          },
+          "start_after": []
         }
       ]
     },
@@ -126,7 +127,8 @@
               "type": "object_read",
               "handle": "abc/in/abc0.in"
             }
-          }
+          },
+          "start_after": []
         }
       ]
     },
@@ -185,7 +187,8 @@
               "type": "object_read",
               "handle": "abc/in/abc1a.in"
             }
-          }
+          },
+          "start_after": []
         }
       ]
     },

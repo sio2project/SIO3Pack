@@ -175,9 +175,9 @@ class ObjectStream(Stream):
 
         :param dict data: The JSON-serializable dictionary to create the object stream from.
         """
-        cl = ObjectReadStream if StreamType(data.get("type")) == StreamType.OBJECT_READ else ObjectWriteStream
+        cl = ObjectReadStream if StreamType(data["type"]) == StreamType.OBJECT_READ else ObjectWriteStream
         return cl(
-            objects_manager.get_or_create_object(data.get("handle")),
+            objects_manager.get_or_create_object(data["handle"]),
         )
 
     def to_json(self) -> dict:
