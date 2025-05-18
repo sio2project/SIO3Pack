@@ -15,6 +15,7 @@ class Process:
         resource_group: ResourceGroup = None,
         pid_namespace: int = 0,
         working_directory: str = "/",
+        start_after: list[int] = None,
     ):
         """
         Represent a process.
@@ -24,6 +25,10 @@ class Process:
         :param mount_namespace: The mount namespace of the process.
         :param resource_group: The resource group of the process.
         :param working_directory: The working directory of the process.
+        :param pid_namespace: The PID namespace of the process.
+        :param task: The task of the process.
+        :param workflow: The workflow of the process.
+        :param start_after: The processes that must be finished before this process starts.
         """
         self.arguments = arguments or []
         self.environment = environment or {}
@@ -35,6 +40,7 @@ class Process:
         self.task = task
         self.workflow = workflow
         self.descriptor_manager = DescriptorManager(workflow.objects_manager, task.filesystem_manager)
+        self.start_after = start_after or []
 
     def to_json(self) -> dict:
         return {
@@ -46,6 +52,7 @@ class Process:
             "pid_namespace": self.pid_namespace,
             "working_directory": self.working_directory,
             "descriptors": self.descriptor_manager.to_json(),
+            "start_after": self.start_after,
         }
 
     @classmethod
@@ -64,6 +71,7 @@ class Process:
             task.resource_group_manager.get_by_id(data["resource_group"]),
             data["pid_namespace"],
             data["working_directory"],
+            data.get("start_after", []),
         )
         process.descriptor_manager.from_json(data["descriptors"])
         return process
