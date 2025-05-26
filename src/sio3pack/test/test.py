@@ -12,3 +12,6 @@ class Test:
         self.in_file = in_file
         self.out_file = out_file
         self.group = group
+
+    def __repr__(self):
+        return f"<Test {self.test_name}>"
