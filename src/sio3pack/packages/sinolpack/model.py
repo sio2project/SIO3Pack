@@ -464,11 +464,11 @@ class Sinolpack(Package):
                 return test
         raise ValueError(f"Test with ID {test_id} not found.")
 
-    def get_tests_with_inputs(self) -> list[Test]:
+    def get_tests_with_inputs(self, tests: list[Test]=None) -> list[Test]:
         """
         Returns the list of input tests.
         """
-        return [test for test in self.tests if test.in_file is not None]
+        return [test for test in tests or self.tests if test.in_file is not None]
 
     def get_corresponding_out_filename(self, in_test: str) -> str:
         """
@@ -592,8 +592,8 @@ class Sinolpack(Package):
             if f"{type}_limits" in conf:
                 if test.test_id in conf[f"{type}_limits"]:
                     return conf[f"{type}_limits"][test.test_id]
-                if test.group in conf[f"{type}_limits"]:
-                    return conf[f"{type}_limits"][test.group]
+                if int(test.group) in conf[f"{type}_limits"]:
+                    return conf[f"{type}_limits"][int(test.group)]
             if f"{type}_limit" in conf:
                 return conf[f"{type}_limit"]
             return None
