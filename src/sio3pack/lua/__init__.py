@@ -5,8 +5,8 @@ def get_script(name: str, templates: dict[str, str] = None) -> str:
     """
     Get the script for the given name and replace templates with the given replacements.
 
-    :param name: The name of the script.
-    :param templates: The templates to replace.
+    :param str name: The name of the script.
+    :param dict[str, str] templates: The templates to replace.
     """
     script = os.path.join(os.path.dirname(__file__), "scripts", f"{name}.lua")
     if not os.path.exists(script):
@@ -21,7 +21,7 @@ def get_script(name: str, templates: dict[str, str] = None) -> str:
 
 def to_lua_map(data: dict[str, str]) -> str:
     """
-    Convert a dictionary to a Lua map.
+    Convert a Python dictionary to a Lua map.
 
     :param data: The dictionary to convert.
     """

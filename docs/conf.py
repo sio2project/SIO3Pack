@@ -39,6 +39,7 @@ autoapi_dirs = ['../src/sio3pack/']
 autoapi_include = [
     "sio3pack.django.common.handler.DjangoHandler",
     "sio3pack.django.sinolpack.handler.SinolpackDjangoHandler",
+    "sio3pack.files.remote_file.RemoteFile",
 ]
 autodoc_typehints = 'description'
 

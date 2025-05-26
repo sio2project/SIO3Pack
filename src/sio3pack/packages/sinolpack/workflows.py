@@ -22,6 +22,16 @@ class UnpackStage(Enum):
 
 
 class SinolpackWorkflowManager(WorkflowManager):
+    """
+    A workflow manager for Sinolpack packages. It extends the base WorkflowManager
+    and provides additional workflows for ingen, outgen, inwer, and other Sinolpack-specific tasks.
+    It also overrides the `get_compile_file_workflow` method to add extra compilation files
+    to the workflow.
+
+    :param Sinolpack package: The Sinolpack package to manage workflows for.
+    :param dict[str, Workflow] workflows: A dictionary of workflows to manage.
+    """
+
     def __init__(self, package: "Sinolpack", workflows: dict[str, Any]):
         super().__init__(package, workflows)
         self._has_ingen = False
