@@ -7,6 +7,7 @@ class CompilerConfig:
     :param path: The path to the compiler executable.
     :param flags: The flags to use when compiling with this compiler.
     """
+
     def __init__(self, name: str, full_name: str, path: str, flags: list[str]):
         self.name = name
         self.full_name = full_name

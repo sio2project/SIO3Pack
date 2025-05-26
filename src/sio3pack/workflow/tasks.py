@@ -1,11 +1,11 @@
 import re
 
-from sio3pack.workflow.object import Object
 from sio3pack.workflow.execution.channels import Channel
 from sio3pack.workflow.execution.filesystems import Filesystem, FilesystemManager
 from sio3pack.workflow.execution.mount_namespace import MountNamespace, MountNamespaceManager
 from sio3pack.workflow.execution.process import Process
 from sio3pack.workflow.execution.resource_group import ResourceGroup, ResourceGroupManager
+from sio3pack.workflow.object import Object
 
 
 class Task:

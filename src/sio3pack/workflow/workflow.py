@@ -1,5 +1,5 @@
-from sio3pack.workflow.object import ObjectList, ObjectsManager, Object
-from sio3pack.workflow.tasks import Task, ExecutionTask, ScriptTask
+from sio3pack.workflow.object import Object, ObjectList, ObjectsManager
+from sio3pack.workflow.tasks import ExecutionTask, ScriptTask, Task
 
 
 class Workflow:

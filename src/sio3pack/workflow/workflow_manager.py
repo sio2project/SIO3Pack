@@ -5,10 +5,10 @@ from typing import Any
 from sio3pack.files import File
 from sio3pack.test import Test
 from sio3pack.workflow import constants
-from sio3pack.workflow.tasks import ExecutionTask
 from sio3pack.workflow.execution import MountNamespace, ObjectWriteStream, Process, ResourceGroup
 from sio3pack.workflow.execution.filesystems import ObjectFilesystem
 from sio3pack.workflow.execution.mount_namespace import Mountpoint
+from sio3pack.workflow.tasks import ExecutionTask
 from sio3pack.workflow.workflow import Workflow
 from sio3pack.workflow.workflow_op import WorkflowOperation
 

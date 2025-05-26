@@ -18,6 +18,7 @@ class Process:
     :param int pid_namespace: The PID namespace of the process.
     :param list[int] start_after: The processes that must be finished before this process starts.
     """
+
     def __init__(
         self,
         workflow: "Workflow",
