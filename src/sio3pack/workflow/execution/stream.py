@@ -1,8 +1,7 @@
 from enum import Enum
 
-from sio3pack.workflow import Object
 from sio3pack.workflow.execution.filesystems import Filesystem, FilesystemManager
-from sio3pack.workflow.object import ObjectsManager
+from sio3pack.workflow.object import Object, ObjectsManager
 
 
 class StreamType(Enum):
@@ -70,6 +69,9 @@ class Stream:
             raise ValueError(f"Unknown stream type: {type}")
 
     def to_json(self) -> dict:
+        """
+        Convert the stream to a JSON-serializable dictionary.
+        """
         raise NotImplementedError("Subclasses must implement to_json method")
 
     def replace_templates(self, replacements: dict[str, str]):

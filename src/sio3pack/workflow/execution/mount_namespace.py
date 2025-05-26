@@ -5,13 +5,13 @@ class Mountpoint:
     """
     A class to represent a mountpoint.
 
-    :param Filesystem source: The source filesystem.
+    :param "Filesystem" source: The source filesystem.
     :param str target: The target path in the filesystem.
     :param bool writable: Whether the mountpoint is writable or not.
     :param int capacity: The capacity of the mountpoint. If None, the capacity is unlimited.
     """
 
-    def __init__(self, source: Filesystem, target: str, writable: bool = False, capacity: int | None = None):
+    def __init__(self, source: "Filesystem", target: str, writable: bool = False, capacity: int | None = None):
         """
         Represent a mountpoint.
 
@@ -50,7 +50,7 @@ class Mountpoint:
 class MountNamespace:
     """
     A class to represent a mount namespace.
-    It can mount an in the target filesystem.
+    It can mount :class:`Mountpoint` instances in the target filesystem.
 
     :param int id: The id of the mount namespace.
     :param list[Mountpoint] mountpoints: The mountpoints in the mount namespace.
@@ -99,10 +99,12 @@ class MountNamespace:
 
 
 class MountNamespaceManager:
-    def __init__(self, task: "Task", filesystem_manager: FilesystemManager):
+    def __init__(self, task: "Task", filesystem_manager: "FilesystemManager"):
         """
         Create a new mount namespace manager.
-        :param task: The task the mount namespace manager belongs to.
+
+        :param Task task: The task the mount namespace manager belongs to.
+        :param FilesystemManager filesystem_manager: Workflow's filesystem manager.
         """
         self.mount_namespaces: list[MountNamespace] = []
         self.id = 0
@@ -112,8 +114,8 @@ class MountNamespaceManager:
     def from_json(self, data: list[dict]):
         """
         Create a new mount namespace manager from a list of dictionaries.
+
         :param data: The list of dictionaries to create the mount namespace manager from.
-        :param FilesystemManager filesystem_manager: The filesystem manager to use.
         """
         for mount_namespace in data:
             self.add(MountNamespace.from_json(mount_namespace, self.id, self.filesystem_manager))
@@ -122,7 +124,8 @@ class MountNamespaceManager:
     def add(self, mount_namespace: MountNamespace):
         """
         Add a mount namespace to the manager.
-        :param mount_namespace: The mount namespace to add.
+
+        :param MountNamespace mount_namespace: The mount namespace to add.
         """
         mount_namespace._set_id(self.id)
         self.mount_namespaces.append(mount_namespace)
@@ -130,6 +133,7 @@ class MountNamespaceManager:
     def get_by_id(self, id: int) -> MountNamespace:
         """
         Get a mount namespace by its id.
+
         :param id: The id of the mount namespace.
         """
         return self.mount_namespaces[id]

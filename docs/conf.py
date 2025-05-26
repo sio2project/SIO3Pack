@@ -21,6 +21,7 @@ extensions = [
     'sphinx.ext.autodoc',  # Also required by AutoAPI.
     'sphinx.ext.viewcode',
     'sphinx.ext.intersphinx',
+    'sphinx.ext.coverage',
 ]
 
 templates_path = ['_templates']

@@ -4,7 +4,8 @@ from typing import Any
 
 from sio3pack.files import File
 from sio3pack.test import Test
-from sio3pack.workflow import ExecutionTask, constants
+from sio3pack.workflow import constants
+from sio3pack.workflow.tasks import ExecutionTask
 from sio3pack.workflow.execution import MountNamespace, ObjectWriteStream, Process, ResourceGroup
 from sio3pack.workflow.execution.filesystems import ObjectFilesystem
 from sio3pack.workflow.execution.mount_namespace import Mountpoint
@@ -25,6 +26,18 @@ class UnpackStage(Enum):
 
 
 class WorkflowManager:
+    """
+    A class to manage workflows for a package. Allows to get workflows by name,
+    manages default and user created workflows, and provides methods
+    to get workflows for compiling files, generating tests, and verifying results.
+    This class can be overridden to provide custom workflows
+    in other package types.
+
+    :param Package package: The package for which the workflows are managed.
+    :param dict[str, Workflow] workflows: A dictionary of user defined workflows,
+        where the key is the workflow name and the value is the Workflow object.
+    """
+
     def __init__(self, package: "Package", workflows: dict[str, Any]):
         for name, wf in workflows.items():
             if isinstance(wf, dict):
@@ -41,9 +54,9 @@ class WorkflowManager:
         """
         Get the workflow with the given name. If
         the workflow does not exist, return default
-        workflow for this name from self.get_default.
+        workflow for this name from :meth:`WorkflowManager.get_default`.
 
-        :param name: The name of the workflow.
+        :param str name: The name of the workflow.
         :return: The workflow with the given name.
         """
         if name not in self.workflows:
@@ -53,7 +66,7 @@ class WorkflowManager:
 
     def all(self) -> dict[str, Workflow]:
         """
-        Get all workflows.
+        Get all user defined workflows.
 
         :return: A dictionary of all workflows.
         """
@@ -89,7 +102,7 @@ class WorkflowManager:
         The files are not added as external or observable objects,
         since they don't have to be.
 
-        :param file: The file (or the path to the file) to compile.
+        :param File | str file: The file (or the path to the file) to compile.
         :return: A tuple of the workflow and the path to the compiled file.
         """
         if isinstance(file, File):
@@ -270,6 +283,13 @@ class WorkflowManager:
     def get_unpack_operation(
         self, has_test_gen: bool, has_verify: bool, return_func: callable = None
     ) -> WorkflowOperation:
+        """
+        Get the operation for unpacking the package.
+
+        :param bool has_test_gen: Whether the package has test generation.
+        :param bool has_verify: Whether the package has verification.
+        :param callable return_func: A function to call with the results of the workflow execution.
+        """
         self._has_test_gen = has_test_gen
         self._has_verify = has_verify
         # At first, compile all required files
@@ -281,10 +301,31 @@ class WorkflowManager:
     def get_run_operation(
         self, program: File, tests: list[Test] | None = None, return_func: callable = None
     ) -> WorkflowOperation:
+        """
+        Get the operation for running the program with the given tests.
+
+        :param File program: The program file to run.
+        :param list[Test] | None tests: The list of tests to run the program with or None if all tests should be run.
+        :param callable return_func: A function to call with the results of the workflow execution.
+        """
         raise NotImplementedError
 
     def get_user_out_operation(self, program: File, test: Test, return_func: callable = None) -> WorkflowOperation:
+        """
+        Get the operation for running the user output with the given program and test.
+
+        :param File program: The program file to run.
+        :param Test test: The test to run the program with.
+        :param callable return_func: A function to call with the results of the workflow execution.
+        """
         raise NotImplementedError
 
     def get_test_run_operation(self, program: File, test: File, return_func: callable = None) -> WorkflowOperation:
+        """
+        Get the operation for running the test with the given program.
+
+        :param File program: The program file to run.
+        :param File test: The test file to run the program with.
+        :param callable return_func: A function to call with the results of the workflow execution.
+        """
         raise NotImplementedError

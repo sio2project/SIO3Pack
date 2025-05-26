@@ -1,11 +1,10 @@
-from sio3pack.workflow import ExecutionTask, Object, ScriptTask
-from sio3pack.workflow.object import ObjectList, ObjectsManager
-from sio3pack.workflow.tasks import Task
+from sio3pack.workflow.object import ObjectList, ObjectsManager, Object
+from sio3pack.workflow.tasks import Task, ExecutionTask, ScriptTask
 
 
 class Workflow:
     """
-    A class to represent a job workflow. Number of registers is not required,
+    A class to represent a workflow. Number of registers is not required,
     as it is calculated automatically.
 
     :param str name: The name of the workflow.
