@@ -63,6 +63,21 @@ class SinolpackAdditionalFile(models.Model):
         verbose_name_plural = _("additional files")
 
 
+class SinolpackSpecialFile(models.Model):
+    package = models.ForeignKey(SIO3Package, on_delete=models.CASCADE, related_name="special_files")
+    type = models.CharField(max_length=30, verbose_name=_("type"))
+    additional_file = models.OneToOneField(
+        SinolpackAdditionalFile, on_delete=models.CASCADE, related_name="special_file"
+    )
+
+    def __str__(self):
+        return f"<SinolpackSpecialFile {self.type} {self.additional_file}>"
+
+    class Meta:
+        verbose_name = _("special file")
+        verbose_name_plural = _("special files")
+
+
 class SinolpackAttachment(models.Model):
     package = models.ForeignKey(SIO3Package, on_delete=models.CASCADE, related_name="attachments")
     description = models.CharField(max_length=255, verbose_name=_("description"))
@@ -78,3 +93,12 @@ class SinolpackAttachment(models.Model):
     class Meta(object):
         verbose_name = _("attachment")
         verbose_name_plural = _("attachments")
+
+
+class SinolpackExtraFile(models.Model):
+    package = models.ForeignKey(SIO3Package, on_delete=models.CASCADE, related_name="extra_files")
+    package_path = models.CharField(max_length=255, verbose_name=_("package path"))
+    file = FileField(upload_to=make_problem_filename, verbose_name=_("file"))
+
+    def __str__(self):
+        return f"<SinolpackExtraFile {self.package_path}>"

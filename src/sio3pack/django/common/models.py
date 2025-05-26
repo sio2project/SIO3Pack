@@ -1,9 +1,12 @@
+import json
 import os
 
 from django.conf import settings
 from django.db import models
 from django.utils.text import get_valid_filename
 from django.utils.translation import gettext_lazy as _
+
+from sio3pack.workflow import Workflow
 
 try:
     from oioioi.filetracker.fields import FileField
@@ -67,6 +70,18 @@ class SIO3PackModelSolution(models.Model):
         return self.name.rsplit(".", 1)[0]
 
 
+class SIO3PackMainModelSolution(models.Model):
+    package = models.OneToOneField(SIO3Package, on_delete=models.CASCADE, related_name="main_model_solution")
+    source_file = FileField(upload_to=make_problem_filename, verbose_name=_("source file"))
+
+    def __str__(self):
+        return f"<SIO3PackMainModelSolution {self.package.short_name}>"
+
+    @property
+    def short_name(self):
+        return self.source_file.name.rsplit(".", 1)[0]
+
+
 class SIO3PackStatement(models.Model):
     package = models.ForeignKey(SIO3Package, on_delete=models.CASCADE, related_name="statements")
     language = models.CharField(
@@ -92,3 +107,37 @@ class SIO3PackStatement(models.Model):
     class Meta(object):
         verbose_name = _("problem statement")
         verbose_name_plural = _("problem statements")
+
+
+class SIO3PackTest(models.Model):
+    package = models.ForeignKey(SIO3Package, on_delete=models.CASCADE, related_name="tests")
+    name = models.CharField(max_length=255, verbose_name=_("name"))
+    test_id = models.CharField(max_length=255, verbose_name=_("id"))
+    group = models.CharField(max_length=255, verbose_name=_("group"))
+    input_file = FileField(upload_to=make_problem_filename, verbose_name=_("input file"), blank=True, null=True)
+    output_file = FileField(upload_to=make_problem_filename, verbose_name=_("output file"), blank=True, null=True)
+
+    def __str__(self):
+        return f"<SIO3PackTest {self.name}>"
+
+    class Meta(object):
+        verbose_name = _("test")
+        verbose_name_plural = _("tests")
+        unique_together = ("package", "name", "test_id", "group")
+
+
+class SIO3PackWorkflow(models.Model):
+    package = models.ForeignKey(SIO3Package, on_delete=models.CASCADE, related_name="workflows")
+    name = models.CharField(max_length=255, verbose_name=_("name"))
+    workflow_raw = models.TextField(verbose_name=_("workflow"))
+
+    def __str__(self):
+        return f"<SIO3PackWorkflow {self.name}>"
+
+    @property
+    def workflow(self) -> Workflow:
+        return Workflow.from_json(json.loads(self.workflow_raw))
+
+    class Meta(object):
+        verbose_name = _("workflow")
+        verbose_name_plural = _("workflows")

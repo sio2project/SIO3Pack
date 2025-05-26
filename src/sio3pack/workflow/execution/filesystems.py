@@ -228,3 +228,9 @@ class FilesystemManager:
         """
         for fs in self.filesystems:
             fs.replace_templates(replacements)
+
+    def len(self) -> int:
+        """
+        Get the number of filesystems.
+        """
+        return len(self.filesystems)

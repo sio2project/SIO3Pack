@@ -139,3 +139,9 @@ class MountNamespaceManager:
         Convert the mount namespace manager to a dictionary.
         """
         return [mount_namespace.to_json() for mount_namespace in self.mount_namespaces]
+
+    def len(self) -> int:
+        """
+        Get the number of mount namespaces.
+        """
+        return len(self.mount_namespaces)

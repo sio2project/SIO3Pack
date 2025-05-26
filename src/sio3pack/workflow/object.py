@@ -1,3 +1,6 @@
+import re
+
+
 class Object:
     """
     A class to represent an object in a workflow.
@@ -15,6 +18,9 @@ class Object:
         self.handle = handle
 
     def __str__(self):
+        return f"<Object {self.handle}>"
+
+    def __repr__(self):
         return f"<Object {self.handle}>"
 
     def replace_templates(self, replacements: dict[str, str]):
@@ -65,6 +71,21 @@ class ObjectsManager:
             return self.create_object(handle)
         return self.get_object(handle)
 
+    def find_by_regex_in_objects(self, regex: str, return_group: int) -> list[str]:
+        """
+        Find all occurrences of a regex in the task.
+
+        :param regex: The regex to search for.
+        :param return_group: The group to return.
+        :return: A list of matches.
+        """
+        res = []
+        for obj in self.objects.values():
+            match = re.search(regex, obj.handle)
+            if match:
+                res.append(match.group(return_group))
+        return res
+
 
 class ObjectList:
     """
@@ -113,7 +134,7 @@ class ObjectList:
 
         :return: The string representation of the list.
         """
-        return f"<ObjectList {len(self.objects)} objects>"
+        return f"<ObjectList {self.objects}>"
 
     def union(self, other: "ObjectList"):
         """

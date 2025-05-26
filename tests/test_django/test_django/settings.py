@@ -108,6 +108,11 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
+LANGUAGES = [
+    ("en", "English"),
+    ("pl", "Polski"),
+]
+
 TIME_ZONE = "UTC"
 
 USE_I18N = True

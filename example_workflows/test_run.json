@@ -68,7 +68,8 @@
               "type": "object_write",
               "handle": "abc.cpp.e"
             }
-          }
+          },
+          "start_after": []
         }
       ]
     },
@@ -130,7 +131,8 @@
               "type": "object_write",
               "handle": "test_run_abc.cpp"
             }
-          }
+          },
+          "start_after": []
         }
       ]
     }

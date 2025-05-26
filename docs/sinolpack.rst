@@ -157,6 +157,11 @@ fields:
   present when the program is executed. The files are relative
   to the `prog/` directory.
 
+- `extra_files` -- a new field, introduced by SIO3Pack. It
+  is an array of paths (relative to the root of the package)
+  that should be saved along with the package. These files
+  can be later used in custom workflows.
+
 The `config.yml` can also contain other fields used by various
 tools, like `sinol-make` which uses fields starting with
 `sinol_`. These fields are ignored by SIO2 and are described

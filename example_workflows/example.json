@@ -103,7 +103,8 @@
                     "mount_namespace": 0,
                     "pid_namespace": 0,
                     "resource_group": 0,
-                    "working_directory": "/"
+                    "working_directory": "/",
+                    "start_after": []
                 }
             ],
             "resource_groups": [
