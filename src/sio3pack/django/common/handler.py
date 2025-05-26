@@ -26,14 +26,15 @@ class DjangoHandler:
     Base class for handling Django models.
     Allows to save the package to the database and retrieve its data.
 
-    :param sio3pack.Package package: The package to handle.
+    :param Package package: The package to handle.
     :param int problem_id: The problem ID.
     """
 
-    def __init__(self, package: "sio3pack.Package", problem_id: int):
+    def __init__(self, package: "Package", problem_id: int):
         """
         Initialize the handler with the package and problem ID.
-        :param sio3pack.Package package: The package to handle.
+
+        :param Package package: The package to handle.
         :param int problem_id: The problem ID.
         """
         self.package = package
@@ -47,6 +48,8 @@ class DjangoHandler:
     def save_to_db(self):
         """
         Save the package to the database.
+
+        :raises PackageAlreadyExists: If a package with the same problem ID already exists.
         """
         if SIO3Package.objects.filter(problem_id=self.problem_id).exists():
             raise PackageAlreadyExists(self.problem_id)
@@ -136,7 +139,8 @@ class DjangoHandler:
     def get_executable_path(self, program: File | str) -> str | None:
         """
         Get the executable path for the given program.
-        :param program: The program to get the path for.
+
+        :param File | str program: The program to get the path for.
         :return: The executable path or None if not found.
         """
         if isinstance(program, File):
@@ -170,14 +174,14 @@ class DjangoHandler:
     def model_solutions(self) -> list[dict[str, Any]]:
         """
         A list of model solutions, where each element is a dictionary containing
-        a :class:`sio3pack.RemoteFile` object.
+        a :class:`RemoteFile` object.
         """
         return [{"file": RemoteFile(s.source_file)} for s in self.db_package.model_solutions.all()]
 
     @property
     def main_model_solution(self) -> RemoteFile:
         """
-        The main model solution as a :class:`sio3pack.RemoteFile`.
+        The main model solution as a :class:`RemoteFile`.
         """
         return RemoteFile(self.db_package.main_model_solution.source_file)
 
@@ -207,6 +211,6 @@ class DjangoHandler:
     @property
     def workflows(self) -> dict[str, Workflow]:
         """
-        A dictionary of workflows, where keys are workflow names and values are :class:`sio3pack.Workflow` objects.
+        A dictionary of workflows, where keys are workflow names and values are :class:`Workflow` objects.
         """
         return {w.name: w.workflow for w in self.db_package.workflows.all()}
