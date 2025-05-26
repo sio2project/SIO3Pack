@@ -1,5 +1,5 @@
 from sio3pack import Package
-from sio3pack.packages import Sinolpack
+from sio3pack.packages.sinolpack import Sinolpack
 from tests.fixtures import PackageInfo
 
 
