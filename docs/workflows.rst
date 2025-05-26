@@ -87,6 +87,7 @@ These keys are used to define execution tasks:
 - `type` -- the type of the task, which is `execution` for execution tasks.
 - `name` -- the name of the task, used for debugging and logging.
 - `channels` -- an array of configurations for pipes that the task uses. Each configuration is an object with the following keys:
+
   - `buffer_size` -- The maximum amount of data stored in the channel that has been written by
     the writer, but not yet read by the reader. This value must be positive.
   - `source_pipe` -- The pipe this channel will be reading from.
@@ -96,18 +97,132 @@ These keys are used to define execution tasks:
   - `limit` (optional) -- Limits the maximum amount of data sent through the channel.
 - `exclusive` -- a boolean value that indicates whether the task is exclusive. If true, the task will not run concurrently
   with other tasks.
+- `hard_time_limit` -- the maximum amount of time the task can run, in seconds. If the task exceeds this limit, it will be terminated.
+- `output_register` -- the register number that the execution results will be written to. This register will contain various
+  information about the execution, such as the exit code, output, and error messages.
+- `pid_namespaces` -- number of PID namespaces that the task will use. This is used to isolate the process tree of the task.
+- `pipes` -- number of pipes that the task will use. Pipes are used for inter-process communication.
 - `filesystems` -- an array of configuration for filesystems. Multiple filesystems can be mounted for a process.
   There are multiple types of filesystems:
+
   - Image filesystem -- a filesystem that is mounted from an image file. The configuration is an object with the following keys:
+
     - `type` -- the type of the filesystem, which is `image` for image filesystems.
     - `path` -- the path to the image file.
   - Empty filesystem -- a filesystem that is mounted as an empty directory. The configuration is an object with the following keys:
+
     - `type` -- the type of the filesystem, which is `empty` for empty filesystems.
   - Object filesystem -- a filesystem that is an object. The configuration is an object with the following keys:
+
     - `type` -- the type of the filesystem, which is `object` for object filesystems.
     - `object` -- the handle of the object that is used as a filesystem.
-- `hard_time_limit` -- the maximum amount of time the task can run, in seconds. If the task exceeds this limit, it will be terminated.
 - `mount_namespaces` -- an array of mount namespace configurations. Each configuration is an object with the following keys:
+
   - `root` -- ?
   - `mountpoints` -- an array of mountpoint configurations. Each configuration can mount a filesystem at a given path,
     specyfing whether this file is writable. These keys are used to define mountpoints:
+
+    - `source` -- index of the filesystem that is mounted at this mountpoint.
+    - `target` -- the path where the filesystem is mounted.
+    - `writable` -- a boolean value that indicates whether the mountpoint is writable.
+- `resource_groups` -- an array of resource group configurations. Each configuration is an object with the following keys:
+
+  - `cpu_usage_limit` -- the maximum percentage of CPU that the task can use. This value must be between 0 and 100 and is
+    a floating point number.
+  - `instruction_limit` -- the maximum number of cpu instructions that the task can execute. This value must be a positive integer.
+  - `memory_limit` -- the maximum amount of memory that the task can use, in bytes. This value must be a positive integer.
+  - `oom_terminate_all_tasks` -- a boolean value that indicates whether the task should terminate all tasks in the workflow
+    if it runs out of memory. If true, all tasks will be terminated if the task runs out of memory.
+  - `pid_limit` -- the maximum number of processes that the task can create. This value must be a positive integer.
+  - `swap_limit` -- the maximum amount of swap memory that the task can use, in bytes. This value must be a non-negative integer.
+  - `time_limit` -- the maximum amount of time the task can run, in microseconds. This value must be a positive integer.
+- `processes` -- an array of process configurations. Each configuration is an object with the following keys:
+
+  - `arguments` -- an array of strings that are passed as arguments to the process.
+  - `environment` -- array of environment variables that are passed to the process. Each variable is a string in the format `KEY=VALUE`.
+  - `image` -- the name of the image that is used to run the process.
+  - `mount_namespace` -- the index of the mount namespace that the process will use.
+  - `resource_group` -- the index of the resource group that the process will use.
+  - `pid_namespace` -- the index of the PID namespace that the process will use.
+  - `working_directorfy` -- the working directory of the process. This is the directory where the process will be executed.
+  - `descriptors` -- a dictionary of file descriptors that are attached to the process. Each key is a file descriptor number
+    (as a string) and each value is a stream. There are several types of streams (specified by `type` key):
+
+    - file stream -- a stream which attaches a file to the file descriptor. It uses following keys:
+
+      - `type` -- the type of the stream, which is `file` for file streams.
+      - `filesystem` -- the index of the filesystem that contains the file.
+      - `path` -- the path to the file in the filesystem.
+      - `mode` -- the mode of the file, which can be `read`, `read_write`, `read_write_append`, `read_write_truncate`,
+        `write`, `write_append`, or `write_truncate`.
+    - null stream -- a stream that is a null device. It uses the following keys:
+
+      - `type` -- the type of the stream, which is `null` for null streams.
+    - object read stream -- a stream that allows reading from an object. It uses the following keys:
+
+      - `type` -- the type of the stream, which is `object_read` for object read streams.
+      - `handle` -- the handle of the object that is used as a stream.
+    - object write stream -- a stream that allows writing to an object. It uses the following keys:
+
+      - `type` -- the type of the stream, which is `object_write` for object write streams.
+      - `handle` -- the handle of the object that is used as a stream.
+    - pipe read stream -- a stream that allows reading from a pipe. It uses the following keys:
+
+      - `type` -- the type of the stream, which is `pipe_read` for pipe read streams.
+      - `pipe` -- the index of the pipe to read from.
+    - pipe write stream -- a stream that allows writing to a pipe. It uses the following keys:
+
+      - `type` -- the type of the stream, which is `pipe_write` for pipe write streams.
+      - `pipe` -- the index of the pipe to write to.
+  - `start_after` -- an array of process indices that this process will start after. This is used to define dependencies between processes.
+
+
+Example workflows
+------------------
+
+Workflow examples can be found in the `example_workflows` directory in the SIO3Pack repository (`here <https://github.com/sio2project/SIO3Pack/tree/main/example_workflows>`_).
+Every workflow in this directory was generated by SIO3Pack. Files ending with `_workflows.json` are examples of
+user defined workflows, that can be used in packages. This is explained later in this document.
+
+How workflow creation works in SIO3Pack
+---------------------------------------
+
+SIO3Pack allows a more object-oriented and user friendly way of creating workflows. It provides a set of classes that can
+represent workflows, tasks, objects and all the other components of a workflow. These classes can be used to create workflows in a more intuitive way, without
+having to write JSON files manually or worry about indexes or register numbers.
+
+SIO3Pack allows joining multiple workflows together, allowing for writing small workflows that can be reused in larger workflows.
+For example, a workflow for generating output tests is created by joining multiple workflows, which are responsible for
+generating a single test. In SIO3Pack, registers can be named by strings, which makes it easier to understand the workflow
+and allows joining workflows together without worrying about register numbers. All registers starting with `obsreg:`
+are considered observable registers, and all other registers are considered normal registers. When a workflow is
+converted to JSON, all registers are converted to numbers, and the observable registers are placed at the beginning of the register list.
+SIO3Pack also has a simple templating system, for replacing strings in the workflow with values from the context.
+Examples of such templates are `<TEST_ID>`, `<IN_TEST_PATH>` or special `<EXTRA_FILE:path>` and `<EXTRA_EXE:path>`,
+which are replaced with the path to the extra file or executable in the workflow context.
+
+Detailed documentation of SIO3Pack's workflow classes can be found in the :py:mod:`sio3pack.workflow` module documentation.
+Below is a description on how to create own workflows for use in packages.
+
+User Defined Workflows
+----------------------
+
+In a package, you can define your own workflows that will be used by SIO3Pack to generate workflows for the package.
+These workflows are stored in `workflows.json` file in the package root directory. This files contains a dictionary
+of workflows, where keys are names of workflows that you want to override and values are the workflow definitions.
+
+Here are all currently used workflows and their descriptions:
+
+- `compile_cpp` --
+- `compile_python` --
+- `compile_extra` --
+- `ingen` --
+- `outgen_test` --
+- `verify_outgen` --
+- `inwer` --
+- `verify_inwer` --
+- `run_test` --
+- `grade_group` --
+- `grade_run` --
+- `user_out` --
+- `test_run` --
