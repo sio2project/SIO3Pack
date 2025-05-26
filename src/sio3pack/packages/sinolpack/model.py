@@ -488,7 +488,7 @@ class Sinolpack(Package):
                 out_file = LocalFile(os.path.join(self.rootdir, "out", self.short_name + test_id + ".out"))
             else:
                 out_file = None
-            self.tests.append(Test(self.short_name + test_id, test_name, test_id, in_file, out_file, group))
+            self.tests.append(Test(test_name, test_id, in_file, out_file, group))
 
     def reload_tests(self):
         """
