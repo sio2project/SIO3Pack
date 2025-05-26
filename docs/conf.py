@@ -7,6 +7,15 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 import sio3pack
+import django
+import sys
+import os
+
+
+sys.path.append(os.path.abspath('../tests/test_django'))
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'test_django.settings')
+django.setup()
+
 
 project = 'SIO3Pack'
 copyright = '2025, Tomasz Kwiatkowski, Mateusz Masiarz, Jakub Rożek, Stanisław Struzik'
