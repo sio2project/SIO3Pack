@@ -325,13 +325,17 @@ class Sinolpack(Package):
         self.model_solutions = self.sort_model_solutions(self._get_model_solutions())
 
         self.additional_files = []
-        for file in self.config.get("extra_compilation_files", []) + self.config.get("extra_execution_files", []):
+        extra_files = []
+        extra_files.extend(self.config.get("extra_compilation_files", []))
+        for lang_extra_files in self.config.get("extra_execution_files", {}).values():
+            extra_files.extend(lang_extra_files)
+        for file in extra_files:
             try:
                 lf = LocalFile(os.path.join(self.get_prog_dir(), file))
                 self.additional_files.append(lf)
             except FileNotFoundError:
                 pass
-        extensions = self.get_submittable_extensions()
+        extensions = self.get_submittable_extensions() + ["sh"]
         self.special_files: dict[str, File | None] = {}
         for file in self.special_file_types():
             try:
