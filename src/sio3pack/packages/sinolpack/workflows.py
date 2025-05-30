@@ -267,7 +267,6 @@ class SinolpackWorkflowManager(WorkflowManager):
 
         # Get the workflow for compiling any extra files from package's workflow's config
         extra_wf = self.get("compile_extra")
-        print("xddd", extra_wf)
         if extra_wf is not None:
             to_replace = self._add_extra_files_to_replace(extra_wf, {})
             extra_wf.replace_templates(to_replace)
