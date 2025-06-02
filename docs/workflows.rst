@@ -213,16 +213,90 @@ of workflows, where keys are names of workflows that you want to override and va
 
 Here are all currently used workflows and their descriptions:
 
-- `compile_cpp` --
-- `compile_python` --
-- `compile_extra` --
-- `ingen` --
-- `outgen_test` --
-- `verify_outgen` --
-- `inwer` --
-- `verify_inwer` --
-- `run_test` --
-- `grade_group` --
-- `grade_run` --
-- `user_out` --
-- `test_run` --
+- `compile_cpp` -- workflow for compiling C++ source code into an executable. It's used whenever a C++ file needs
+  to be compiled into an executable. It uses the `g++` compiler and supports various options for compilation.
+  It uses two templates: `<FILE>` for the path to the source file and `<OUT>` for the path to the output executable.
+- `compile_python` -- workflow for compiling Python source code into an executable. It's used whenever a Python file needs
+  to be compiled into an executable. It typically add she-bang to the file and makes it executable. Uses the same
+  templates as `compile_cpp`.
+- `compile_extra` -- a workflow that can be defined to compile any extra files. It is used during unpacking of package,
+  before compiling any other common files, like checker. It doesn't have any extra templates.
+- `ingen` -- workflow for generating input tests. It doesn't have any extra templates.
+- `outgen_test` -- workflow for generating a single output test. This workflow is generated for each input test
+  and then they are combined into a single workflow. Used templates:
+
+  - `<IN_TEST_PATH>` -- the path to the input test file.
+  - `<OUT_TEST_PATH>` -- the path to the output test file.
+  - `<TEST_ID>` -- the ID of the test, which should be used to give unique names for registers.
+  - `<COMPILED_OUTGEN_PATH>` -- the path to the compiled output generator executable.
+
+  The execution output register should be named `r:ougen_res_<TEST_ID>`.
+- `verify_outgen` -- a workflow which verifies if output generation was successful. Typically, this is a script
+  task that checks if exit status of execution tasks are 0. It uses the following templates:
+
+  - `<LUA_MAP_TEST_ID_REG>` -- a Lua template, which generates a map of test IDs to registers.
+  - `<INPUT_REGS>` -- a template for use in `input_registers` key in script tasks. It is replaced with an array
+    of registers which are output registers of output generation tasks (the `r:ougen_res_<TEST_ID>` registers).
+
+  The output register of this workflow should be named `obsreg:result`, as it is a final task of outgen.
+
+- `inwer` -- a workflow which runs inwer (input verification program) for one test. This workflow is generated
+  for each input test and then they are combined into a single workflow. Used templates:
+
+  - `<IN_TEST_PATH>` -- the path to the input test file.
+  - `<TEST_ID>` --  the ID of the test, which should be used to give unique names for registers.
+  - `<COMPILED_INWER_PATH>` -- path to the compiled inwer executable.
+
+  The execution output register should be named `r:inwer_res_<TEST_ID>`.
+
+- `verify_inwer` -- a workflow which verifies that input verification was successful. Typically, this is a script
+  task that checks if exit status of execution tasks are 0. It uses the following templates:
+
+  - `<LUA_MAP_TEST_ID_REG>` -- a Lua template, which generates a map of test IDs to registers.
+  - `<INPUT_REGS>` -- a template for use in `input_registers` key in script tasks. It is replaced with an array
+    of registers which are output registers of input verification tasks (the `r:inwer_res_<TEST_ID>` registers).
+
+  The output register of this workflow should be named `obsreg:result`, as it is a final task of inwer.
+- `run_test` -- a workflow which runs a program on a single test and grades the solution on this test. This workflow is
+  generated for each input test, then they are grouped by test groups and finally results of workflows for grading groups
+  are connected into grading the whole solution. Used templates:
+
+  - `<TEST_ID>` -- the ID of the test, which should be used to give unique names for registers.
+  - `<IN_TEST_PATH>` -- the path to the input test file.
+  - `<OUT_TEST_PATH>` -- the path to the output test file.
+  - `<SOL_PATH>` -- the path to the solution executable.
+
+  The grading results for a test should be stored in `r:grade_res_<TEST_ID>` register.
+- `grade_group` -- a workflow which grades a group of tests. Typically, this is a script task, which takes grading results
+  as input and produces a grading for a given group. Used templates:
+
+  - `<LUA_MAP_TEST_ID_REG>` -- a Lua template, which generates a map of test IDs to registers.
+  - `<INPUT_REGS>` -- a template for use in `input_registers` key in script tasks. It is replaced with an array
+    of registers which are output registers of grading tasks (the `r:grade_res_<TEST_ID>` registers).
+  - `<GROUP_ID>` -- the ID of the group being graded, which should be used to give unique names for registers.
+
+  The group grading results should be stored in `r:grup_grade_res_<GROUP_ID>` register.
+- `grade_run` -- a workflow which grades the whole solution, based on grading results of groups. Typically, this is a
+  script task that takes group grading results as input and produces a final grading for the solution. Used templates:
+
+  - `<LUA_MAP_TEST_ID_REG>` -- a Lua template, which generates a map of group IDs to registers.
+  - `<INPUT_REGS>` -- a template for use in `input_registers` key in script tasks. It is replaced with an array
+    of registers which are output registers of group grading tasks (the `r:group_grade_res_<GROUP_ID>` registers).
+
+  The final grading result should be stored in `obsreg:result` register, as it is a final task of grading the solution.
+- `user_out` -- a workflow for generating program's output on a test. Used templates:
+
+  - `<TEST_ID>` -- the ID of the test.
+  - `<IN_TEST_PATH>` -- the path to the input test file.
+  - `<SOL_PATH>` -- path to the program.
+
+  This workflow should generate an observable object `user_out_<TEST_ID>`, as well as store execution results in
+  `obsreg:result` register.
+- `test_run` -- a workflow for generating program's output on a user-provided test. Used templates:
+
+  - `<IN_TEST_PATH>` -- the path to the input file.
+  - `<SOL_PATH>` -- path to the program.
+  - `<USER_OUT_PATH>` -- a path to the user output file. This should be the final observable object.
+
+  This workflow should generate an observable object `<USER_OUT_PATH>` as well as store execution results in
+  `obsreg:result` register.
