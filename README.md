@@ -1,5 +1,3 @@
-from sio3pack.graph import GraphOperation
-
 # SIO3Pack
 
 SIO3Pack is a Python package designed to facilitate the creation and manipulation 
