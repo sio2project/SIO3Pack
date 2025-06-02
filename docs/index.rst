@@ -11,3 +11,4 @@ SIO3Pack documentation
    usage
    workflows
    sinolpack
+   development
