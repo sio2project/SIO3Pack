@@ -15,6 +15,10 @@ import sys
 
 
 def main():
+    """
+    Main entry point for the SIO3Worker visualizer.
+    """
+
     app = dash.Dash(__name__)
     app.layout = html.Div(
         [

@@ -9,7 +9,7 @@ from sio3pack.django.sinolpack.models import (
     SinolpackModelSolution,
     SinolpackSpecialFile,
 )
-from sio3pack.packages import Sinolpack
+from sio3pack.packages.sinolpack import Sinolpack
 from tests.fixtures import Compression, PackageInfo, get_archived_package, get_package
 from tests.utils import assert_contents_equal
 

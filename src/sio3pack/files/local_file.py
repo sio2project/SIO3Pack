@@ -5,7 +5,10 @@ from sio3pack.files.file import File
 
 class LocalFile(File):
     """
-    Base class for a file in a package that is stored locally.
+    Class for a file in a package that is stored locally.
+
+    :param str path: The path to the file.
+    :param str filename: The name of the file.
     """
 
     @classmethod

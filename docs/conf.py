@@ -7,6 +7,15 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 import sio3pack
+import django
+import sys
+import os
+
+
+sys.path.append(os.path.abspath('../tests/test_django'))
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'test_django.settings')
+django.setup()
+
 
 project = 'SIO3Pack'
 copyright = '2025, Tomasz Kwiatkowski, Mateusz Masiarz, Jakub Rożek, Stanisław Struzik'
@@ -21,6 +30,7 @@ extensions = [
     'sphinx.ext.autodoc',  # Also required by AutoAPI.
     'sphinx.ext.viewcode',
     'sphinx.ext.intersphinx',
+    'sphinx.ext.coverage',
 ]
 
 templates_path = ['_templates']
@@ -38,6 +48,7 @@ autoapi_dirs = ['../src/sio3pack/']
 autoapi_include = [
     "sio3pack.django.common.handler.DjangoHandler",
     "sio3pack.django.sinolpack.handler.SinolpackDjangoHandler",
+    "sio3pack.files.remote_file.RemoteFile",
 ]
 autodoc_typehints = 'description'
 

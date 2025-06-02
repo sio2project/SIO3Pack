@@ -1,8 +1,7 @@
 import pytest
 
 import sio3pack
-from sio3pack.packages import Sinolpack
-from sio3pack.packages.sinolpack import constants
+from sio3pack.packages.sinolpack import Sinolpack, constants
 from sio3pack.test import Test
 from tests.fixtures import PackageInfo, get_package
 

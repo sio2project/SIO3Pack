@@ -4,6 +4,21 @@ from sio3pack.workflow.execution.resource_group import ResourceGroup
 
 
 class Process:
+    """
+    A class to represent a process in a workflow.
+
+    :param Workflow workflow: The workflow the process belongs to.
+    :param Executiontask task: The task which the process belongs to.
+    :param list[str] arguments: Executable arguments for the process.
+    :param dict[str, str] environment: Environment variables for the process.
+    :param str image: The image of the process, which can be a Docker image or similar.
+    :param MountNamespace mount_namespace: The mount namespace to use for the process.
+    :param ResourceGroup resource_group: The resource group of the process.
+    :param str working_directory: The working directory of the process.
+    :param int pid_namespace: The PID namespace of the process.
+    :param list[int] start_after: The processes that must be finished before this process starts.
+    """
+
     def __init__(
         self,
         workflow: "Workflow",
@@ -19,6 +34,7 @@ class Process:
     ):
         """
         Represent a process.
+
         :param arguments: The arguments of the process.
         :param environment: The environment of the process.
         :param image: The image of the process.
@@ -43,6 +59,10 @@ class Process:
         self.start_after = start_after or []
 
     def to_json(self) -> dict:
+        """
+        Convert the process to a JSON-serializable dictionary.
+        """
+
         return {
             "arguments": self.arguments,
             "environment": [f"{key}={value}" for key, value in self.environment.items()],
@@ -57,6 +77,14 @@ class Process:
 
     @classmethod
     def from_json(cls, data: dict, workflow: "Workflow", task: "Task"):
+        """
+        Create a new process from a dictionary.
+
+        :param data: The dictionary to create the process from.
+        :param workflow: The workflow the process belongs to.
+        :param task: The task the process belongs to.
+        """
+
         env = {}
         for var in data["environment"]:
             key, value = var.split("=", 1)
@@ -79,7 +107,8 @@ class Process:
     def replace_templates(self, replacements: dict[str, str]):
         """
         Replace strings in the process with the given replacements.
-        :param replacements: The replacements to make.
+
+        :param dict[str, str] replacements: The replacements to make.
         """
         for key, value in replacements.items():
             if key in self.image:

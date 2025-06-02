@@ -20,9 +20,12 @@ class SinolpackDjangoHandler(DjangoHandler):
     """
     Handler for Sinolpack packages in Django.
     Has additional properties like config, model_solutions, additional_files and attachments.
+
+    :param Sinolpack package: The Sinolpack package to handle.
+    :param int problem_id: The problem ID.
     """
 
-    def __init__(self, package: "sio3pack.Sinolpack", problem_id: int):
+    def __init__(self, package: "Sinolpack", problem_id: int):
         super().__init__(package, problem_id)
 
     @transaction.atomic
@@ -108,7 +111,7 @@ class SinolpackDjangoHandler(DjangoHandler):
     @property
     def model_solutions(self) -> list[dict[str, Any]]:
         """
-        A list of model solutions, where each element is a dictionary containing a :class:`sio3pack.RemoteFile` object
+        A list of model solutions, where each element is a dictionary containing a :class:`RemoteFile` object
         and the :class:`sio3pack.packages.sinolpack.enums.ModelSolutionKind` kind.
         """
         solutions = SinolpackModelSolution.objects.filter(package=self.db_package)
@@ -117,14 +120,14 @@ class SinolpackDjangoHandler(DjangoHandler):
     @property
     def additional_files(self) -> list[RemoteFile]:
         """
-        A list of additional files (as :class:`sio3pack.RemoteFile`) for the problem.
+        A list of additional files (as :class:`RemoteFile`) for the problem.
         """
         return [RemoteFile(f.file) for f in self.db_package.additional_files.all()]
 
     @property
     def special_files(self) -> dict[str, RemoteFile]:
         """
-        A dictionary of special files (as :class:`sio3pack.RemoteFile`) for the problem.
+        A dictionary of special files (as :class:`RemoteFile`) for the problem.
         The keys are the types of the special files.
         """
         res = {}
@@ -139,7 +142,7 @@ class SinolpackDjangoHandler(DjangoHandler):
     @property
     def extra_execution_files(self) -> list[RemoteFile]:
         """
-        A list of extra execution files (as :class:`sio3pack.RemoteFile`) specified in the config file.
+        A list of extra execution files (as :class:`RemoteFile`) specified in the config file.
         """
         files = self.config.get("extra_execution_files", [])
         return [RemoteFile(f.file) for f in self.db_package.additional_files.filter(name__in=files)]
@@ -147,7 +150,7 @@ class SinolpackDjangoHandler(DjangoHandler):
     @property
     def extra_compilation_files(self) -> list[RemoteFile]:
         """
-        A list of extra compilation files (as :class:`sio3pack.RemoteFile`) specified in the config file.
+        A list of extra compilation files (as :class:`RemoteFile`) specified in the config file.
         """
         files = self.config.get("extra_compilation_files", [])
         return [RemoteFile(f.file) for f in self.db_package.additional_files.filter(name__in=files)]
@@ -155,14 +158,14 @@ class SinolpackDjangoHandler(DjangoHandler):
     @property
     def attachments(self) -> list[RemoteFile]:
         """
-        A list of attachments (as :class:`sio3pack.RemoteFile`) related to the problem.
+        A list of attachments (as :class:`RemoteFile`) related to the problem.
         """
         return [RemoteFile(f.content) for f in self.db_package.attachments.all()]
 
     @property
     def extra_files(self) -> dict[str, RemoteFile]:
         """
-        A dictionary of extra files (as :class:`sio3pack.RemoteFile`) for the problem, as
+        A dictionary of extra files (as :class:`RemoteFile`) for the problem, as
         specified in the config file. The keys are the paths of the files in the package.
         """
         files = self.db_package.extra_files.all()
@@ -170,10 +173,10 @@ class SinolpackDjangoHandler(DjangoHandler):
 
     def get_extra_file(self, package_path: str) -> RemoteFile | None:
         """
-        Get an extra file (as :class:`sio3pack.RemoteFile`) for the problem.
+        Get an extra file (as :class:`RemoteFile`) for the problem.
 
         :param package_path: The path of the file in the package.
-        :return: The extra file (as :class:`sio3pack.RemoteFile`) or None if it does not exist.
+        :return: The extra file (as :class:`RemoteFile`) or None if it does not exist.
         """
         try:
             extra_file = self.db_package.extra_files.get(package_path=package_path)
