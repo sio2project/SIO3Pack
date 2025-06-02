@@ -17,7 +17,7 @@ jobs:
           python-version: '3.13'
       - name: Install pip dependencies
         run: |
-          pip install -e .[docs]
+          pip install -e .[docs,django]
       - name: Run Sphinx
         run: |
           cd docs
