@@ -1,12 +1,17 @@
 class SIO3PackException(Exception):
-    """A wrapper for all exceptions raised by SIO3Pack."""
+    """
+    A base class for all custom exceptions raised by SIO3Pack.
 
-    def __init__(self, message, full_message=None):
+    :param str message: A short description of the error.
+    :param str full_message: A detailed description of the error, if available.
+    """
+
+    def __init__(self, message: str, full_message: str = None):
         """
         Initialize the SIO3PackException.
 
-        :param message: A short description of the error.
-        :param full_message: A detailed description of the error, if available.
+        :param str message: A short description of the error.
+        :param str full_message: A detailed description of the error, if available.
         """
         super().__init__(message)
         self.message = message

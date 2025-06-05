@@ -4,11 +4,15 @@ from sio3pack.exceptions.general import SIO3PackException
 
 
 class WorkflowCreationError(SIO3PackException):
-    """Raised when there is an error creating a workflow."""
+    """
+    Raised when there is an error creating a workflow.
+    """
 
 
 class ParsingFailedOn(Enum):
-    """Enum to represent the part of the workflow that failed to parse."""
+    """
+    Enum to represent the part of the workflow that failed to parse.
+    """
 
     JSON = "json"
     WORKFLOW = "workflow"
@@ -23,16 +27,27 @@ class ParsingFailedOn(Enum):
 
 
 class WorkflowParsingError(SIO3PackException):
-    """Raised when there is an error parsing a workflow."""
+    """
+    Raised when there is an error parsing a workflow configuration.
+
+    :param str message: A short description of the error.
+    :param ParsingFailedOn failed_on: The part of the workflow that failed to parse.
+    :param str extra_msg: Additional message to append to the error message.
+    :param dict data: Additional data related to the error.
+    :param str full_message: A full message describing the error, if available.
+    """
 
     def __init__(
-        self, message, failed_on: ParsingFailedOn, extra_msg: str = None, data: dict = None, full_message: str = None
+        self, message: str, failed_on: ParsingFailedOn, extra_msg: str = None, data: dict = None, full_message: str = None
     ):
         """
         Initialize the WorkflowParsingError.
 
-        :param message: A short description of the error.
-        :param failed_on: The part of the workflow that failed to parse.
+        :param str message: A short description of the error.
+        :param ParsingFailedOn failed_on: The part of the workflow that failed to parse.
+        :param str extra_msg: Additional message to append to the error message.
+        :param dict data: Additional data related to the error.
+        :param str full_message: A full message describing the error, if available.
         """
         super().__init__(message)
         self.message = message
