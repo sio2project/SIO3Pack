@@ -25,6 +25,6 @@ def test_no_django(get_package):
     with pytest.raises(ImproperlyConfigured):
         sio3pack.from_db(1)
 
-    package = sio3pack.from_file(package_info.path)
+    package = sio3pack.from_file(package_info.path, SIO3PackConfig(allow_unrecognized_files=True))
     with pytest.raises(ImproperlyConfigured):
         package.save_to_db(1)
