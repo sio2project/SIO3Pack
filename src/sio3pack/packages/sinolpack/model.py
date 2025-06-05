@@ -515,7 +515,7 @@ class Sinolpack(Package):
                 return test
         raise ValueError(f"Test with ID {test_id} not found.")
 
-    def get_tests_with_inputs(self, tests: list[Test]=None) -> list[Test]:
+    def get_tests_with_inputs(self, tests: list[Test] = None) -> list[Test]:
         """
         Returns the list of input tests.
         """
