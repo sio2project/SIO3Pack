@@ -1,4 +1,4 @@
-from sio3pack.exceptions import WorkflowParsingError, ParsingFailedOn
+from sio3pack.exceptions import ParsingFailedOn, WorkflowParsingError
 from sio3pack.workflow.execution.descriptors import DescriptorManager
 from sio3pack.workflow.execution.mount_namespace import MountNamespace
 from sio3pack.workflow.execution.resource_group import ResourceGroup
@@ -86,8 +86,16 @@ class Process:
         :param task: The task the process belongs to.
         """
 
-        for key, type in [("arguments", list), ("environment", list), ("image", str), ("mount_namespace", int),
-                          ("resource_group", int), ("pid_namespace", int), ("working_directory", str), ("descriptors", dict)]:
+        for key, type in [
+            ("arguments", list),
+            ("environment", list),
+            ("image", str),
+            ("mount_namespace", int),
+            ("resource_group", int),
+            ("pid_namespace", int),
+            ("working_directory", str),
+            ("descriptors", dict),
+        ]:
             if key not in data:
                 raise WorkflowParsingError(
                     f"Failed parsing process.",

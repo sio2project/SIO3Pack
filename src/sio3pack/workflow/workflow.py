@@ -1,4 +1,4 @@
-from sio3pack.exceptions import WorkflowParsingError, ParsingFailedOn
+from sio3pack.exceptions import ParsingFailedOn, WorkflowParsingError
 from sio3pack.files.file import File
 from sio3pack.workflow.object import Object, ObjectList, ObjectsManager
 from sio3pack.workflow.tasks import ExecutionTask, ScriptTask, Task
@@ -26,9 +26,7 @@ class Workflow:
         for key in ["name", "external_objects", "observable_objects", "observable_registers", "tasks"]:
             if key not in data:
                 raise WorkflowParsingError(
-                    "Parsing workflow failed.",
-                    ParsingFailedOn.WORKFLOW,
-                    f"Missing key '{key}'."
+                    "Parsing workflow failed.", ParsingFailedOn.WORKFLOW, f"Missing key '{key}'."
                 )
 
         workflow = cls(data["name"], data["external_objects"], data["observable_objects"], data["observable_registers"])

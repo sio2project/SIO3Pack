@@ -1,4 +1,4 @@
-from sio3pack.exceptions.workflow import WorkflowParsingError, ParsingFailedOn
+from sio3pack.exceptions.workflow import ParsingFailedOn, WorkflowParsingError
 
 
 class ResourceGroup:
@@ -78,8 +78,15 @@ class ResourceGroup:
         :param data: The dictionary to create the resource group from.
         :param id: The id of the resource group.
         """
-        for key, type in [("cpu_usage_limit", float), ("instruction_limit", int), ("memory_limit", int), ("oom_terminate_all_tasks", bool),
-                    ("pid_limit", int), ("swap_limit", int), ("time_limit", int)]:
+        for key, type in [
+            ("cpu_usage_limit", float),
+            ("instruction_limit", int),
+            ("memory_limit", int),
+            ("oom_terminate_all_tasks", bool),
+            ("pid_limit", int),
+            ("swap_limit", int),
+            ("time_limit", int),
+        ]:
             if key not in data:
                 raise WorkflowParsingError(
                     "Parsing resource group failed.",

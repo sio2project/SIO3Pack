@@ -1,4 +1,4 @@
-from sio3pack.exceptions import WorkflowParsingError, ParsingFailedOn
+from sio3pack.exceptions import ParsingFailedOn, WorkflowParsingError
 from sio3pack.workflow.execution.filesystems import Filesystem, FilesystemManager
 
 

@@ -50,6 +50,7 @@ class WorkflowParsingError(SIO3PackException):
         """
         Generate a full message for the exception if not provided.
         """
+
         def task_name():
             msg = f"task {self.data['task_index']}"
             if "task_name" in self.data:
