@@ -1,3 +1,6 @@
+from sio3pack.exceptions import WorkflowParsingError, ParsingFailedOn
+
+
 class Channel:
     """
     A configuration of a channel. A channel is a connection between two pipes.
@@ -40,6 +43,21 @@ class Channel:
 
         :param dict data: The dictionary to create the channel from.
         """
+        for key in ["buffer_size", "source_pipe", "target_pipe"]:
+            if key not in data:
+                raise WorkflowParsingError(
+                    f"Missing required key in channel configuration.",
+                    ParsingFailedOn.CHANNEL,
+                    f"Missing required key '{key}' in channel configuration.",
+                )
+
+        for key in ["buffer_size", "source_pipe", "target_pipe", "file_buffer_size", "limit"]:
+            if key in data and not isinstance(data[key], int):
+                raise WorkflowParsingError(
+                    f"Invalid type for key '{key}' in channel configuration.",
+                    ParsingFailedOn.CHANNEL,
+                    f"Expected integer for '{key}', got {type(data[key]).__name__}.",
+                )
 
         return cls(
             data["buffer_size"],

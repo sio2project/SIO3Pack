@@ -1,3 +1,4 @@
+from sio3pack.exceptions import WorkflowParsingError, ParsingFailedOn
 from sio3pack.files.file import File
 from sio3pack.workflow.object import Object, ObjectList, ObjectsManager
 from sio3pack.workflow.tasks import ExecutionTask, ScriptTask, Task
@@ -22,9 +23,23 @@ class Workflow:
 
         :param data: The dictionary to create the workflow from.
         """
+        for key in ["name", "external_objects", "observable_objects", "observable_registers", "tasks"]:
+            if key not in data:
+                raise WorkflowParsingError(
+                    "Parsing workflow failed.",
+                    ParsingFailedOn.WORKFLOW,
+                    f"Missing key '{key}'."
+                )
+
         workflow = cls(data["name"], data["external_objects"], data["observable_objects"], data["observable_registers"])
-        for task in data["tasks"]:
-            workflow.add_task(Task.from_json(task, workflow))
+        for i, task in enumerate(data["tasks"]):
+            try:
+                workflow.add_task(Task.from_json(task, workflow))
+            except WorkflowParsingError as e:
+                e.set_data("task_index", str(i))
+                e.set_data("task_name", task.get("name", None))
+                raise e
+
         return workflow
 
     def __init__(

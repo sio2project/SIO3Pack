@@ -1,3 +1,4 @@
+from sio3pack.exceptions import WorkflowParsingError, ParsingFailedOn
 from sio3pack.workflow.object import Object
 
 
@@ -7,6 +8,8 @@ class Filesystem:
 
     :param int id: The id of the filesystem in the task.
     """
+
+    _required_keys = []
 
     def __init__(self, id: int = None):
         """
@@ -32,7 +35,14 @@ class Filesystem:
         :param int id: The id of the filesystem.
         :param Workflow workflow: The workflow the filesystem belongs to.
         """
-        return NotImplementedError()
+        for key in cls._required_keys:
+            if key not in data:
+                raise WorkflowParsingError(
+                    "Parsing filesystem failed.",
+                    ParsingFailedOn.FILESYSTEM,
+                    extra_msg=f"Missing required key '{key}' in filesystem definition.",
+                    data={"filesystem_index": id},
+                )
 
     def to_json(self) -> dict:
         """
@@ -61,6 +71,8 @@ class ImageFilesystem(Filesystem):
     :param str path: The path to the image. If None, the path is "".
     """
 
+    _required_keys = ["image", "path"]
+
     def __init__(self, image: str, path: str = None, id: int = None):
         """
         Represent an image filesystem.
@@ -84,6 +96,7 @@ class ImageFilesystem(Filesystem):
         :param id id: The id of the image filesystem.
         :param Workflow workflow: The workflow the image filesystem belongs to.
         """
+        super().from_json(data, id, workflow)
         return cls(data["image"], data["path"], id)
 
     def to_json(self) -> dict:
@@ -96,6 +109,8 @@ class ImageFilesystem(Filesystem):
 
 
 class EmptyFilesystem(Filesystem):
+    _required_keys = []
+
     def __init__(self, id: int = None):
         """
         Represent an empty filesystem. Can be used as tmpfs.
@@ -114,6 +129,7 @@ class EmptyFilesystem(Filesystem):
         :param id: The id of the empty filesystem.
         :param workflow: The workflow the empty filesystem belongs to.
         """
+        super().from_json(data, id, workflow)
         return cls(id)
 
     def to_json(self) -> dict:
@@ -124,6 +140,8 @@ class EmptyFilesystem(Filesystem):
 
 
 class ObjectFilesystem(Filesystem):
+    _required_keys = ["handle"]
+
     def __init__(self, object: Object, id: int = None):
         """
         Represent an object filesystem.
@@ -144,6 +162,7 @@ class ObjectFilesystem(Filesystem):
         :param id: The id of the object filesystem.
         :param workflow: The workflow the object filesystem belongs to.
         """
+        super().from_json(data, id, workflow)
         return cls(workflow.objects_manager.get_or_create_object(data["handle"]), id)
 
     def to_json(self) -> dict:
@@ -189,13 +208,28 @@ class FilesystemManager:
         :param list[dict] data: The list of dictionaries to create the filesystems from.
         :param Workflow workflow: The workflow the filesystems belong to.
         """
-        for fs in data:
+        for i, fs in enumerate(data):
+            if "type" not in fs:
+                raise WorkflowParsingError(
+                    "Parsing filesystem failed.",
+                    ParsingFailedOn.FILESYSTEM,
+                    extra_msg="Missing 'type' key in filesystem definition.",
+                    data={"filesystem_index": i},
+                )
+
             if fs["type"] == "image":
                 self.filesystems.append(ImageFilesystem.from_json(fs, self.id, workflow))
             elif fs["type"] == "empty":
                 self.filesystems.append(EmptyFilesystem.from_json(fs, self.id, workflow))
             elif fs["type"] == "object":
                 self.filesystems.append(ObjectFilesystem.from_json(fs, self.id, workflow))
+            else:
+                raise WorkflowParsingError(
+                    "Parsing filesystem failed.",
+                    ParsingFailedOn.FILESYSTEM,
+                    extra_msg=f"Unknown filesystem type '{fs['type']}' in filesystem definition.",
+                    data={"filesystem_index": i},
+                )
             self.id += 1
 
     def to_json(self) -> list[dict]:
@@ -234,3 +268,12 @@ class FilesystemManager:
         Get the number of filesystems.
         """
         return len(self.filesystems)
+
+    def has_by_id(self, id: int) -> bool:
+        """
+        Check if a filesystem with the given id exists.
+
+        :param id: The id of the filesystem to check.
+        :return: True if the filesystem exists, False otherwise.
+        """
+        return 0 <= id < len(self.filesystems) and self.filesystems[id] is not None

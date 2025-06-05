@@ -1,3 +1,4 @@
+from sio3pack.exceptions import WorkflowParsingError, ParsingFailedOn
 from sio3pack.workflow.execution.descriptors import DescriptorManager
 from sio3pack.workflow.execution.mount_namespace import MountNamespace
 from sio3pack.workflow.execution.resource_group import ResourceGroup
@@ -85,23 +86,69 @@ class Process:
         :param task: The task the process belongs to.
         """
 
+        for key, type in [("arguments", list), ("environment", list), ("image", str), ("mount_namespace", int),
+                          ("resource_group", int), ("pid_namespace", int), ("working_directory", str), ("descriptors", dict)]:
+            if key not in data:
+                raise WorkflowParsingError(
+                    f"Failed parsing process.",
+                    ParsingFailedOn.PROCESS,
+                    f"Missing key '{key}' in process data.",
+                )
+            if not isinstance(data[key], type):
+                raise WorkflowParsingError(
+                    f"Failed parsing process.",
+                    ParsingFailedOn.PROCESS,
+                    f"Key '{key}' in process data is not of type {type.__name__}.",
+                )
+        if "start_after" in data and not isinstance(data["start_after"], list):
+            raise WorkflowParsingError(
+                f"Failed parsing process.",
+                ParsingFailedOn.PROCESS,
+                "Key 'start_after' in process data is not of type list.",
+            )
+
         env = {}
         for var in data["environment"]:
+            if "=" not in var:
+                raise WorkflowParsingError(
+                    f"Failed parsing process.",
+                    ParsingFailedOn.PROCESS,
+                    f"Environment variable '{var}' does not contain an '=' sign.",
+                )
             key, value = var.split("=", 1)
             env[key] = value
+
+        try:
+            mount_namespace = task.mountnamespace_manager.get_by_id(data["mount_namespace"])
+        except IndexError:
+            raise WorkflowParsingError(
+                f"Failed parsing process.",
+                ParsingFailedOn.PROCESS,
+                f"Mount namespace with ID {data['mount_namespace']} not found.",
+            )
+        try:
+            resource_group = task.resource_group_manager.get_by_id(data["resource_group"])
+        except IndexError:
+            raise WorkflowParsingError(
+                f"Failed parsing process.",
+                ParsingFailedOn.PROCESS,
+                f"Resource group with ID {data['resource_group']} not found.",
+            )
+
         process = cls(
             workflow,
             task,
             data["arguments"],
             env,
             data["image"],
-            task.mountnamespace_manager.get_by_id(data["mount_namespace"]),
-            task.resource_group_manager.get_by_id(data["resource_group"]),
+            mount_namespace,
+            resource_group,
             data["pid_namespace"],
             data["working_directory"],
             data.get("start_after", []),
         )
         process.descriptor_manager.from_json(data["descriptors"])
+
         return process
 
     def replace_templates(self, replacements: dict[str, str]):

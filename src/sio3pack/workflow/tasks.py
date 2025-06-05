@@ -1,5 +1,6 @@
 import re
 
+from sio3pack.exceptions import WorkflowParsingError, ParsingFailedOn
 from sio3pack.workflow.execution.channels import Channel
 from sio3pack.workflow.execution.filesystems import Filesystem, FilesystemManager
 from sio3pack.workflow.execution.mount_namespace import MountNamespace, MountNamespaceManager
@@ -21,12 +22,26 @@ class Task:
         :param dict data: The dictionary to create the task from.
         :param Workflow workflow: The workflow the task belongs to.
         """
+        if "type" not in data:
+            raise WorkflowParsingError(
+                "Parsing task failed.",
+                ParsingFailedOn.TASK,
+                "Missing key 'type'.",
+                { "type": "missing_key" },
+            )
+
+
         if data["type"] == "execution":
             return ExecutionTask.from_json(data, workflow)
         elif data["type"] == "script":
             return ScriptTask.from_json(data, workflow)
         else:
-            raise ValueError(f"Unknown task type: {data['type']}")
+            raise WorkflowParsingError(
+                "Parsing task failed.",
+                ParsingFailedOn.TASK,
+                f"Unknown task type '{data['type']}'.",
+                { "type": "wrong_type" },
+            )
 
     def to_json(self, reg_map: dict[str, int] = None) -> dict:
         """
@@ -115,14 +130,37 @@ class ExecutionTask(Task):
         :param Workflow workflow: The workflow the task belongs to.
         """
         channels = []
-        for channel in data.get("channels", []):
-            channels.append(Channel.from_json(channel))
+        for i, channel in enumerate(data.get("channels", [])):
+            try:
+                channels.append(Channel.from_json(channel))
+            except WorkflowParsingError as e:
+                e.set_data("channel_index", str(i))
+                raise e
+
+        for key in ["name", "exclusive", "pid_namespaces", "pipes", "output_register", "filesystems", "mount_namespaces", "resource_groups", "processes"]:
+            if key not in data:
+                raise WorkflowParsingError(
+                    "Parsing task failed.",
+                    ParsingFailedOn.TASK,
+                    f"Missing key '{key}'.",
+                    { "type": "missing_key" },
+                )
+
+        for key in [("hard_time_limit", int), ("exclusive", bool), ("pid_namespaces", int), ("pipes", int)]:
+            if key[0] in data and not isinstance(data[key[0]], key[1]):
+                raise WorkflowParsingError(
+                    "Parsing task failed.",
+                    ParsingFailedOn.TASK,
+                    f"Key '{key[0]}' must be of type {key[1].__name__}.",
+                    { "type": "wrong_type" },
+                )
+
         task = cls(
             data["name"],
             workflow,
             data["exclusive"],
             data.get("hard_time_limit"),
-            output_register=data.get("output_register"),
+            output_register=data["output_register"],
             pid_namespaces=data["pid_namespaces"],
             pipes=int(data["pipes"]),
             channels=channels,
@@ -130,7 +168,13 @@ class ExecutionTask(Task):
         task.filesystem_manager.from_json(data["filesystems"], workflow)
         task.mountnamespace_manager.from_json(data["mount_namespaces"])
         task.resource_group_manager.from_json(data["resource_groups"])
-        task.processes = [Process.from_json(process, workflow, task) for process in data["processes"]]
+        task.processes = []
+        for i, process in enumerate(data.get("processes")):
+            try:
+                task.processes.append(Process.from_json(process, workflow, task))
+            except WorkflowParsingError as e:
+                e.set_data("process_index", str(i))
+                raise e
         return task
 
     def to_json(self, reg_map: dict[str, int] = None) -> dict:
@@ -267,6 +311,22 @@ class ScriptTask(Task):
         :param data: The dictionary to create the task from.
         :param workflow: The workflow the task belongs to.
         """
+        for key, type in [("name", str), ("reactive", bool), ("input_registers", list), ("output_registers", list), ("script", str)]:
+            if key not in data:
+                raise WorkflowParsingError(
+                    "Parsing task failed.",
+                    ParsingFailedOn.TASK,
+                    f"Missing key '{key}'.",
+                    { "type": "missing_key" },
+                )
+            if not isinstance(data[key], type):
+                raise WorkflowParsingError(
+                    "Parsing task failed.",
+                    ParsingFailedOn.TASK,
+                    f"Key '{key}' must be of type {type.__name__}.",
+                    { "type": "wrong_type" },
+                )
+
         return cls(
             data["name"],
             workflow,

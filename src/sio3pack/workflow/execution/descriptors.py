@@ -1,5 +1,6 @@
 from typing import ItemsView
 
+from sio3pack.exceptions import WorkflowParsingError
 from sio3pack.workflow.execution.stream import Stream
 
 
@@ -38,7 +39,11 @@ class DescriptorManager:
         :param dict data: The JSON-serializable dictionary to load from.
         """
         for fd, stream_data in data.items():
-            stream = Stream.from_json(stream_data, self.objects_manager, self.filesystem_manager)
+            try:
+                stream = Stream.from_json(stream_data, self.objects_manager, self.filesystem_manager)
+            except WorkflowParsingError as e:
+                e.set_data("fd", fd)
+                raise e
             self.add(int(fd), stream)
 
     def to_json(self) -> dict:

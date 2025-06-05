@@ -1,5 +1,6 @@
 from enum import Enum
 
+from sio3pack.exceptions import WorkflowParsingError, ParsingFailedOn
 from sio3pack.workflow.execution.filesystems import Filesystem, FilesystemManager
 from sio3pack.workflow.object import Object, ObjectsManager
 
@@ -38,6 +39,8 @@ class Stream:
     :param StreamType type: The type of the stream.
     """
 
+    _required_keys = ["type"]
+
     def __init__(self, type: StreamType):
         """
         Initialize the stream.
@@ -45,6 +48,16 @@ class Stream:
         :param StreamType type: The type of the stream.
         """
         self.type = type
+
+    @classmethod
+    def _check_required_keys(cls, data):
+        for key in cls._required_keys:
+            if key not in data:
+                raise WorkflowParsingError(
+                    f"Failed parsing stream.",
+                    ParsingFailedOn.STREAM,
+                    f"Missing key '{key}' in stream data.",
+                )
 
     @classmethod
     def from_json(cls, data: dict, objects_manager: ObjectsManager, filesystem_manager: FilesystemManager) -> "Stream":
@@ -55,8 +68,7 @@ class Stream:
         :param ObjectsManager objects_manager: The objects manager.
         :param FilesystemManager filesystem_manager: The filesystem manager.
         """
-
-        type = StreamType(data.get("type"))
+        type = StreamType(data["type"])
         if type == StreamType.FILE:
             return FileStream.from_json(filesystem_manager, data)
         elif type == StreamType.NULL:
@@ -92,6 +104,8 @@ class FileStream(Stream):
     :param FileMode mode: The mode to open the file in.
     """
 
+    _required_keys = ["type", "filesystem", "path", "mode"]
+
     def __init__(self, filesystem: Filesystem, path: str, mode: FileMode):
         super().__init__(StreamType.FILE)
         self.filesystem = filesystem
@@ -106,10 +120,19 @@ class FileStream(Stream):
         :param FilesystemManager filesystem_manager: The filesystem manager.
         :param dict data: The JSON-serializable dictionary to create the file stream from.
         """
+        cls._check_required_keys(data)
+        try:
+            filesystem = filesystem_manager.get_by_id(data["filesystem"])
+        except KeyError:
+            raise WorkflowParsingError(
+                "Failed parsing file stream",
+                ParsingFailedOn.STREAM,
+                f"Invalid filesystem ID {data['filesystem']} in file stream data.",
+            )
         return cls(
-            filesystem_manager.get_by_id(data.get("filesystem")),
-            data.get("path"),
-            FileMode(data.get("mode")),
+            filesystem,
+            data["path"],
+            FileMode(data["mode"]),
         )
 
     def to_json(self) -> dict:
@@ -142,6 +165,7 @@ class NullStream(Stream):
 
         :param dict data: The JSON-serializable dictionary to create the null stream from.
         """
+        cls._check_required_keys(data)
         return cls()
 
     def to_json(self) -> dict:
@@ -164,6 +188,8 @@ class ObjectStream(Stream):
     :param Object object: The object to use.
     """
 
+    _required_keys = ["type", "handle"]
+
     def __init__(self, type: StreamType, object: Object):
         if type not in (StreamType.OBJECT_READ, StreamType.OBJECT_WRITE):
             raise ValueError("Invalid stream type for ObjectStream")
@@ -177,6 +203,7 @@ class ObjectStream(Stream):
 
         :param dict data: The JSON-serializable dictionary to create the object stream from.
         """
+        cls._check_required_keys(data)
         cl = ObjectReadStream if StreamType(data["type"]) == StreamType.OBJECT_READ else ObjectWriteStream
         return cl(
             objects_manager.get_or_create_object(data["handle"]),
@@ -242,6 +269,8 @@ class PipeStream(Stream):
     :param int pipe_index: The index of the pipe.
     """
 
+    _required_keys = ["type", "pipe"]
+
     def __init__(self, type: StreamType, pipe_index: int):
         """
         Initialize the pipe stream.
@@ -261,8 +290,9 @@ class PipeStream(Stream):
 
         :param dict data: The JSON-serializable dictionary to create the pipe stream from.
         """
-        cl = PipeReadStream if StreamType(data.get("type")) == StreamType.PIPE_READ else PipeWriteStream
-        return cl(data.get("pipe"))
+        cls._check_required_keys(data)
+        cl = PipeReadStream if StreamType(data["type"]) == StreamType.PIPE_READ else PipeWriteStream
+        return cl(data["pipe"])
 
     def to_json(self) -> dict:
         """
