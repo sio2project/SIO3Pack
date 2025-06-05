@@ -2,9 +2,8 @@ import importlib
 import os
 from typing import Any, Type
 
-from sio3pack.exceptions import SIO3PackException
+from sio3pack.exceptions import ImproperlyConfigured, SIO3PackException, UnknownPackageType
 from sio3pack.files import File, LocalFile
-from sio3pack.exceptions import ImproperlyConfigured, UnknownPackageType
 from sio3pack.packages.package.configuration import SIO3PackConfig
 from sio3pack.packages.package.handler import NoDjangoHandler
 from sio3pack.test import Test
@@ -131,7 +130,7 @@ class Package(RegisteredSubclassesBase):
             raise ImproperlyConfigured(
                 "Django is not enabled.",
                 "If you got this error by properly using SIO3Pack, report this. Otherwise, you should not "
-                "call private functions."
+                "call private functions.",
             )
         cls = self._workflow_manager_class()
         self.workflow_manager = cls(self, self.django.workflows)
@@ -294,7 +293,7 @@ class Package(RegisteredSubclassesBase):
         else:
             raise SIO3PackException(
                 f"Unknown file extension '{ext}' for file '{file}'",
-                "Tried to get the language of a file by its extension, but the extension is not recognized."
+                "Tried to get the language of a file by its extension, but the extension is not recognized.",
             )
 
     def save_to_db(self, problem_id: int):

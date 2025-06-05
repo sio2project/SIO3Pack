@@ -239,7 +239,7 @@ class SinolpackWorkflowManager(WorkflowManager):
             if extra_file is None:
                 raise WorkflowCreationError(
                     f"Extra file {file} is not executable.",
-                    f"Extra file '{file}' was used in the workflow, but it is not executable."
+                    f"Extra file '{file}' was used in the workflow, but it is not executable.",
                 )
             to_replace[f"<EXTRA_EXE:{file}>"] = extra_file
         return to_replace

@@ -7,14 +7,13 @@ class UnknownPackageType(SIO3PackException):
             self.path = arg
             super().__init__(
                 f"Unknown package type for file {arg}.",
-                "Tried to load a package which is not a recognized package type. "
-                f"The package is located at: {arg}"
+                "Tried to load a package which is not a recognized package type. " f"The package is located at: {arg}",
             )
         else:
             self.problem_id = arg
             super().__init__(
                 f"Unknown package type for problem with id={arg}.",
-                "Tried to load a package from the database which does not exist or is not a recognized package type."
+                "Tried to load a package from the database which does not exist or is not a recognized package type.",
             )
 
 
@@ -28,7 +27,7 @@ class PackageAlreadyExists(SIO3PackException):
         super().__init__(
             f"A package already exists for problem with id={problem_id}.",
             "Tried to create a package for a problem which already has a package. "
-            "Please remove the existing package first or use a different problem ID."
+            "Please remove the existing package first or use a different problem ID.",
         )
 
 

@@ -25,7 +25,9 @@ class ParsingFailedOn(Enum):
 class WorkflowParsingError(SIO3PackException):
     """Raised when there is an error parsing a workflow."""
 
-    def __init__(self, message, failed_on: ParsingFailedOn, extra_msg: str = None, data: dict = None, full_message: str = None):
+    def __init__(
+        self, message, failed_on: ParsingFailedOn, extra_msg: str = None, data: dict = None, full_message: str = None
+    ):
         """
         Initialize the WorkflowParsingError.
 

@@ -6,7 +6,7 @@ from typing import Any, Type
 
 import yaml
 
-from sio3pack.exceptions import WorkflowParsingError, ParsingFailedOn, ProcessPackageError, ImproperlyConfigured
+from sio3pack.exceptions import ImproperlyConfigured, ParsingFailedOn, ProcessPackageError, WorkflowParsingError
 from sio3pack.files import File, LocalFile
 from sio3pack.packages.package import Package
 from sio3pack.packages.package.configuration import SIO3PackConfig
@@ -125,8 +125,7 @@ class Sinolpack(Package):
                 raise WorkflowParsingError(
                     f"Invalid JSON in workflows.json: {e}",
                     ParsingFailedOn.JSON,
-                    full_message="Invalid JSON in workflows.json file. "
-                    "Please check the file for syntax errors.",
+                    full_message="Invalid JSON in workflows.json file. " "Please check the file for syntax errors.",
                 )
         else:
             self.workflow_manager = self._default_workflow_manager()
@@ -142,7 +141,7 @@ class Sinolpack(Package):
             raise ImproperlyConfigured(
                 "sio3pack is not installed with Django support.",
                 "from_db function was used, but sio3pack isn't installed with Django support. "
-                "Read the documentation to learn more."
+                "Read the documentation to learn more.",
             )
 
     def _workflow_manager_class(self) -> Type[WorkflowManager]:
@@ -345,12 +344,16 @@ class Sinolpack(Package):
                 lf = LocalFile(os.path.join(self.get_prog_dir(), file))
                 self.additional_files.append(lf)
             except FileNotFoundError:
-                where = "extra_compilation_files" if file in self.config.get("extra_compilation_files", []) else "extra_execution_files"
+                where = (
+                    "extra_compilation_files"
+                    if file in self.config.get("extra_compilation_files", [])
+                    else "extra_execution_files"
+                )
                 raise ProcessPackageError(
                     f"Extra file '{file}' from {where} not found.",
                     f"The extra file '{file}' specified in the config.yml file under {where} does not exist in the "
                     f"prog/ directory of the problem package. "
-                    f"Please check the package structure and ensure that the file is present or remove it from the config."
+                    f"Please check the package structure and ensure that the file is present or remove it from the config.",
                 )
 
         extensions = self.get_submittable_extensions() + ["sh"]
@@ -381,7 +384,7 @@ class Sinolpack(Package):
                     f"Extra file '{file}' not found.",
                     f"The extra file '{file}' specified in the config.yml file does not exist in the package. "
                     f"Path to this file should be relative to the root directory of the package. "
-                    f"Please check the package structure and ensure that the file is present or remove it from the config."
+                    f"Please check the package structure and ensure that the file is present or remove it from the config.",
                 )
 
     def get_extra_file(self, package_path: str) -> File | None:
@@ -505,8 +508,7 @@ class Sinolpack(Package):
                 elif not self.configuration.allow_unrecognized_files:
                     raise ProcessPackageError(
                         f"Unrecognized test in {ext} directory: {file}",
-                        f"All files in the {ext} directory should match the pattern: "
-                        f"{self._get_test_regex()}."
+                        f"All files in the {ext} directory should match the pattern: " f"{self._get_test_regex()}.",
                     )
         # TODO: Sort this properly
         test_ids = sorted(test_ids)
@@ -610,13 +612,13 @@ class Sinolpack(Package):
                 raise ProcessPackageError(
                     f"Input test is missing for test {test.test_id}.",
                     "All tests must have input and output files. The input file is missing for test "
-                    f"{test.test_id}. Please check the package structure and ingen."
+                    f"{test.test_id}. Please check the package structure and ingen.",
                 )
             if not test.out_file:
                 raise ProcessPackageError(
                     f"Output test is missing for test {test.test_id}.",
                     "All tests must have input and output files. The output file is missing for test "
-                    f"{test.test_id}. Please check the package structure and outgen."
+                    f"{test.test_id}. Please check the package structure and outgen.",
                 )
 
     def _verify_limits(self):
@@ -636,7 +638,7 @@ class Sinolpack(Package):
             raise ProcessPackageError(
                 "Sum of time limits for all tests exceeds the maximum allowed limit.",
                 f"The sum of time limits for all tests ({tl_sum} seconds) exceeds the maximum allowed limit ({limit} seconds). "
-                f"Please adjust the time limits in the config.yml file or reduce the number of tests."
+                f"Please adjust the time limits in the config.yml file or reduce the number of tests.",
             )
 
     def save_to_db(self, problem_id: int):
@@ -646,11 +648,11 @@ class Sinolpack(Package):
         """
         self._setup_django_handler(problem_id)
         if not self.django_enabled:
-                raise ImproperlyConfigured(
-                    "sio3pack is not installed with Django support.",
-                    "save_to_db function was used, but sio3pack isn't installed with Django support. "
-                    "Read the documentation to learn more."
-                )
+            raise ImproperlyConfigured(
+                "sio3pack is not installed with Django support.",
+                "save_to_db function was used, but sio3pack isn't installed with Django support. "
+                "Read the documentation to learn more.",
+            )
         self.django.save_to_db()
 
     def _get_compiler_flags(self, lang: str) -> list[str]:
