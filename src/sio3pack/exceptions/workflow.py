@@ -38,7 +38,12 @@ class WorkflowParsingError(SIO3PackException):
     """
 
     def __init__(
-        self, message: str, failed_on: ParsingFailedOn, extra_msg: str = None, data: dict = None, full_message: str = None
+        self,
+        message: str,
+        failed_on: ParsingFailedOn,
+        extra_msg: str = None,
+        data: dict = None,
+        full_message: str = None,
     ):
         """
         Initialize the WorkflowParsingError.

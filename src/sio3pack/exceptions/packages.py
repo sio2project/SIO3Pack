@@ -9,6 +9,7 @@ class UnknownPackageType(SIO3PackException):
 
     :param str | int arg: The path to the package file or the problem ID.
     """
+
     def __init__(self, arg: str | int) -> None:
         """
         Initialize the UnknownPackageType exception.
@@ -34,6 +35,7 @@ class ImproperlyConfigured(SIO3PackException):
     Exception raised when the package is improperly configured, i.e., using Django features
     without Django being installed.
     """
+
     pass
 
 
