@@ -306,7 +306,7 @@ def test_extra_files(get_package):
             workflow = workflows[0]
 
             print(workflow.external_objects)
-            assert len(workflow.external_objects) == 5
+            assert len(workflow.external_objects) == 4
             extlib_h = None
             extlib_py = None
             for obj in workflow.external_objects:
@@ -315,7 +315,7 @@ def test_extra_files(get_package):
                 elif obj.handle.endswith("extlib.py"):
                     extlib_py = obj
             assert extlib_h is not None, "Should have extlib.h as external object"
-            assert extlib_py is not None, "Should have extlib.py as external object"
+            assert extlib_py is None, "Should not have extlib.py as external object"
 
             for task in workflow.tasks:
                 if isinstance(task, ExecutionTask):
@@ -333,14 +333,11 @@ def test_extra_files(get_package):
                         proc = task.processes[0]
                         assert "extlib.h" in proc.arguments, "Should have extlib.h in arguments"
                     elif task.name.startswith("Run solution for test"):
-                        assert task.filesystem_manager.len() == 2
-                        ext_fs = task.filesystem_manager.get_by_id(1)
-                        assert isinstance(ext_fs, ObjectFilesystem), "Should have object filesystem with external file"
-                        assert ext_fs.object.handle == extlib_py.handle, "Should have extlib.py as external file"
+                        assert task.filesystem_manager.len() == 1
 
                         assert task.mountnamespace_manager.len() == 1, "Should have one mount namespace"
                         assert (
-                            len(task.mountnamespace_manager.get_by_id(0).mountpoints) == 2
+                            len(task.mountnamespace_manager.get_by_id(0).mountpoints) == 1
                         ), "Should have two mount points"
 
             # Check that python compilation doesnt have extlib.h in compilation args.
