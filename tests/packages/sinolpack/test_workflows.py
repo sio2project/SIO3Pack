@@ -6,8 +6,8 @@ import yaml
 
 import sio3pack
 from sio3pack.exceptions import WorkflowCreationError
-from sio3pack.packages import Sinolpack
 from sio3pack.packages.package.configuration import SIO3PackConfig
+from sio3pack.packages.sinolpack import Sinolpack
 from sio3pack.workflow import ExecutionTask, ScriptTask, Workflow
 from sio3pack.workflow.execution import ObjectReadStream, ObjectWriteStream
 from sio3pack.workflow.execution.filesystems import ObjectFilesystem

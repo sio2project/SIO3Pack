@@ -48,7 +48,7 @@ class DescriptorManager:
         # Convert the fd numbers to strings, since in JSON keys cant be ints.
         return {str(fd): stream.to_json() for fd, stream in self.descriptors.items()}
 
-    def items(self) -> ItemsView[int, Stream]:
+    def items(self) -> ItemsView[int, "Stream"]:
         """
         Get the items in the descriptor manager.
 
@@ -56,7 +56,7 @@ class DescriptorManager:
         """
         return self.descriptors.items()
 
-    def all(self) -> dict[int, Stream]:
+    def all(self) -> dict[int, "Stream"]:
         """
         Get all the streams in the descriptor manager.
 
@@ -64,7 +64,7 @@ class DescriptorManager:
         """
         return self.descriptors
 
-    def get(self, fd: int) -> Stream:
+    def get(self, fd: int) -> "Stream":
         """
         Get a stream by its file descriptor.
 

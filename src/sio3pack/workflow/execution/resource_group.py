@@ -1,4 +1,18 @@
 class ResourceGroup:
+    """
+    A resource group is a set of limits that can be applied to a task.
+    It can limit CPU usage, instruction usage, memory usage, and more.
+
+    :param id: The id of the resource group.
+    :param cpu_usage_limit: The CPU usage limit.
+    :param instruction_limit: The instruction usage limit.
+    :param memory_limit: The memory limit.
+    :param oom_terminate_all_tasks: Whether to terminate all tasks on OOM.
+    :param pid_limit: The PID limit.
+    :param swap_limit: The swap limit.
+    :param time_limit: The time limit.
+    """
+
     def __init__(
         self,
         cpu_usage_limit: int = 100.0,
@@ -12,6 +26,7 @@ class ResourceGroup:
     ):
         """
         Create a new resource group.
+
         :param id: The id of the resource group.
         :param cpu_usage_limit: The CPU usage limit.
         :param instruction_limit: The instruction usage limit.
@@ -41,6 +56,7 @@ class ResourceGroup:
     def set_limits(self, cpu_usage_limit: int, instruction_limit: int, memory_limit: int, time_limit: int):
         """
         Set the limits of the resource group.
+
         :param cpu_usage_limit: The CPU usage limit.
         :param instruction_limit: The instruction usage limit.
         :param memory_limit: The memory limit.
@@ -55,6 +71,7 @@ class ResourceGroup:
     def from_json(cls, data: dict, id: int):
         """
         Create a new resource group from a dictionary.
+
         :param data: The dictionary to create the resource group from.
         :param id: The id of the resource group.
         """
@@ -85,9 +102,14 @@ class ResourceGroup:
 
 
 class ResourceGroupManager:
+    """
+    A class to manage resource groups in a workflow. Allows creation, retrieval, and management of resource groups.
+    """
+
     def __init__(self, task: "Task"):
         """
         Create a new resource group manager.
+
         :param task: The task the resource group manager belongs to.
         """
         self.resource_groups: list[ResourceGroup] = []
@@ -96,7 +118,8 @@ class ResourceGroupManager:
     def add(self, resource_group: ResourceGroup):
         """
         Add a resource group to the resource group manager.
-        :param resource_group: The resource group to add.
+
+        :param ResourceGroup resource_group: The resource group to add.
         """
         resource_group._set_id(self.id)
         self.resource_groups.append(resource_group)
@@ -105,6 +128,7 @@ class ResourceGroupManager:
     def get_by_id(self, id: int) -> ResourceGroup:
         """
         Get a resource group by its id.
+
         :param id: The id of the resource group to get.
         """
         return self.resource_groups[id]
@@ -118,6 +142,7 @@ class ResourceGroupManager:
     def from_json(self, data: list[dict]):
         """
         Create a new resource group manager from a list of dictionaries.
+
         :param data: The list of dictionaries to create the resource group manager from.
         """
         for resource_group in data:

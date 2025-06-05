@@ -8,4 +8,7 @@ SIO3Pack documentation
    :maxdepth: 2
    :caption: Contents:
 
+   usage
+   workflows
    sinolpack
+   development

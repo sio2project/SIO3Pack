@@ -5,7 +5,10 @@ from sio3pack.files.file import File
 
 class RemoteFile(File):
     """
-    Base class for a file that is tracked by filetracker.
+    Class for a file that is tracked by filetracker.
+
+    :param oioioi.filetracker.fields.FileField file: The file field from the filetracker.
+    :param str filename: The name of the file.
     """
 
     try:

@@ -13,7 +13,7 @@ class Object:
         """
         Create a new object.
 
-        :param handle: The handle of the object.
+        :param str handle: The handle of the object.
         """
         self.handle = handle
 
@@ -27,7 +27,7 @@ class Object:
         """
         Replace strings in the object with the given replacements.
 
-        :param replacements: The replacements to make.
+        :param dict[str, str] replacements: The replacements to make.
         """
         for key, value in replacements.items():
             if key in self.handle:
@@ -35,13 +35,18 @@ class Object:
 
 
 class ObjectsManager:
+    """
+    A class to manage objects in a workflow. Allows creation, retrieval, and management of objects.
+    """
+
     def __init__(self):
         self.objects = {}
 
     def create_object(self, handle: str) -> Object:
         """
         Create and return a new object.
-        :param handle: The handle of the object.
+
+        :param str handle: The handle of the object.
         :return: The created object.
         """
         obj = Object(handle)
@@ -51,21 +56,24 @@ class ObjectsManager:
     def add_object(self, obj: Object):
         """
         Add an object to the manager.
-        :param obj: The object to add.
+
+        :param Object obj: The object to add.
         """
         self.objects[obj.handle] = obj
 
     def get_object(self, handle: str) -> Object:
         """
         Get an object by its handle.
-        :param handle: The handle of the object.
+
+        :param str handle: The handle of the object.
         """
         return self.objects[handle]
 
     def get_or_create_object(self, handle: str) -> Object:
         """
         Get an object by its handle, creating it if it does not exist.
-        :param handle: The handle of the object.
+
+        :param str handle: The handle of the object.
         """
         if handle not in self.objects:
             return self.create_object(handle)
