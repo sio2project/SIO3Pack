@@ -1,2 +1,3 @@
 from sio3pack.exceptions.general import SIO3PackException
 from sio3pack.exceptions.workflow import ParsingFailedOn, WorkflowCreationError, WorkflowParsingError
+from sio3pack.exceptions.packages import UnknownPackageType, ImproperlyConfigured, PackageAlreadyExists, ProcessPackageError

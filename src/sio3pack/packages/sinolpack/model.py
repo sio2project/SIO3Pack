@@ -6,8 +6,8 @@ from typing import Any, Type
 
 import yaml
 
+from sio3pack.exceptions import WorkflowParsingError, ParsingFailedOn, ProcessPackageError, ImproperlyConfigured
 from sio3pack.files import File, LocalFile
-from sio3pack.packages.exceptions import ImproperlyConfigured
 from sio3pack.packages.package import Package
 from sio3pack.packages.package.configuration import SIO3PackConfig
 from sio3pack.packages.sinolpack import constants
@@ -122,7 +122,12 @@ class Sinolpack(Package):
                     workflows = json.load(f)
                 self.workflow_manager = SinolpackWorkflowManager(self, workflows)
             except json.JSONDecodeError as e:
-                raise ValueError(f"Invalid JSON in workflows.json: {e}")
+                raise WorkflowParsingError(
+                    f"Invalid JSON in workflows.json: {e}",
+                    ParsingFailedOn.JSON,
+                    full_message="Invalid JSON in workflows.json file. "
+                    "Please check the file for syntax errors.",
+                )
         else:
             self.workflow_manager = self._default_workflow_manager()
 
@@ -134,7 +139,11 @@ class Sinolpack(Package):
         # TODO: Workflows probably should be fetched only if they are needed, since this can be slow
         super()._setup_workflows_from_db()
         if not self.django_enabled:
-            raise ImproperlyConfigured("sio3pack is not installed with Django support.")
+            raise ImproperlyConfigured(
+                "sio3pack is not installed with Django support.",
+                "from_db function was used, but sio3pack isn't installed with Django support. "
+                "Read the documentation to learn more."
+            )
 
     def _workflow_manager_class(self) -> Type[WorkflowManager]:
         return SinolpackWorkflowManager
@@ -192,6 +201,8 @@ class Sinolpack(Package):
         try:
             config = self.get_in_root("config.yml")
             self.config = yaml.safe_load(config.read())
+
+            # Support for local packages
             self.short_name = self.config.get("sinol_task_id", self.short_name)
         except FileNotFoundError:
             self.config = {}
@@ -334,7 +345,14 @@ class Sinolpack(Package):
                 lf = LocalFile(os.path.join(self.get_prog_dir(), file))
                 self.additional_files.append(lf)
             except FileNotFoundError:
-                pass
+                where = "extra_compilation_files" if file in self.config.get("extra_compilation_files", []) else "extra_execution_files"
+                raise ProcessPackageError(
+                    f"Extra file '{file}' from {where} not found.",
+                    f"The extra file '{file}' specified in the config.yml file under {where} does not exist in the "
+                    f"prog/ directory of the problem package. "
+                    f"Please check the package structure and ensure that the file is present or remove it from the config."
+                )
+
         extensions = self.get_submittable_extensions() + ["sh"]
         self.special_files: dict[str, File | None] = {}
         for file in self.special_file_types():
@@ -359,7 +377,12 @@ class Sinolpack(Package):
                 lf = LocalFile(os.path.join(self.rootdir, file))
                 self.extra_files[file] = lf
             except FileNotFoundError:
-                pass
+                raise ProcessPackageError(
+                    f"Extra file '{file}' not found.",
+                    f"The extra file '{file}' specified in the config.yml file does not exist in the package. "
+                    f"Path to this file should be relative to the root directory of the package. "
+                    f"Please check the package structure and ensure that the file is present or remove it from the config."
+                )
 
     def get_extra_file(self, package_path: str) -> File | None:
         """
@@ -479,6 +502,12 @@ class Sinolpack(Package):
                     test_id = match.group(1)
                     group = match.group(2)
                     test_ids.add((test_id, group, test_name))
+                elif not self.configuration.allow_unrecognized_files:
+                    raise ProcessPackageError(
+                        f"Unrecognized test in {ext} directory: {file}",
+                        f"All files in the {ext} directory should match the pattern: "
+                        f"{self._get_test_regex()}."
+                    )
         # TODO: Sort this properly
         test_ids = sorted(test_ids)
         self.tests = []
@@ -566,7 +595,49 @@ class Sinolpack(Package):
         Adds data received from the unpack operation to the package.
         """
         # TODO: implement. The unpack will probably return tests, so we need to process them.
-        pass
+
+        # After parsing new tests, verify them
+        self._verify_tests()
+        self._verify_limits()
+
+    def _verify_tests(self):
+        """
+        Verifies the tests in the package. This function should be called after unpacking
+        new tests to ensure they are valid and conform to the expected structure.
+        """
+        for test in self.tests:
+            if not test.in_file:
+                raise ProcessPackageError(
+                    f"Input test is missing for test {test.test_id}.",
+                    "All tests must have input and output files. The input file is missing for test "
+                    f"{test.test_id}. Please check the package structure and ingen."
+                )
+            if not test.out_file:
+                raise ProcessPackageError(
+                    f"Output test is missing for test {test.test_id}.",
+                    "All tests must have input and output files. The output file is missing for test "
+                    f"{test.test_id}. Please check the package structure and outgen."
+                )
+
+    def _verify_limits(self):
+        """
+        Verifies that sum of time limits for all tests does not exceed
+        the maximum allowed time limit for the problem.
+        """
+        limit = self._get_from_django_settings("MAX_TEST_TIME_LIMIT_PER_PROBLEM")
+        if limit is None:
+            return
+        tl_sum = 0
+        for test in self.tests:
+            tl_sum += self.get_time_limit_for_test(test, "cpp")  # Assuming C++ as the default language
+        if tl_sum > limit:
+            tl_sum /= 1000  # Convert to seconds
+            limit /= 1000  # Convert to seconds
+            raise ProcessPackageError(
+                "Sum of time limits for all tests exceeds the maximum allowed limit.",
+                f"The sum of time limits for all tests ({tl_sum} seconds) exceeds the maximum allowed limit ({limit} seconds). "
+                f"Please adjust the time limits in the config.yml file or reduce the number of tests."
+            )
 
     def save_to_db(self, problem_id: int):
         """
@@ -575,7 +646,11 @@ class Sinolpack(Package):
         """
         self._setup_django_handler(problem_id)
         if not self.django_enabled:
-            raise ImproperlyConfigured("sio3pack is not installed with Django support.")
+                raise ImproperlyConfigured(
+                    "sio3pack is not installed with Django support.",
+                    "save_to_db function was used, but sio3pack isn't installed with Django support. "
+                    "Read the documentation to learn more."
+                )
         self.django.save_to_db()
 
     def _get_compiler_flags(self, lang: str) -> list[str]:

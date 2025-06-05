@@ -67,7 +67,10 @@ class SinolpackWorkflowManager(WorkflowManager):
         )
         ingen_path = self.package.get_ingen_path()
         if not ingen_path:
-            raise WorkflowCreationError("Creating ingen workflow when no ingen present")
+            raise WorkflowCreationError(
+                "Creating ingen workflow when no ingen present",
+                "Creating workflow for running ingen isn't possible, because ingen is not present in the package.",
+            )
 
         ingen = workflow.objects_manager.get_or_create_object(ingen_path)
         workflow.add_external_object(ingen)
@@ -216,17 +219,28 @@ class SinolpackWorkflowManager(WorkflowManager):
         for file in extra_files:
             extra_file = self.package.get_extra_file(file)
             if extra_file is None:
-                raise WorkflowCreationError(f"Extra file {file} not found in package.")
+                raise WorkflowCreationError(
+                    f"Extra file {file} not found in package.",
+                    f"Extra file '{file}' was used in the workflow, but it was not found in the package. "
+                    f"Extra files have to be specified in the config and their path should be relative to the package root.",
+                )
             to_replace[f"<EXTRA_FILE:{file}>"] = extra_file.path
 
         executable_extra = workflow.find_by_regex_in_objects(r"^<EXTRA_EXE:(.+)>$", 1)
         for file in executable_extra:
             extra_file = self.package.get_extra_file(file)
             if extra_file is None:
-                raise WorkflowCreationError(f"Extra file {file} not found in package.")
+                raise WorkflowCreationError(
+                    f"Extra file {file} not found in package.",
+                    f"Extra file '{file}' was used in the workflow, but it was not found in the package. "
+                    f"Extra files have to be specified in the config and their path should be relative to the package root.",
+                )
             extra_file = self.package.get_executable_path(extra_file)
             if extra_file is None:
-                raise WorkflowCreationError(f"Extra file {file} is not executable.")
+                raise WorkflowCreationError(
+                    f"Extra file {file} is not executable.",
+                    f"Extra file '{file}' was used in the workflow, but it is not executable."
+                )
             to_replace[f"<EXTRA_EXE:{file}>"] = extra_file
         return to_replace
 
@@ -309,7 +323,10 @@ class SinolpackWorkflowManager(WorkflowManager):
             # Compile outgen
             outgen_path = self.package.get_outgen_path()
             if not outgen_path:
-                raise WorkflowCreationError("Creating outgen workflow when no model solution present")
+                raise WorkflowCreationError(
+                    "Creating outgen workflow when no model solution present",
+                    "Creating workflow for running outgen isn't possible, because outgen is not present in the package.",
+                )
             outgen_obj = workflow.objects_manager.get_or_create_object(outgen_path)
             workflow.add_external_object(outgen_obj)
             compile_wf, outgen_exe_path = self.get_compile_file_workflow(outgen_path)
@@ -450,7 +467,10 @@ class SinolpackWorkflowManager(WorkflowManager):
         # Compile inwer
         inwer_path = self.package.get_inwer_path()
         if not inwer_path:
-            raise WorkflowCreationError("Creating inwer workflow when no inwer present")
+            raise WorkflowCreationError(
+                "Creating inwer workflow when no inwer present",
+                "Creating workflow for running inwer isn't possible, because inwer is not present in the package.",
+            )
         inwer_obj = workflow.objects_manager.get_or_create_object(inwer_path)
         workflow.add_external_object(inwer_obj)
         compile_wf, inwer_exe_path = self.get_compile_file_workflow(inwer_path)

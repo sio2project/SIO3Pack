@@ -10,6 +10,7 @@ class WorkflowCreationError(SIO3PackException):
 class ParsingFailedOn(Enum):
     """Enum to represent the part of the workflow that failed to parse."""
 
+    JSON = "json"
     WORKFLOW = "workflow"
     TASK = "task"
     CHANNEL = "channel"
@@ -24,7 +25,7 @@ class ParsingFailedOn(Enum):
 class WorkflowParsingError(SIO3PackException):
     """Raised when there is an error parsing a workflow."""
 
-    def __init__(self, message, failed_on: ParsingFailedOn, extra_msg: str = None, data: dict = None):
+    def __init__(self, message, failed_on: ParsingFailedOn, extra_msg: str = None, data: dict = None, full_message: str = None):
         """
         Initialize the WorkflowParsingError.
 
@@ -35,6 +36,7 @@ class WorkflowParsingError(SIO3PackException):
         self.message = message
         self.failed_on = failed_on
         self.extra_msg = extra_msg
+        self._full_message = full_message
         self.data = data or {}
 
     def set_data(self, key: str, value: str):
