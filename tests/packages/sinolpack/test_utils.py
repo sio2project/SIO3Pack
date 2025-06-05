@@ -62,11 +62,11 @@ def test_get_limits(get_package):
         "time_limit": 1000,
         "memory_limit": 1024,
         "time_limits": {
-            "1": 2000,
+            1: 2000,
             "1a": 3000,
         },
         "memory_limits": {
-            "1": 2048,
+            1: 2048,
             "1a": 3072,
         },
         "override_limits": {
@@ -74,11 +74,11 @@ def test_get_limits(get_package):
                 "time_limit": 5000,
                 "memory_limit": 4096,
                 "time_limits": {
-                    "2": 6000,
+                    2: 6000,
                     "2a": 7000,
                 },
                 "memory_limits": {
-                    "2": 4096,
+                    2: 4096,
                     "2a": 5120,
                 },
             }

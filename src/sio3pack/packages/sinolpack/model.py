@@ -113,7 +113,6 @@ class Sinolpack(Package):
             archive.extract(to_path=self.tmpdir.name)
             self.rootdir = os.path.join(self.tmpdir.name, self.short_name)
         else:
-            # FIXME: Won't work in sinol-make.
             self.short_name = os.path.basename(os.path.abspath(file.path))
             self.rootdir = os.path.abspath(file.path)
 
@@ -164,7 +163,7 @@ class Sinolpack(Package):
         """
         return os.path.join(self.rootdir, "prog")
 
-    def get_in_prog_dir(self, filename: str) -> File:
+    def get_in_prog_dir(self, filename: str) -> LocalFile:
         """
         Returns the path to the input file in the program directory.
         """
@@ -193,8 +192,15 @@ class Sinolpack(Package):
         try:
             config = self.get_in_root("config.yml")
             self.config = yaml.safe_load(config.read())
+            self.short_name = self.config.get("sinol_task_id", self.short_name)
         except FileNotFoundError:
             self.config = {}
+
+    def reload_config(self):
+        """
+        Process the config.yml file again in case it was modified.
+        """
+        self._process_config_yml()
 
     def _detect_full_name(self):
         """
@@ -300,6 +306,12 @@ class Sinolpack(Package):
         """
         return ["ingen", "inwer", "soc", "chk"]
 
+    def _get_all_files_from_list(self, filenames: list[str]) -> list[LocalFile]:
+        files = []
+        for filename in filenames:
+            files.append(self.get_in_prog_dir(filename))
+        return files
+
     def _process_prog_files(self):
         """
         Process all files in the problem's program directory that are used.
@@ -313,13 +325,17 @@ class Sinolpack(Package):
         self.model_solutions = self.sort_model_solutions(self._get_model_solutions())
 
         self.additional_files = []
-        for file in self.config.get("extra_compilation_files", []) + self.config.get("extra_execution_files", []):
+        extra_files = []
+        extra_files.extend(self.config.get("extra_compilation_files", []))
+        for lang_extra_files in self.config.get("extra_execution_files", {}).values():
+            extra_files.extend(lang_extra_files)
+        for file in extra_files:
             try:
                 lf = LocalFile(os.path.join(self.get_prog_dir(), file))
                 self.additional_files.append(lf)
             except FileNotFoundError:
                 pass
-        extensions = self.get_submittable_extensions()
+        extensions = self.get_submittable_extensions() + ["sh"]
         self.special_files: dict[str, File | None] = {}
         for file in self.special_file_types():
             try:
@@ -478,6 +494,12 @@ class Sinolpack(Package):
                 out_file = None
             self.tests.append(Test(test_name, test_id, in_file, out_file, group))
 
+    def reload_tests(self):
+        """
+        Updates `self.tests` variable with existing tests.
+        """
+        self._process_existing_tests()
+
     def get_input_tests(self) -> list[Test]:
         """
         Returns the list of tests with input files.
@@ -493,11 +515,11 @@ class Sinolpack(Package):
                 return test
         raise ValueError(f"Test with ID {test_id} not found.")
 
-    def get_tests_with_inputs(self) -> list[Test]:
+    def get_tests_with_inputs(self, tests: list[Test] = None) -> list[Test]:
         """
         Returns the list of input tests.
         """
-        return [test for test in self.tests if test.in_file is not None]
+        return [test for test in tests or self.tests if test.in_file is not None]
 
     def get_corresponding_out_filename(self, in_test: str) -> str:
         """
@@ -617,8 +639,8 @@ class Sinolpack(Package):
             if f"{type}_limits" in conf:
                 if test.test_id in conf[f"{type}_limits"]:
                     return conf[f"{type}_limits"][test.test_id]
-                if test.group in conf[f"{type}_limits"]:
-                    return conf[f"{type}_limits"][test.group]
+                if int(test.group) in conf[f"{type}_limits"]:
+                    return conf[f"{type}_limits"][int(test.group)]
             if f"{type}_limit" in conf:
                 return conf[f"{type}_limit"]
             return None

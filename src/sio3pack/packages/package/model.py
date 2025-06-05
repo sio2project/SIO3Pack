@@ -164,6 +164,9 @@ class Package(RegisteredSubclassesBase):
         except AttributeError:
             raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
 
+    def reload_config(self):
+        pass
+
     @wrap_exceptions
     def get_title(self, lang: str | None = None) -> str:
         raise NotImplementedError("This method should be implemented in subclasses.")
@@ -171,6 +174,10 @@ class Package(RegisteredSubclassesBase):
     @wrap_exceptions
     def get_statement(self, lang: str | None = None) -> File | None:
         raise NotImplementedError("This method should be implemented in subclasses.")
+        pass
+
+    def reload_tests(self):
+        pass
 
     @wrap_exceptions
     def get_test(self, test_id: str) -> Test:
