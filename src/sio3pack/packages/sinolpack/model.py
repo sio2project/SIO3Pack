@@ -125,7 +125,7 @@ class Sinolpack(Package):
                 raise WorkflowParsingError(
                     f"Invalid JSON in workflows.json: {e}",
                     ParsingFailedOn.JSON,
-                    full_message="Invalid JSON in workflows.json file. " "Please check the file for syntax errors.",
+                    full_message="Invalid JSON in workflows.json file. Please check the file for syntax errors.",
                 )
         else:
             self.workflow_manager = self._default_workflow_manager()

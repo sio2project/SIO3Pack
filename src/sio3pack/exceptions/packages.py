@@ -20,7 +20,8 @@ class UnknownPackageType(SIO3PackException):
             self.path = arg
             super().__init__(
                 f"Unknown package type for file {arg}.",
-                "Tried to load a package which is not a recognized package type. " f"The package is located at: {arg}",
+                "Tried to load a package which is not a recognized package type. Read the documentation "
+                "to learn how to create a package and which are supported.",
             )
         else:
             self.problem_id = arg

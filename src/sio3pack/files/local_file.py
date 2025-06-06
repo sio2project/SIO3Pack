@@ -26,7 +26,7 @@ class LocalFile(File):
             path = os.path.join(dir, filename + "." + ext)
             if os.path.exists(path):
                 return cls(path)
-        raise FileNotFoundError
+        raise FileNotFoundError("No file found with the given filename and extensions in the directory.")
 
     def __init__(self, path: str, exists=True):
         """
@@ -37,7 +37,7 @@ class LocalFile(File):
         :raises FileNotFoundError: If the file doesn't exist.
         """
         if not os.path.exists(path) and exists:
-            raise FileNotFoundError
+            raise FileNotFoundError(f"File {path} does not exist.")
         super().__init__(path)
         self.filename = os.path.basename(path)
 
