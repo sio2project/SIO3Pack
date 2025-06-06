@@ -1,3 +1,4 @@
+from sio3pack.exceptions import ParsingFailedOn, WorkflowParsingError
 from sio3pack.workflow.execution.filesystems import Filesystem, FilesystemManager
 
 
@@ -33,6 +34,27 @@ class Mountpoint:
         :param dict data: The dictionary to create the mountpoint from.
         :param FilesystemManager filesystem_manager: The filesystem manager to use.
         """
+        for key in ["source", "target", "writable"]:
+            if key not in data:
+                raise WorkflowParsingError(
+                    "Failed parsing mount point",
+                    ParsingFailedOn.MOUNT_POINT,
+                    f"Missing key '{key}' in mount point data.",
+                )
+        for key, type in [("source", int), ("target", str), ("writable", bool), ("capacity", int)]:
+            if key in data and not isinstance(data[key], type):
+                raise WorkflowParsingError(
+                    "Failed parsing mount point",
+                    ParsingFailedOn.MOUNT_POINT,
+                    f"Key '{key}' in mount point data is not of type {type.__name__}.",
+                )
+        if not filesystem_manager.has_by_id(int(data["source"])):
+            raise WorkflowParsingError(
+                "Failed parsing mount point",
+                ParsingFailedOn.MOUNT_POINT,
+                f"Source filesystem with id {data['source']} not found.",
+            )
+
         return cls(
             filesystem_manager.get_by_id(int(data["source"])), data["target"], data["writable"], data.get("capacity")
         )
@@ -77,8 +99,34 @@ class MountNamespace:
         :param id: The id of the mount namespace.
         :param filesystem_manager: The filesystem manager to use.
         """
+        for key in ["mountpoints", "root"]:
+            if key not in data:
+                raise WorkflowParsingError(
+                    "Failed parsing mount namespace",
+                    ParsingFailedOn.MOUNT_NAMESPACE,
+                    f"Missing key '{key}' in mount namespace data.",
+                    data={"mount_namespace_index": str(id)},
+                )
+        for key, type in [("mountpoints", list), ("root", int)]:
+            if not isinstance(data[key], type):
+                raise WorkflowParsingError(
+                    "Failed parsing mount namespace",
+                    ParsingFailedOn.MOUNT_NAMESPACE,
+                    f"Key '{key}' in mount namespace data is not of type {type.__name__}.",
+                    data={"mount_namespace_index": str(id)},
+                )
+
+        mountpoints = []
+        for i, mountpoint in enumerate(data["mountpoints"]):
+            try:
+                mountpoints.append(Mountpoint.from_json(mountpoint, filesystem_manager))
+            except WorkflowParsingError as e:
+                e.set_data("mount_namespace_index", str(id))
+                e.set_data("mountpoint_index", str(i))
+                raise e
+
         return cls(
-            [Mountpoint.from_json(mountpoint, filesystem_manager) for mountpoint in data["mountpoints"]],
+            mountpoints,
             data["root"],
             id,
         )
@@ -117,8 +165,12 @@ class MountNamespaceManager:
 
         :param data: The list of dictionaries to create the mount namespace manager from.
         """
-        for mount_namespace in data:
-            self.add(MountNamespace.from_json(mount_namespace, self.id, self.filesystem_manager))
+        for i, mount_namespace in enumerate(data):
+            try:
+                self.add(MountNamespace.from_json(mount_namespace, self.id, self.filesystem_manager))
+            except WorkflowParsingError as e:
+                e.set_data("mn_index", str(i))
+                raise e
             self.id += 1
 
     def add(self, mount_namespace: MountNamespace):

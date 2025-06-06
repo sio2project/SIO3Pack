@@ -1,6 +1,8 @@
 import pytest
 
 import sio3pack
+from sio3pack import SIO3PackConfig
+from sio3pack.exceptions import ImproperlyConfigured
 from tests.fixtures import Compression, PackageInfo, get_archived_package, get_package
 from tests.packages.sinolpack.utils import common_checks
 
@@ -8,7 +10,7 @@ from tests.packages.sinolpack.utils import common_checks
 @pytest.mark.parametrize("get_archived_package", [("simple", c) for c in Compression], indirect=True)
 def test_from_file(get_archived_package):
     package_info: PackageInfo = get_archived_package()
-    package = sio3pack.from_file(package_info.path)
+    package = sio3pack.from_file(package_info.path, SIO3PackConfig(allow_unrecognized_files=True))
     common_checks(package_info, package)
     if package_info.is_archive():
         assert package.is_archive
@@ -20,9 +22,9 @@ def test_from_file(get_archived_package):
 @pytest.mark.parametrize("get_package", ["simple"], indirect=True)
 def test_no_django(get_package):
     package_info: PackageInfo = get_package()
-    with pytest.raises(sio3pack.ImproperlyConfigured):
+    with pytest.raises(ImproperlyConfigured):
         sio3pack.from_db(1)
 
-    package = sio3pack.from_file(package_info.path)
-    with pytest.raises(sio3pack.ImproperlyConfigured):
+    package = sio3pack.from_file(package_info.path, SIO3PackConfig(allow_unrecognized_files=True))
+    with pytest.raises(ImproperlyConfigured):
         package.save_to_db(1)

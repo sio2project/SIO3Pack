@@ -38,12 +38,12 @@
       "resource_groups": [
         {
           "cpu_usage_limit": 100.0,
-          "instruction_limit": 1000000000.0,
+          "instruction_limit": 1000000000,
           "memory_limit": 2147483648,
           "oom_terminate_all_tasks": false,
           "pid_limit": 2,
           "swap_limit": 0,
-          "time_limit": 1000000000.0
+          "time_limit": 1000000000
         }
       ],
       "processes": [
@@ -102,12 +102,12 @@
       "resource_groups": [
         {
           "cpu_usage_limit": 100.0,
-          "instruction_limit": 1000000000.0,
+          "instruction_limit": 1000000000,
           "memory_limit": 2147483648,
           "oom_terminate_all_tasks": false,
           "pid_limit": 2,
           "swap_limit": 0,
-          "time_limit": 1000000000.0
+          "time_limit": 1000000000
         }
       ],
       "processes": [
@@ -162,12 +162,12 @@
       "resource_groups": [
         {
           "cpu_usage_limit": 100.0,
-          "instruction_limit": 1000000000.0,
+          "instruction_limit": 1000000000,
           "memory_limit": 2147483648,
           "oom_terminate_all_tasks": false,
           "pid_limit": 2,
           "swap_limit": 0,
-          "time_limit": 1000000000.0
+          "time_limit": 1000000000
         }
       ],
       "processes": [

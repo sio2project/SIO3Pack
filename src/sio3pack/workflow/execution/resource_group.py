@@ -1,3 +1,6 @@
+from sio3pack.exceptions.workflow import ParsingFailedOn, WorkflowParsingError
+
+
 class ResourceGroup:
     """
     A resource group is a set of limits that can be applied to a task.
@@ -75,6 +78,28 @@ class ResourceGroup:
         :param data: The dictionary to create the resource group from.
         :param id: The id of the resource group.
         """
+        for key, type in [
+            ("cpu_usage_limit", float),
+            ("instruction_limit", int),
+            ("memory_limit", int),
+            ("oom_terminate_all_tasks", bool),
+            ("pid_limit", int),
+            ("swap_limit", int),
+            ("time_limit", int),
+        ]:
+            if key not in data:
+                raise WorkflowParsingError(
+                    "Parsing resource group failed.",
+                    ParsingFailedOn.RESOURCE_GROUP,
+                    f"Missing key '{key}' in resource group data.",
+                )
+            if not isinstance(data[key], type):
+                raise WorkflowParsingError(
+                    "Parsing resource group failed.",
+                    ParsingFailedOn.RESOURCE_GROUP,
+                    f"Key '{key}' in resource group data is not of type {type.__name__}.",
+                )
+
         return cls(
             data["cpu_usage_limit"],
             data["instruction_limit"],
@@ -145,8 +170,12 @@ class ResourceGroupManager:
 
         :param data: The list of dictionaries to create the resource group manager from.
         """
-        for resource_group in data:
-            self.add(ResourceGroup.from_json(resource_group, self.id))
+        for i, resource_group in enumerate(data):
+            try:
+                self.add(ResourceGroup.from_json(resource_group, self.id))
+            except WorkflowParsingError as e:
+                e.set_data("resource_group_index", str(i))
+                raise e
             self.id += 1
 
     def all(self) -> list[ResourceGroup]:

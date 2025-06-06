@@ -174,7 +174,7 @@ class BaseArchive(object):
             extract_path = os.path.normpath(os.path.realpath(extract_path))
             if not extract_path.startswith(target_path):
                 raise UnsafeArchive(
-                    "Archive member destination is outside the target" " directory.  member: %s" % filename
+                    "Archive member destination is outside the target directory.  member: %s" % filename
                 )
 
 

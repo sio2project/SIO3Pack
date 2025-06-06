@@ -16,6 +16,8 @@ from tests.utils import assert_contents_equal
 
 def _save_and_test_simple(package_info: PackageInfo, config: SIO3PackConfig = None) -> tuple[Sinolpack, SIO3Package]:
     assert package_info.type == "sinolpack"
+    config = config or SIO3PackConfig(allow_unrecognized_files=True)
+    config.allow_unrecognized_files = True
     package = sio3pack.from_file(package_info.path, config)
     assert isinstance(package, Sinolpack)
     package.save_to_db(1)
@@ -33,7 +35,7 @@ def test_simple(get_archived_package):
 
     assert package.get_title() == db_package.full_name
 
-    with pytest.raises(sio3pack.PackageAlreadyExists):
+    with pytest.raises(sio3pack.exceptions.packages.PackageAlreadyExists):
         package.save_to_db(1)
 
 

@@ -7,7 +7,7 @@ try:
     import dash_cytoscape as cyto
     from dash import Input, Output, State, dcc, html
 except ImportError:
-    raise ImportError("Please install the 'dash' and 'dash-cytoscape' packages to use the visualizer.")
+    raise ImportError("Please install sio3pack with `pip install sio3pack[vis]` to use the visualizer.")
 
 import json
 import os

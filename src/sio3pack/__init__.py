@@ -1,7 +1,7 @@
-__version__ = "1.0.0.dev3"
+__version__ = "1.0.0.dev4"
 
+from sio3pack.exceptions import ImproperlyConfigured
 from sio3pack.files import LocalFile
-from sio3pack.packages.exceptions import *
 from sio3pack.packages.package import Package
 
 __all__ = ["from_file", "from_db"]
@@ -39,4 +39,8 @@ def from_db(problem_id: int, configuration: SIO3PackConfig = None) -> Package:
         configuration.django_settings = settings
         return Package.from_db(problem_id, configuration)
     except ImportError:
-        raise ImproperlyConfigured("sio3pack is not installed with Django support.")
+        raise ImproperlyConfigured(
+            "sio3pack is not installed with Django support.",
+            "from_db function was used, but sio3pack isn't installed with Django support. "
+            "Read the documentation to learn more.",
+        )

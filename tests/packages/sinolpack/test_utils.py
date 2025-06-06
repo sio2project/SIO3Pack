@@ -1,6 +1,7 @@
 import pytest
 
 import sio3pack
+from sio3pack import SIO3PackConfig
 from sio3pack.packages.sinolpack import Sinolpack, constants
 from sio3pack.test import Test
 from tests.fixtures import PackageInfo, get_package
@@ -9,7 +10,7 @@ from tests.fixtures import PackageInfo, get_package
 @pytest.mark.parametrize("get_package", ["simple"], indirect=True)
 def test_get_test_id(get_package):
     package_info: PackageInfo = get_package()
-    package: Sinolpack = sio3pack.from_file(package_info.path)
+    package: Sinolpack = sio3pack.from_file(package_info.path, SIO3PackConfig(allow_unrecognized_files=True))
 
     assert package.get_test_id_from_filename("abc1a.in") == "1a"
     assert package.get_test_id_from_filename("abc0.in") == "0"
@@ -26,7 +27,7 @@ def test_get_test_id(get_package):
 @pytest.mark.parametrize("get_package", ["simple"], indirect=True)
 def test_get_group(get_package):
     package_info: PackageInfo = get_package()
-    package: Sinolpack = sio3pack.from_file(package_info.path)
+    package: Sinolpack = sio3pack.from_file(package_info.path, SIO3PackConfig(allow_unrecognized_files=True))
 
     assert package.get_group_from_filename("abc1a.in") == "1"
     assert package.get_group_from_filename("abc0.in") == "0"
@@ -43,7 +44,7 @@ def test_get_group(get_package):
 @pytest.mark.parametrize("get_package", ["simple"], indirect=True)
 def test_get_corresponding_out(get_package):
     package_info: PackageInfo = get_package()
-    package: Sinolpack = sio3pack.from_file(package_info.path)
+    package: Sinolpack = sio3pack.from_file(package_info.path, SIO3PackConfig(allow_unrecognized_files=True))
 
     assert package.get_corresponding_out_filename("abc1a.in") == "abc1a.out"
     assert package.get_corresponding_out_filename("abc0.in") == "abc0.out"
@@ -56,7 +57,7 @@ def test_get_corresponding_out(get_package):
 @pytest.mark.parametrize("get_package", ["simple"], indirect=True)
 def test_get_limits(get_package):
     package_info: PackageInfo = get_package()
-    package: Sinolpack = sio3pack.from_file(package_info.path)
+    package: Sinolpack = sio3pack.from_file(package_info.path, SIO3PackConfig(allow_unrecognized_files=True))
 
     package.config = {
         "time_limit": 1000,

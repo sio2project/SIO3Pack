@@ -43,6 +43,7 @@ class SIO3PackConfig:
         django_settings=None,
         compilers_config: dict[str, CompilerConfig] = None,
         extensions_config: dict[str, str] = None,
+        allow_unrecognized_files: bool = False,
     ):
         """
         Initialize the configuration with Django settings.
@@ -52,9 +53,12 @@ class SIO3PackConfig:
             and the values are CompilerConfig objects.
         :param extensions_config: Dictionary of language configurations. The keys are the file extensions,
             and the values are the corresponding languages.
+        :param allow_unrecognized_files: If True, allows unrecognized files in in/ and out/ directories.
+            This is useful when working with packages locally.
         """
         self.django_settings = django_settings
         self.compilers_config = compilers_config if compilers_config else {}
+        self.allow_unrecognized_files = allow_unrecognized_files
         if extensions_config is None:
             self.extensions_config = {
                 ".cpp": "cpp",

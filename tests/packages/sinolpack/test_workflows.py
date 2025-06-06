@@ -26,6 +26,7 @@ def _get_run_types() -> list[str]:
 
 def _get_package(package_info: PackageInfo, type: str, config: SIO3PackConfig = None):
     config = config or SIO3PackConfig.detect()
+    config.allow_unrecognized_files = True
     if type == "file":
         return sio3pack.from_file(package_info.path, config)
     elif type == "db":
