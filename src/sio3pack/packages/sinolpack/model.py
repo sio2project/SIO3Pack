@@ -505,10 +505,11 @@ class Sinolpack(Package):
                     test_id = match.group(1)
                     group = match.group(2)
                     test_ids.add((test_id, group, test_name))
-                elif not self.configuration.allow_unrecognized_files:
+                elif not file.startswith('.') and not self.configuration.allow_unrecognized_files:
                     raise ProcessPackageError(
-                        f"Unrecognized test in {ext} directory: {file}",
-                        f"All files in the {ext} directory should match the pattern: " f"{self._get_test_regex()}.",
+                        f"Unrecognized file in '{ext}' directory: {file}",
+                        f"Unrecognized file in '{ext}' directory ({file}). All files in the {ext} directory "
+                        f"should match the pattern: " f"{self._get_test_regex()}.",
                     )
         # TODO: Sort this properly
         test_ids = sorted(test_ids)
